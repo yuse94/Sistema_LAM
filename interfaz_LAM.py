@@ -111,7 +111,7 @@ miFrame.config(width='882',height='362')
 miFrame.config(bd=3,relief='groove')
 #miFrame.config(cursor='hand2')
 
-fondo=PhotoImage(file='f2.gif')
+fondo=PhotoImage(file='fondo_interfaz_LAM.gif')
 Label(miFrame,image=fondo).place(x=0,y=0)
 #Label(miFrame, text='Por Youssef Abarca', 
 #      fg='red',font=('Comic Sans Ms',24)).place(x=300,y=200)
