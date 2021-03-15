@@ -284,11 +284,212 @@ class etiquetas():
 
 ############# REPORTE PDF ###################3
 
+def generarReporte(datosAnterio):
+    """
+    Genera el reporte PDF con su respectivo nombre
+    """
+    nombrePDF = nombre + '_' + time.strftime("%Y%m%d")+'_'+time.strftime("%H%M%S")
+    reporte = reportePDF(carpetaVoluntario + nombrePDF + '.pdf').Exportar(datosAnterio)
+    print(reporte)
+    return nombrePDF
+
+class numeracionPaginas(canvas.Canvas):
+    def __init__(self, *args, **kwargs):
+        canvas.Canvas.__init__(self, *args, **kwargs)
+        self._saved_page_states = []
+
+    def showPage(self):
+        self._saved_page_states.append(dict(self.__dict__))
+        self._startPage()
+
+    def save(self):
+        """Agregar información de la página a cada página (página x de y)"""
+        numeroPaginas = len(self._saved_page_states)
+        for state in self._saved_page_states:
+            self.__dict__.update(state)
+            self.draw_page_number(numeroPaginas)
+            canvas.Canvas.showPage(self)
+        canvas.Canvas.save(self)
+
+    def draw_page_number(self, conteoPaginas):
+        self.drawRightString(204 * mm, 15 * mm + (5 * mm),
+                             "Página {} de {}".format(self._pageNumber, conteoPaginas))
+
+    # ===================== FUNCIÓN generarReporte =====================
+
+def evaluacionAnterior():
+    imagen = io.imread('DSC_0376.jpg')
+    imagen = escalarImagen(imagen)
+    io.imshow(imagen)
+    plt.show()
+    imagenAnterior = ajustarImagen(imagen)
+
+    imagenAnteriorFiltrada = filtroColorVerde(imagenAnterior)
+    referenciaUno = etiquetas(imagenAnteriorFiltrada).referenciaUno
+    referenciaDos = etiquetas(imagenAnteriorFiltrada).referenciaDos
+    centrosCoordenadaY = etiquetas(imagenAnteriorFiltrada).centrosCoordenadaY
+    centrosCoordenadaX = etiquetas(imagenAnteriorFiltrada).centrosCoordenadaX
+    razonDeEscala = etiquetas(imagenAnteriorFiltrada).razonDeEscala
+
+    '''
+    PUTNOS ANATOMICOS
+    F1 = Entrecejo
+    F2 = Mentón
+    F3 = Hombro derecho
+    F4 = Hombro izquierdo
+    F5 = Esternón
+    F6 = Ombligo
+    F7 = Perlvis derecha
+    F8 = Perlvis izquierda
+    F9 = Rodilla derecho
+    F10= Rodilla izquierda
+    F11= Tobillo derecho
+    F12= Tobillo izquierdo
+    F13= Dedo gordo derecho
+    F14= Dedo gordo izquierdo
+    FcH= Centro hombros
+    FcY= Centro en Y (Pelvis)
+    FcR= Centro rodillas
+    FcX= Centro en X (Tobillos)
+    FcP= Centro en dedos pies
+    '''
+
+    F1 = (centrosCoordenadaY[0], centrosCoordenadaX[0])
+    F2 = (centrosCoordenadaY[1], centrosCoordenadaX[1])
+
+    coordenadaTempY = [centrosCoordenadaY[2], centrosCoordenadaY[3], centrosCoordenadaY[4]]
+    coordenadaTempX = [centrosCoordenadaX[2], centrosCoordenadaX[3], centrosCoordenadaX[4]]
+    posicion = [i for i, x in enumerate(coordenadaTempX) if x == min(coordenadaTempX)]
+    F3 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+    coordenadaTempY.pop(posicion[0])
+    coordenadaTempX.pop(posicion[0])
+    posicion = [i for i, x in enumerate(coordenadaTempX) if x == max(coordenadaTempX)]
+    F4 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+    coordenadaTempY.pop(posicion[0])
+    coordenadaTempX.pop(posicion[0])
+    F5 = coordenadaTempY[0], coordenadaTempX[0]
+
+    coordenadaTempY = [centrosCoordenadaY[5], centrosCoordenadaY[6], centrosCoordenadaY[7]]
+    coordenadaTempX = [centrosCoordenadaX[5], centrosCoordenadaX[6], centrosCoordenadaX[7]]
+    posicion = [i for i, x in enumerate(coordenadaTempX) if x == min(coordenadaTempX)]
+    F7 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+    coordenadaTempY.pop(posicion[0])
+    coordenadaTempX.pop(posicion[0])
+    posicion = [i for i, x in enumerate(coordenadaTempX) if x == max(coordenadaTempX)]
+    F8 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+    coordenadaTempY.pop(posicion[0])
+    coordenadaTempX.pop(posicion[0])
+    F6 = coordenadaTempY[0], coordenadaTempX[0]
+
+    coordenadaTempY = [centrosCoordenadaY[8], centrosCoordenadaY[9]]
+    coordenadaTempX = [centrosCoordenadaX[8], centrosCoordenadaX[9]]
+    posicion = [i for i, x in enumerate(coordenadaTempX) if x == min(coordenadaTempX)]
+    F9 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+    posicion = [i for i, x in enumerate(coordenadaTempX) if x == max(coordenadaTempX)]
+    F10 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+
+    coordenadaTempY = [centrosCoordenadaY[10], centrosCoordenadaY[11]]
+    coordenadaTempX = [centrosCoordenadaX[10], centrosCoordenadaX[11]]
+    posicion = [i for i, x in enumerate(coordenadaTempX) if x == min(coordenadaTempX)]
+    F11 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+    posicion = [i for i, x in enumerate(coordenadaTempX) if x == max(coordenadaTempX)]
+    F12 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+
+    coordenadaTempY = [centrosCoordenadaY[12], centrosCoordenadaY[13]]
+    coordenadaTempX = [centrosCoordenadaX[12], centrosCoordenadaX[13]]
+    posicion = [i for i, x in enumerate(coordenadaTempX) if x == min(coordenadaTempX)]
+    F13 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+    posicion = [i for i, x in enumerate(coordenadaTempX) if x == max(coordenadaTempX)]
+    F14 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+
+    FcH = np.mean([F3, F4], axis=0)
+    FcY = np.mean([F7, F8], axis=0)
+    FcR = np.mean([F9, F10], axis=0)
+    FcX = np.mean([F11, F12], axis=0)
+    FcP = np.mean([F13, F14], axis=0)
+
+    F1 = np.array(F1)
+    F2 = np.array(F2)
+    F3 = np.array(F3)
+    F4 = np.array(F4)
+    F5 = np.array(F5)
+    F6 = np.array(F6)
+    F7 = np.array(F7)
+    F8 = np.array(F8)
+    F9 = np.array(F9)
+    F10 = np.array(F10)
+    F11 = np.array(F11)
+    F12 = np.array(F12)
+    F13 = np.array(F13)
+    F14 = np.array(F14)
+
+    FcH = np.array(FcH)
+    FcY = np.array(FcY)
+    FcR = np.array(FcR)
+    FcX = np.array(FcX)
+    FcP = np.array(FcP)
+
+    plt.figure(1)
+    plt.title('Vista Anterior')
+
+    plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="1")
+
+    plt.plot(FcH[1], FcH[0], 'rx', markersize="3")
+    plt.plot(FcY[1], FcY[0], 'rx', markersize="3")
+    plt.plot(FcR[1], FcR[0], 'rx', markersize="3")
+    plt.plot(FcX[1], FcX[0], 'rx', markersize="3")
+
+    coordenadasReferencia = referenciaDos - referenciaUno
+    tamanioDivisiones = np.sqrt((coordenadasReferencia[0] ** 2 + coordenadasReferencia[1] ** 2)) / 20.0
+
+    centroX = FcX[1]
+    centroY = FcY[0]
+    tamanioX = len(imagenAnterior[1])
+    tamanioY = len(imagenAnterior)
+
+    (xCuadricula, yCuadricula, xHorizontal, yHorizontal, xVertical, yVertical) = cuadricula(centroX, centroY, tamanioX,
+                                                                                            tamanioY, tamanioDivisiones)
+
+    plt.plot(xCuadricula, yCuadricula, 'k', xCuadricula.T, yCuadricula.T, 'k', linewidth=0.1)
+    plt.plot(xHorizontal, yHorizontal, 'r', linewidth=0.3)
+    plt.plot(xVertical, yVertical, 'r', linewidth=0.3)
+
+    io.imshow(imagenAnterior)
+
+    dirImagenAnterior = imgVoluntario + nombreImagenAnterior + '.jpg'
+    time.sleep(1)
+
+    plt.savefig(dirImagenAnterior, dpi=500)
+    plt.show()
+
+    # TA1
+    hombroDescendido, anguloHombro = tablaAnteriorParteUno(F3, F4)
+    pelvisDescendida, anguloPelvis = tablaAnteriorParteUno(F7, F8)
+    rodillaDescendida, anguloRodilla = tablaAnteriorParteUno(F9, F10)
+
+    # TA2
+    direccionFrente, distanciaFrente = tablaAnteriorParteDos(FcX, F1, razonDeEscala)
+    direccionHombros, distanciaHombros = tablaAnteriorParteDos(FcX, FcH, razonDeEscala)
+    direccionOmbligo, distanciaOmbligo = tablaAnteriorParteDos(FcX, F6, razonDeEscala)
+    direccionPelvis, distanciaPelvis = tablaAnteriorParteDos(FcX, FcY, razonDeEscala)
+    direccionRodillas, distanciaRodillas = tablaAnteriorParteDos(FcX, FcR, razonDeEscala)
+    direccionPies, distanciaPies = tablaAnteriorParteDos(FcX, FcP, razonDeEscala)
+
+    # TA3
+    direccionPieIzquierdo, anguloPieIzquierdo = tablaAnteriorParteTres(F12, F14)
+    direccionPieDerecho, anguloPieDerecho = tablaAnteriorParteTres(F11, F13)
+
+    datos = [hombroDescendido, anguloHombro, pelvisDescendida, anguloPelvis, rodillaDescendida, anguloRodilla,
+             direccionFrente, distanciaFrente, direccionHombros, distanciaHombros, direccionOmbligo, distanciaOmbligo,
+             direccionPelvis, distanciaPelvis, direccionRodillas, distanciaRodillas, direccionPies, distanciaPies,
+             direccionPieIzquierdo, anguloPieIzquierdo, direccionPieDerecho, anguloPieDerecho]
+
+    return datos
+
 class reportePDF(object):
     """
     Exportar los datos del analisis al PDF.
     """
-
     def __init__(self, nombrePDF):
         super(reportePDF, self).__init__()
 
@@ -325,7 +526,7 @@ class reportePDF(object):
         # Suelta el lienzo
         canvas.restoreState()
 
-    def Exportar(self):
+    def Exportar(self, dbAnterior):
         """Exportar los datos a un archivo PDF."""
 
         PS = ParagraphStyle
@@ -369,9 +570,23 @@ class reportePDF(object):
         tablaDatos._argW[1] = 38 * mm
 
         tablaAnteriorParteUnoPDF = Table([['Segmento Corporal', 'Descendido', 'Ángulo'],
-                                          ['Hombro', hombroDescendido, anguloHombro],
-                                          ['Pelvis', pelvisDescendida, anguloPelvis],
-                                          ['Rodilla', rodillaDescendida, anguloRodilla]],
+                                          ['Hombro', dbAnterior[0], dbAnterior[1]],
+                                          ['Pelvis', dbAnterior[2], dbAnterior[3]],
+                                          ['Rodilla', dbAnterior[4], dbAnterior[5]]],
+                                         colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
+
+        tablaAnteriorParteDosPDF = Table([['Referencia', 'Dirección', 'Distancia'],
+                                          ['Frente', dbAnterior[6], dbAnterior[7]],
+                                          ['Hombros', dbAnterior[8], dbAnterior[9]],
+                                          ['Ombligo', dbAnterior[10], dbAnterior[11]],
+                                          ['Pelvis', dbAnterior[12], dbAnterior[13]],
+                                          ['Rodillas', dbAnterior[14], dbAnterior[15]],
+                                          ['Pies', dbAnterior[16], dbAnterior[17]]],
+                                         colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
+
+        tablaAnteriorParteTresPDF = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
+                                          ['Pie Izquierdo', dbAnterior[18], dbAnterior[19]],
+                                          ['Pie Derecho', dbAnterior[20], dbAnterior[21]]],
                                          colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
 
         historia = []
@@ -381,12 +596,22 @@ class reportePDF(object):
         historia.append(get_image("logo.png", height=100*mm))
         historia.append(PageBreak())
 
+        # PAGINA TABLA EVALUACION ANTERIOR
         historia.append(get_image(imgVoluntario + nombreImagenAnterior+'.jpg', height=100*mm))
         historia.append(Paragraph("Grados con respecto a la horizontal:", parrafoPrincipal))
         historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafoSecundario))
         historia.append(tablaAnteriorParteUnoPDF)
+        historia.append(Paragraph("Distancia con respecto a la vertical:", parrafoPrincipal))
+        historia.append(Paragraph("La distancia ideal debe ser <strong>0 cm</strong>.", parrafoSecundario))
+        historia.append(tablaAnteriorParteDosPDF)
+        historia.append(Paragraph("Grados de rotación de los pies:", parrafoPrincipal))
+        historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafoSecundario))
+        historia.append(tablaAnteriorParteTresPDF)
         historia.append(PageBreak())
 
+        # PAGINA TABLA EVALUACION POSTERIOR
+
+        # PAGINA TABLA EVALUACION LATERALD
 
         archivoPDF = SimpleDocTemplate(self.nombrePDF, leftMargin=50, rightMargin=50, pagesize=letter,
                                        title="Reporte PDF", author="Youssef Abarca")
@@ -403,39 +628,6 @@ class reportePDF(object):
             # +--------------------------------------------+
             return "Error inesperado: Permiso denegado."
         # +--------------------------------------------+
-
-def generarReporte():
-    """
-    Genera el reporte PDF con su respectivo nombre
-    """
-    nombrePDF = nombre + '_' + time.strftime("%Y%m%d")+'_'+time.strftime("%H%M%S")
-    reporte = reportePDF(carpetaVoluntario + nombrePDF + '.pdf').Exportar()
-    print(reporte)
-    return nombrePDF
-
-class numeracionPaginas(canvas.Canvas):
-    def __init__(self, *args, **kwargs):
-        canvas.Canvas.__init__(self, *args, **kwargs)
-        self._saved_page_states = []
-
-    def showPage(self):
-        self._saved_page_states.append(dict(self.__dict__))
-        self._startPage()
-
-    def save(self):
-        """Agregar información de la página a cada página (página x de y)"""
-        numeroPaginas = len(self._saved_page_states)
-        for state in self._saved_page_states:
-            self.__dict__.update(state)
-            self.draw_page_number(numeroPaginas)
-            canvas.Canvas.showPage(self)
-        canvas.Canvas.save(self)
-
-    def draw_page_number(self, conteoPaginas):
-        self.drawRightString(204 * mm, 15 * mm + (5 * mm),
-                             "Página {} de {}".format(self._pageNumber, conteoPaginas))
-
-    # ===================== FUNCIÓN generarReporte =====================
 
 ####### PROGRAMA #######
 
@@ -480,176 +672,12 @@ nombreImagenAnterior = 'Anterior'+'_'+time.strftime("%Y%m%d")+'_'+time.strftime(
 anguloTolerancia = 0.0
 distanciaTolerancia = 0.0
 
-imagen = io.imread('DSC_0376.jpg')
-imagen = escalarImagen(imagen)
-io.imshow(imagen)
-plt.show()
-imagenAnterior = ajustarImagen(imagen)
+resultadosAnterior = evaluacionAnterior()
 
-imagenAnteriorFiltrada = filtroColorVerde(imagenAnterior)
-referenciaUno = etiquetas(imagenAnteriorFiltrada).referenciaUno
-referenciaDos = etiquetas(imagenAnteriorFiltrada).referenciaDos
-centrosCoordenadaY = etiquetas(imagenAnteriorFiltrada).centrosCoordenadaY
-centrosCoordenadaX = etiquetas(imagenAnteriorFiltrada).centrosCoordenadaX
-razonDeEscala = etiquetas(imagenAnteriorFiltrada).razonDeEscala
-
-'''
-PUTNOS ANATOMICOS
-F1 = Entrecejo
-F2 = Mentón
-F3 = Hombro derecho
-F4 = Hombro izquierdo
-F5 = Esternón
-F6 = Ombligo
-F7 = Perlvis derecha
-F8 = Perlvis izquierda
-F9 = Rodilla derecho
-F10= Rodilla izquierda
-F11= Tobillo derecho
-F12= Tobillo izquierdo
-F13= Dedo gordo derecho
-F14= Dedo gordo izquierdo
-FcH= Centro hombros
-FcY= Centro en Y (Pelvis)
-FcR= Centro rodillas
-FcX= Centro en X (Tobillos)
-FcP= Centro en dedos pies
-'''
-
-F1 = (centrosCoordenadaY[0], centrosCoordenadaX[0])
-F2 = (centrosCoordenadaY[1], centrosCoordenadaX[1])
-
-coordenadaTempY = [centrosCoordenadaY[2], centrosCoordenadaY[3], centrosCoordenadaY[4]]
-coordenadaTempX = [centrosCoordenadaX[2], centrosCoordenadaX[3], centrosCoordenadaX[4]]
-posicion = [i for i, x in enumerate(coordenadaTempX) if x == min(coordenadaTempX)]
-F3 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
-coordenadaTempY.pop(posicion[0])
-coordenadaTempX.pop(posicion[0])
-posicion = [i for i, x in enumerate(coordenadaTempX) if x == max(coordenadaTempX)]
-F4 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
-coordenadaTempY.pop(posicion[0])
-coordenadaTempX.pop(posicion[0])
-F5 = coordenadaTempY[0], coordenadaTempX[0]
-
-coordenadaTempY = [centrosCoordenadaY[5], centrosCoordenadaY[6], centrosCoordenadaY[7]]
-coordenadaTempX = [centrosCoordenadaX[5], centrosCoordenadaX[6], centrosCoordenadaX[7]]
-posicion = [i for i, x in enumerate(coordenadaTempX) if x == min(coordenadaTempX)]
-F7 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
-coordenadaTempY.pop(posicion[0])
-coordenadaTempX.pop(posicion[0])
-posicion = [i for i, x in enumerate(coordenadaTempX) if x == max(coordenadaTempX)]
-F8 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
-coordenadaTempY.pop(posicion[0])
-coordenadaTempX.pop(posicion[0])
-F6 = coordenadaTempY[0], coordenadaTempX[0]
-
-coordenadaTempY = [centrosCoordenadaY[8], centrosCoordenadaY[9]]
-coordenadaTempX = [centrosCoordenadaX[8], centrosCoordenadaX[9]]
-posicion = [i for i, x in enumerate(coordenadaTempX) if x == min(coordenadaTempX)]
-F9 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
-posicion = [i for i, x in enumerate(coordenadaTempX) if x == max(coordenadaTempX)]
-F10 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
-
-coordenadaTempY = [centrosCoordenadaY[10], centrosCoordenadaY[11]]
-coordenadaTempX = [centrosCoordenadaX[10], centrosCoordenadaX[11]]
-posicion = [i for i, x in enumerate(coordenadaTempX) if x == min(coordenadaTempX)]
-F11 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
-posicion = [i for i, x in enumerate(coordenadaTempX) if x == max(coordenadaTempX)]
-F12 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
-
-coordenadaTempY = [centrosCoordenadaY[12], centrosCoordenadaY[13]]
-coordenadaTempX = [centrosCoordenadaX[12], centrosCoordenadaX[13]]
-posicion = [i for i, x in enumerate(coordenadaTempX) if x == min(coordenadaTempX)]
-F13 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
-posicion = [i for i, x in enumerate(coordenadaTempX) if x == max(coordenadaTempX)]
-F14 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
-
-FcH = np.mean([F3, F4], axis=0)
-FcY = np.mean([F7, F8], axis=0)
-FcR = np.mean([F9, F10], axis=0)
-FcX = np.mean([F11, F12], axis=0)
-FcP = np.mean([F13, F14], axis=0)
-
-F1 = np.array(F1)
-F2 = np.array(F2)
-F3 = np.array(F3)
-F4 = np.array(F4)
-F5 = np.array(F5)
-F6 = np.array(F6)
-F7 = np.array(F7)
-F8 = np.array(F8)
-F9 = np.array(F9)
-F10 = np.array(F10)
-F11 = np.array(F11)
-F12 = np.array(F12)
-F13 = np.array(F13)
-F14 = np.array(F14)
-
-FcH = np.array(FcH)
-FcY = np.array(FcY)
-FcR = np.array(FcR)
-FcX = np.array(FcX)
-FcP = np.array(FcP)
-
-plt.figure(1)
-plt.title('Vista Anterior')
-
-plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="1")
-
-plt.plot(FcH[1], FcH[0], 'rx', markersize="3")
-plt.plot(FcY[1], FcY[0], 'rx', markersize="3")
-plt.plot(FcR[1], FcR[0], 'rx', markersize="3")
-plt.plot(FcX[1], FcX[0], 'rx', markersize="3")
-
-coordenadasReferencia= referenciaDos - referenciaUno
-tamanioDivisiones = np.sqrt((coordenadasReferencia[0] ** 2 + coordenadasReferencia[1] ** 2)) / 20.0
-
-centroX = FcX[1]
-centroY = FcY[0]
-tamanioX = len(imagenAnterior[1])
-tamanioY = len(imagenAnterior)
-
-(xCuadricula, yCuadricula, xHorizontal, yHorizontal, xVertical, yVertical) = cuadricula(centroX, centroY, tamanioX, tamanioY, tamanioDivisiones)
-
-plt.plot(xCuadricula, yCuadricula, 'k', xCuadricula.T, yCuadricula.T, 'k', linewidth=0.1)
-plt.plot(xHorizontal, yHorizontal, 'r', linewidth=0.3)
-plt.plot(xVertical, yVertical, 'r', linewidth=0.3)
-
-io.imshow(imagenAnterior)
-
-dirImagenAnterior = imgVoluntario + nombreImagenAnterior +'.jpg'
-time.sleep(1)
-
-plt.savefig(dirImagenAnterior, dpi=500)
-plt.show()
-
-# TA1
-hombroDescendido, anguloHombro = tablaAnteriorParteUno(F3, F4)
-pelvisDescendida, anguloPelvis = tablaAnteriorParteUno(F7, F8)
-rodillaDescendida, anguloRodilla = tablaAnteriorParteUno(F9, F10)
-
-# TA2
-direccionFrente, distanciaFrente = tablaAnteriorParteDos(FcX, F1, razonDeEscala)
-direccionHombros, distanciaHombros = tablaAnteriorParteDos(FcX, FcH, razonDeEscala)
-direccionOmbligo, distanciaOmbligo = tablaAnteriorParteDos(FcX, F6, razonDeEscala)
-direccionPelvis, distanciaPelvis = tablaAnteriorParteDos(FcX, FcY, razonDeEscala)
-direccionRodillas, distanciaRodillas = tablaAnteriorParteDos(FcX, FcR, razonDeEscala)
-direccionPies, distanciaPies = tablaAnteriorParteDos(FcX, FcP, razonDeEscala)
-
-# TA3
-direccionPieIzquierdo, anguloPieIzquierdo = tablaAnteriorParteTres(F12, F14)
-direccionPieDerecho, anguloPieDerecho = tablaAnteriorParteTres(F11, F13)
-
-
-datos = [hombroDescendido, anguloHombro,pelvisDescendida, anguloPelvis,rodillaDescendida, anguloRodilla,
-         direccionFrente, distanciaFrente,direccionHombros, distanciaHombros,direccionOmbligo, distanciaOmbligo,
-         direccionPelvis, distanciaPelvis,direccionRodillas, distanciaRodillas,direccionPies, distanciaPies,
-         direccionPieIzquierdo, anguloPieIzquierdo,direccionPies, distanciaPies]
-
-dataTablaAnterior = pd.DataFrame(datos)
+dataTablaAnterior = pd.DataFrame(resultadosAnterior)
 print(dataTablaAnterior.T)
 
-nombrePDF = generarReporte()
+nombrePDF = generarReporte(resultadosAnterior)
 
 
 direccionImagen='=HYPERLINK("'+imgVoluntario + nombreImagenAnterior+'.jpg","'+nombreImagenAnterior+'")'
@@ -720,3 +748,4 @@ with pd.ExcelWriter(dirDBxlsx, engine='openpyxl') as writer:
 
 print('LISTOOOOOOOO')
 input()
+
