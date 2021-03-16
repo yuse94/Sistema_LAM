@@ -972,7 +972,8 @@ print(dataTablaPosterior.T)
 nombrePDF = generarReporte(resultadosAnterior, resultadosPosterior)
 
 
-direccionImagen='=HYPERLINK("'+imgVoluntario + nombreImagenAnterior+'.jpg","'+nombreImagenAnterior+'")'
+direccionImagenAnterior= '=HYPERLINK("' + imgVoluntario + nombreImagenAnterior + '.jpg","' + nombreImagenAnterior + '")'
+direccionImagenPosterior= '=HYPERLINK("' + imgVoluntario + nombreImagenPosterior + '.jpg","' + nombreImagenPosterior + '")'
 direccionReporte='=HYPERLINK("'+carpetaVoluntario + nombrePDF +'.pdf","'+nombrePDF+'")'
 
 encabezadoAnterior = pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]', 'Ocupación',
@@ -987,6 +988,20 @@ encabezadoAnterior = pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Pe
                             'Dirección de los Pies','Distancia de los Pies',
                             'Rotación Pie Izquierdo', 'Ángulo Pie Izquierdo',
                             'Rotación Pie Derecho', 'Ángulo Pie Derecho','Dirección Imagen',
+                            'Dirección del Reporte'])
+
+encabezadoPosterior = pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]', 'Ocupación',
+                            'Hombro Descendido', 'Ángulo del hombro',
+                            'Pelvis Descendida', 'Ángulo de la Pelvis',
+                            'Rodilla Descendida', 'Ángulo de Rodilla',
+                            'Dirección de la Hombros', 'Distancia de la Hombros',
+                            'Dirección de los 7ma Cervical', 'Distancia de los 7ma Cervical',
+                            'Dirección del 5ta Torácica','Distancia del 5ta Torácica',
+                            'Dirección de la Pelvis','Distancia de la Pelvis',
+                            'Dirección de las Rodillas','Distancia de las Rodillas',
+                            'Dirección de los Tobillos','Distancia de los Tobillos',
+                            'Dirección Pie Izquierdo', 'Ángulo Pie Izquierdo',
+                            'Dirección Pie Derecho', 'Ángulo Pie Derecho','Dirección Imagen',
                             'Dirección del Reporte'])
 
 encabezadoDatos = pd.DataFrame([fecha, nombre, edad, genero, peso, talla, ocupacion])
@@ -1015,18 +1030,22 @@ with pd.ExcelWriter(dirDBxlsx, engine='openpyxl') as writer:
                           header=False, index=False, startrow=nCeldasAnterior+1, startcol=0)
     dataTablaAnterior.T.to_excel(writer, 'Anterior',
                                          header=False, index=False, startrow=nCeldasAnterior+1, startcol=7)
-    pd.DataFrame({'link':[direccionImagen]}).T.to_excel(writer, 'Anterior',
-                                         header=False, index=False, startrow=nCeldasAnterior+1, startcol=29)
+    pd.DataFrame({'link':[direccionImagenAnterior]}).T.to_excel(writer, 'Anterior',
+                                                                header=False, index=False, startrow=nCeldasAnterior+1, startcol=29)
     pd.DataFrame({'link':[direccionReporte]}).T.to_excel(writer, 'Anterior',
                                          header=False, index=False, startrow=nCeldasAnterior+1, startcol=30)
     time.sleep(1)
 
-    encabezadoAnterior.T.to_excel(writer, 'Posterior',
+    encabezadoPosterior.T.to_excel(writer, 'Posterior',
                                   header=True, index=False, startrow=0, startcol=0)
     encabezadoDatos.T.to_excel(writer, 'Posterior',
                           header=False, index=False, startrow=nCeldasPosterior+1, startcol=0)
-    dataTablaAnterior.T.to_excel(writer, 'Posterior',
+    dataTablaPosterior.T.to_excel(writer, 'Posterior',
                                          header=False, index=False, startrow=nCeldasPosterior+1, startcol=7)
+    pd.DataFrame({'link':[direccionImagenPosterior]}).T.to_excel(writer, 'Posterior',
+                                                                header=False, index=False, startrow=nCeldasPosterior+1, startcol=29)
+    pd.DataFrame({'link':[direccionReporte]}).T.to_excel(writer, 'Posterior',
+                                         header=False, index=False, startrow=nCeldasPosterior+1, startcol=30)
     time.sleep(1)
 
     encabezadoAnterior.T.to_excel(writer, 'LateralD',
