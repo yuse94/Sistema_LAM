@@ -682,7 +682,7 @@ def evaluacionPosterior(fotoPosterior):
     PcX = np.array(PcX)
 
     plt.figure(1)
-    plt.title('Vista POSTERIOR')
+    plt.title('Vista Posterior')
 
     plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="1")
 
