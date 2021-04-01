@@ -1,0 +1,10 @@
+*.png
+*.pdf
+*.JPG
+*.jpg
+*.ipynb
+*.psd
+*.gif
+test_DB_Reporte.py
+DB_USUARIOS.db
+tipos_de_postura/*.*

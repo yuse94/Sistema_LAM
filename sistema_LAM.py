@@ -322,6 +322,99 @@ def tablaPosteriorParteTres(puntoAnatomicoUno, puntoAnatomicoDos):
 
     return direccion, angulo
 
+# Funciones de la vista Lateral Derecha
+
+def tablaLateralDParteUno(puntoAnatomicoUno, puntoAnatomicoDos):
+    """
+
+    :param puntoAnatomicoUno:
+    :param puntoAnatomicoDos:
+    :return direccion, angulo:
+
+    ||||||||||||||||||||||||||||||||||||||||||||||
+    || Segmento Corporal || Direccion || Angulo ||
+    ||||||||||||||||||||||||||||||||||||||||||||||
+    || Cabeza-Hombro     || xxx       || xx °   ||
+    || Hombro-Pelvis     || xxx       || xx °   ||
+    || Caderas-Rodillas  || xxx       || xx °   ||
+    || Rodillas-Pies     || xxx       || xx °   ||
+    ||||||||||||||||||||||||||||||||||||||||||||||
+    """
+
+    distancia = puntoAnatomicoUno - puntoAnatomicoDos
+    angulo = abs(np.angle(complex(distancia[1], distancia[0]), deg=True))
+
+    if angulo < -90 - anguloTolerancia:
+        direccion = 'Pos.'
+    elif angulo > -90 + anguloTolerancia:
+        direccion = 'Ant.'
+    else:
+        direccion = 'Alin.'
+
+    angulo = round((angulo + 90), 4)
+
+    return direccion, angulo
+
+def tablaLateralDParteDos(puntoAnatomicoUno, puntoAnatomicoDos):
+    """
+
+    :param puntoAnatomicoUno:
+    :param puntoAnatomicoDos:
+    :return direccion, angulo:
+
+    ||||||||||||||||||||||||||||||||||||||||||||||
+    || Segmento Corporal || Direccion || Angulo ||
+    ||||||||||||||||||||||||||||||||||||||||||||||
+    || Pelvis            || xxx       || xx °   ||
+    ||||||||||||||||||||||||||||||||||||||||||||||
+    """
+
+    distancia = puntoAnatomicoUno - puntoAnatomicoDos
+    angulo = abs(np.angle(complex(distancia[1], distancia[0]), deg=True))
+
+    if angulo > 15:
+        direccion = 'Ant.'
+    elif angulo < 5:
+        direccion = 'Pos.'
+    else:
+        direccion = 'Normal'
+
+    angulo = round((angulo), 4)
+
+    return direccion, angulo
+
+def tablaLateralDParteTres(puntoAnatomicoUno, puntoAnatomicoDos, escala):
+    """
+    :param puntoAnatomicoUno:
+    :param puntoAnatomicoDos:
+    :param escala:
+    :return direccion, distancia:
+
+    |||||||||||||||||||||||||||||||||||||||||||||||
+    || Referencia || Direccion || Distancia [cm] ||
+    |||||||||||||||||||||||||||||||||||||||||||||||
+    || Hombros    || xxx       || xx             ||
+    || 7maCervical|| xxx       || xx             ||
+    || 5taTorácica|| xxx       || xx             ||
+    || Pelvis     || xxx       || xx             ||
+    || Rodillas   || xxx       || xx             ||
+    || Tobillos   || xxx       || xx             ||
+    |||||||||||||||||||||||||||||||||||||||||||||||
+    """
+
+    distancia = (puntoAnatomicoUno[1] - puntoAnatomicoDos[1]) * escala
+
+    if distancia < distanciaTolerancia:
+        direccion = 'Ant.'
+    elif distancia > -distanciaTolerancia:
+        direccion = 'Pos.'
+    else:
+        direccion = 'Alin.'
+
+    distancia = round(distancia, 4) # Número de cifras significativas
+
+    return direccion, distancia
+
 ###### Clase de segmentación ############
 
 class etiquetas():
@@ -376,12 +469,12 @@ class etiquetas():
 
 ############# REPORTE PDF ###################3
 
-def generarReporte(datosAnterior, datosPosterior):
+def generarReporte(datosAnterior, datosPosterior, datosLateralD):
     """
     Genera el reporte PDF con su respectivo nombre
     """
     nombrePDF = nombre + '_' + time.strftime("%Y%m%d")+'_'+time.strftime("%H%M%S")
-    reporte = reportePDF(carpetaVoluntario + nombrePDF + '.pdf').Exportar(datosAnterior, datosPosterior)
+    reporte = reportePDF(carpetaVoluntario + nombrePDF + '.pdf').Exportar(datosAnterior, datosPosterior, datosLateralD)
     print(reporte)
     return nombrePDF
 
@@ -499,6 +592,8 @@ def evaluacionAnterior(fotoAnterior):
     FcR = np.mean([F9, F10], axis=0)
     FcX = np.mean([F11, F12], axis=0)
     FcP = np.mean([F13, F14], axis=0)
+
+# F2 y F5 aún sin uso
 
     F1 = np.array(F1)
     F2 = np.array(F2)
@@ -621,9 +716,9 @@ def evaluacionPosterior(fotoPosterior):
     coordenadaTempY.pop(posicion[0])
     coordenadaTempX.pop(posicion[0])
     posicion = [i for i, x in enumerate(coordenadaTempX) if x == max(coordenadaTempX)]
-    P3 = coordenadaTempY[posicion[-1]], coordenadaTempX[posicion[-1]]
-    coordenadaTempY.pop(posicion[-1])
-    coordenadaTempX.pop(posicion[-1])
+    P3 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+    coordenadaTempY.pop(posicion[0])
+    coordenadaTempX.pop(posicion[0])
     P1 = coordenadaTempY[0], coordenadaTempX[0]
 
     P2 = (centrosCoordenadaY[3], centrosCoordenadaX[3])
@@ -740,6 +835,112 @@ def evaluacionPosterior(fotoPosterior):
 
     return datos
 
+def evaluacionLateralD(fotoLateralD):
+    imagen = io.imread(fotoLateralD)
+    imagen = escalarImagen(imagen)
+    io.imshow(imagen)
+    plt.show()
+    imagenLateralD = ajustarImagen(imagen)
+
+    imagenLateralDFiltrada = filtroColorVerde(imagenLateralD)
+    referenciaUno = etiquetas(imagenLateralDFiltrada).referenciaUno
+    referenciaDos = etiquetas(imagenLateralDFiltrada).referenciaDos
+    centrosCoordenadaY = etiquetas(imagenLateralDFiltrada).centrosCoordenadaY
+    centrosCoordenadaX = etiquetas(imagenLateralDFiltrada).centrosCoordenadaX
+    razonDeEscala = etiquetas(imagenLateralDFiltrada).razonDeEscala
+
+    '''
+    PUTNOS ANATOMICOS
+    L1 = Oido
+    L2 = Hombro
+    L3 = Pelvis Posterior
+    L4 = Pelvis Anterior
+    L5 = Cadera
+    L6 = Rodilla
+    L7 = Planta
+    LcY= Centro en Y (Pelvis)
+    '''
+
+    L1 = (centrosCoordenadaY[0], centrosCoordenadaX[0])
+    L2 = (centrosCoordenadaY[1], centrosCoordenadaX[1])
+
+    coordenadaTempY = [centrosCoordenadaY[2], centrosCoordenadaY[3]]
+    coordenadaTempX = [centrosCoordenadaX[2], centrosCoordenadaX[3]]
+    posicion = [i for i, x in enumerate(coordenadaTempX) if x == min(coordenadaTempX)]
+    L3 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+    posicion = [i for i, x in enumerate(coordenadaTempX) if x == max(coordenadaTempX)]
+    L4 = coordenadaTempY[posicion[0]], coordenadaTempX[posicion[0]]
+
+    L5 = (centrosCoordenadaY[4], centrosCoordenadaX[4])
+    L6 = (centrosCoordenadaY[5], centrosCoordenadaX[5])
+    L7 = (centrosCoordenadaY[6], centrosCoordenadaX[6])
+
+    LcY = np.mean([L3, L4], axis=0)
+
+    L1 = np.array(L1)
+    L2 = np.array(L2)
+    L3 = np.array(L3)
+    L4 = np.array(L4)
+    L5 = np.array(L5)
+    L6 = np.array(L6)
+    L7 = np.array(L7)
+
+    LcY = np.array(LcY)
+
+    plt.figure(1)
+    plt.title('Vista Lateral Derecha')
+
+    plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="1")
+
+    plt.plot(LcY[1], LcY[0], 'rx', markersize="3")
+
+    coordenadasReferencia = referenciaDos - referenciaUno
+    tamanioDivisiones = np.sqrt((coordenadasReferencia[0] ** 2 + coordenadasReferencia[1] ** 2)) / 20.0
+
+    centroX = L7[1]
+    centroY = LcY[0]
+    tamanioX = len(imagenLateralD[1])
+    tamanioY = len(imagenLateralD)
+
+    (xCuadricula, yCuadricula, xHorizontal, yHorizontal, xVertical, yVertical) = cuadricula(centroX, centroY, tamanioX,
+                                                                                            tamanioY, tamanioDivisiones)
+
+    plt.plot(xCuadricula, yCuadricula, 'k', xCuadricula.T, yCuadricula.T, 'k', linewidth=0.1)
+    plt.plot(xHorizontal, yHorizontal, 'r', linewidth=0.3)
+    plt.plot(xVertical, yVertical, 'r', linewidth=0.3)
+
+    io.imshow(imagenLateralD)
+
+    dirImagenLateralD = imgVoluntario + nombreImagenLateralD + '.jpg'
+    time.sleep(1)
+
+    plt.savefig(dirImagenLateralD, dpi=500)
+    plt.show()
+
+    # TL1
+    direccionCabezaHombro, anguloCabezaHombro = tablaLateralDParteUno(L1, L2)
+    direccionHombroPelvis, anguloHombroPelvis = tablaLateralDParteUno(L2, LcY)
+    direccionCaderaRodillas, anguloCaderaRodillas = tablaLateralDParteUno(L5, L6)
+    direccionRodillasPies, anguloRodillasPies = tablaLateralDParteUno(L6, L7)
+
+    # TL2
+    direccionPelvis, anguloPelvis = tablaLateralDParteDos(L3, L4)
+
+    # TL3
+    direccionCabeza, distanciaCabeza = tablaLateralDParteTres(L7, L1, razonDeEscala)
+    direccionHombro, distanciaHombro = tablaLateralDParteTres(L7, L2, razonDeEscala)
+    direccionPelvisL3, distanciaPelvis = tablaLateralDParteTres(L7, LcY, razonDeEscala)
+    direccionCadera, distanciaCadera = tablaLateralDParteTres(L7, L5, razonDeEscala)
+    direccionRodilla, distanciaRodilla = tablaLateralDParteTres(L7, L6, razonDeEscala)
+
+
+    datos = [direccionCabezaHombro, anguloCabezaHombro, direccionHombroPelvis, anguloHombroPelvis,
+             direccionCaderaRodillas, anguloCaderaRodillas, direccionRodillasPies, anguloRodillasPies,
+             direccionPelvis, anguloPelvis, direccionCabeza, distanciaCabeza, direccionHombro, distanciaHombro,
+             direccionPelvisL3, distanciaPelvis, direccionCadera, distanciaCadera, direccionRodilla, distanciaRodilla]
+
+    return datos
+
 class reportePDF(object):
     """
     Exportar los datos del analisis al PDF.
@@ -780,7 +981,7 @@ class reportePDF(object):
         # Suelta el lienzo
         canvas.restoreState()
 
-    def Exportar(self, dbAnterior, dbPosterior):
+    def Exportar(self, dbAnterior, dbPosterior, dbLateralD):
         """Exportar los datos a un archivo PDF."""
 
         PS = ParagraphStyle
@@ -827,7 +1028,7 @@ class reportePDF(object):
         historia.append(Paragraph("Evaluación Postural", alineacionTitulo))
         historia.append(Spacer(1, 4 * mm))
         historia.append(tablaDatos)
-        historia.append(get_image("logo.png", height=100*mm))
+        historia.append(get_image("https://i.imgur.com/KRPTibG.png", height=100*mm))
         historia.append(PageBreak())
 
         # PAGINA TABLA EVALUACION ANTERIOR
@@ -900,6 +1101,39 @@ class reportePDF(object):
 
         # PAGINA TABLA EVALUACION LATERALD
 
+        tablaLateralDParteUnoPDF = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
+                                          ['Cabeza-Hombro', dbLateralD[0], dbLateralD[1]],
+                                          ['Hombro-Pelvis', dbLateralD[2], dbLateralD[3]],
+                                          ['Caderas-Rodillas', dbLateralD[4], dbLateralD[5]],
+                                          ['Rodillas-Pies', dbLateralD[6], dbLateralD[7]]],
+                                         colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
+
+        tablaLateralDParteDosPDF = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
+                                          ['Pelvis', dbLateralD[8], dbLateralD[9]]],
+                                         colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
+
+        tablaLateralDParteTresPDF = Table([['Referencia', 'Dirección', 'Distancia'],
+                                          ['Cabeza', dbLateralD[10], dbLateralD[11]],
+                                          ['Hombro', dbLateralD[12], dbLateralD[13]],
+                                          ['Pelvis', dbLateralD[14], dbLateralD[15]],
+                                          ['Cadera', dbLateralD[16], dbLateralD[17]],
+                                          ['Rodilla', dbLateralD[18], dbLateralD[19]]],
+                                         colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
+
+        historia.append(get_image(imgVoluntario + nombreImagenLateralD+'.jpg', height=100*mm))
+        historia.append(Paragraph("Grados con respecto a la vertical:", parrafoPrincipal))
+        historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafoSecundario))
+        historia.append(tablaLateralDParteUnoPDF)
+        historia.append(Paragraph("Grados con respecto a la horizontal:", parrafoPrincipal))
+        historia.append(Paragraph("El ángulo normal entre los marcadores pélvicos anterior y posterior <strong>10°"
+                                  "</strong>", parrafoSecundario))
+        historia.append(Paragraph("con una tolerancia de <strong>±5°</strong>.", parrafoSecundario))
+        historia.append(tablaLateralDParteDosPDF)
+        historia.append(Paragraph("Distancia con respecto a la vertical:", parrafoPrincipal))
+        historia.append(Paragraph("La distancia ideal debe ser <strong>0 cm</strong>.", parrafoSecundario))
+        historia.append(tablaLateralDParteTresPDF)
+        historia.append(PageBreak())
+
         archivoPDF = SimpleDocTemplate(self.nombrePDF, leftMargin=50, rightMargin=50, pagesize=letter,
                                        title="Reporte PDF", author="Youssef Abarca")
 
@@ -956,12 +1190,14 @@ if (os.path.isdir(imgVoluntario) == False):
 
 nombreImagenAnterior = 'Anterior'+'_'+time.strftime("%Y%m%d")+'_'+time.strftime("%H%M%S")
 nombreImagenPosterior = 'Posterior'+'_'+time.strftime("%Y%m%d")+'_'+time.strftime("%H%M%S")
+nombreImagenLateralD = 'LateralD'+'_'+time.strftime("%Y%m%d")+'_'+time.strftime("%H%M%S")
 
 anguloTolerancia = 0.0
 distanciaTolerancia = 0.0
 
-resultadosAnterior = evaluacionAnterior('DSC_0376.jpg')
-resultadosPosterior = evaluacionPosterior('posterior.jpg')
+resultadosAnterior = evaluacionAnterior('https://i.imgur.com/qRb4dv6.jpg')
+resultadosPosterior = evaluacionPosterior('https://i.imgur.com/xIYYjkc.jpg')
+resultadosLateralD = evaluacionLateralD('https://i.imgur.com/2fvjwk1.jpg')
 
 dataTablaAnterior = pd.DataFrame(resultadosAnterior)
 print(dataTablaAnterior.T)
@@ -969,11 +1205,15 @@ print(dataTablaAnterior.T)
 dataTablaPosterior = pd.DataFrame(resultadosPosterior)
 print(dataTablaPosterior.T)
 
-nombrePDF = generarReporte(resultadosAnterior, resultadosPosterior)
+dataTablaLateralD = pd.DataFrame(resultadosLateralD)
+print(dataTablaLateralD.T)
+
+nombrePDF = generarReporte(resultadosAnterior, resultadosPosterior, resultadosLateralD)
 
 
 direccionImagenAnterior= '=HYPERLINK("' + imgVoluntario + nombreImagenAnterior + '.jpg","' + nombreImagenAnterior + '")'
 direccionImagenPosterior= '=HYPERLINK("' + imgVoluntario + nombreImagenPosterior + '.jpg","' + nombreImagenPosterior + '")'
+direccionImagenLateralD= '=HYPERLINK("' + imgVoluntario + nombreImagenLateralD + '.jpg","' + nombreImagenLateralD + '")'
 direccionReporte='=HYPERLINK("'+carpetaVoluntario + nombrePDF +'.pdf","'+nombrePDF+'")'
 
 encabezadoAnterior = pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]', 'Ocupación',
@@ -1002,6 +1242,19 @@ encabezadoPosterior = pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'P
                             'Dirección de los Tobillos','Distancia de los Tobillos',
                             'Dirección Pie Izquierdo', 'Ángulo Pie Izquierdo',
                             'Dirección Pie Derecho', 'Ángulo Pie Derecho','Dirección Imagen',
+                            'Dirección del Reporte'])
+
+encabezadoLateralD= pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]', 'Ocupación',
+                            'Dirección Cabeza-Hombro', 'Ángulo Cabeza-Hombro',
+                            'Dirección Hombro-Pelvis', 'Ángulo Hombro-Pelvis',
+                            'Dirección Caderas-Rodillas', 'Ángulo Caderas-Rodillas',
+                            'Dirección Rodillas-Pies', 'Ángulo Rodillas-Pies',
+                            'Dirección Pelvis', 'Ángulo Pelvis',
+                            'Dirección de la Cabeza', 'Distancia de la Cabeza',
+                            'Dirección del Hombro','Distancia del Hombro',
+                            'Dirección de la Pelvis','Distancia de la Pelvis',
+                            'Dirección de la Cadera','Distancia de la Cadera',
+                            'Dirección de la Rodilla','Distancia de la Rodilla','Dirección Imagen',
                             'Dirección del Reporte'])
 
 encabezadoDatos = pd.DataFrame([fecha, nombre, edad, genero, peso, talla, ocupacion])
@@ -1048,15 +1301,19 @@ with pd.ExcelWriter(dirDBxlsx, engine='openpyxl') as writer:
                                          header=False, index=False, startrow=nCeldasPosterior+1, startcol=30)
     time.sleep(1)
 
-    encabezadoAnterior.T.to_excel(writer, 'LateralD',
+    encabezadoLateralD.T.to_excel(writer, 'LateralD',
                                   header=True, index=False, startrow=0, startcol=0)
     encabezadoDatos.T.to_excel(writer, 'LateralD',
                           header=False, index=False, startrow=nCeldasLateralD+1, startcol=0)
-    dataTablaAnterior.T.to_excel(writer, 'LateralD',
+    dataTablaLateralD.T.to_excel(writer, 'LateralD',
                                          header=False, index=False, startrow=nCeldasLateralD+1, startcol=7)
+    pd.DataFrame({'link':[direccionImagenLateralD]}).T.to_excel(writer, 'LateralD',
+                                                                header=False, index=False, startrow=nCeldasLateralD+1, startcol=27)
+    pd.DataFrame({'link':[direccionReporte]}).T.to_excel(writer, 'LateralD',
+                                         header=False, index=False, startrow=nCeldasLateralD+1, startcol=28)
+
     time.sleep(1)
     writer.save()
 
 print('LISTOOOOOOOO')
 input()
-
