@@ -1101,6 +1101,39 @@ class reportePDF(object):
 
         # PAGINA TABLA EVALUACION LATERALD
 
+        tablaLateralDParteUnoPDF = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
+                                          ['Cabeza-Hombro', dbLateralD[0], dbLateralD[1]],
+                                          ['Hombro-Pelvis', dbLateralD[2], dbLateralD[3]],
+                                          ['Caderas-Rodillas', dbLateralD[4], dbLateralD[5]],
+                                          ['Rodillas-Pies', dbLateralD[6], dbLateralD[7]]],
+                                         colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
+
+        tablaLateralDParteDosPDF = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
+                                          ['Pelvis', dbLateralD[8], dbLateralD[9]]],
+                                         colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
+
+        tablaLateralDParteTresPDF = Table([['Referencia', 'Dirección', 'Distancia'],
+                                          ['Cabeza', dbLateralD[10], dbLateralD[11]],
+                                          ['Hombro', dbLateralD[12], dbLateralD[13]],
+                                          ['Pelvis', dbLateralD[14], dbLateralD[15]],
+                                          ['Cadera', dbLateralD[16], dbLateralD[17]],
+                                          ['Rodilla', dbLateralD[18], dbLateralD[19]]],
+                                         colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
+
+        historia.append(get_image(imgVoluntario + nombreImagenLateralD+'.jpg', height=100*mm))
+        historia.append(Paragraph("Grados con respecto a la vertical:", parrafoPrincipal))
+        historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafoSecundario))
+        historia.append(tablaLateralDParteUnoPDF)
+        historia.append(Paragraph("Grados con respecto a la horizontal:", parrafoPrincipal))
+        historia.append(Paragraph("El ángulo normal entre los marcadores pélvicos anterior y posterior <strong>10°"
+                                  "</strong>", parrafoSecundario))
+        historia.append(Paragraph("con una tolerancia de <strong>±5°</strong>.", parrafoSecundario))
+        historia.append(tablaLateralDParteDosPDF)
+        historia.append(Paragraph("Distancia con respecto a la vertical:", parrafoPrincipal))
+        historia.append(Paragraph("La distancia ideal debe ser <strong>0 cm</strong>.", parrafoSecundario))
+        historia.append(tablaLateralDParteTresPDF)
+        historia.append(PageBreak())
+
         archivoPDF = SimpleDocTemplate(self.nombrePDF, leftMargin=50, rightMargin=50, pagesize=letter,
                                        title="Reporte PDF", author="Youssef Abarca")
 
@@ -1284,4 +1317,3 @@ with pd.ExcelWriter(dirDBxlsx, engine='openpyxl') as writer:
 
 print('LISTOOOOOOOO')
 input()
-
