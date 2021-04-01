@@ -827,7 +827,7 @@ class reportePDF(object):
         historia.append(Paragraph("Evaluación Postural", alineacionTitulo))
         historia.append(Spacer(1, 4 * mm))
         historia.append(tablaDatos)
-        historia.append(get_image("logo.png", height=100*mm))
+        historia.append(get_image("https://i.imgur.com/KRPTibG.png", height=100*mm))
         historia.append(PageBreak())
 
         # PAGINA TABLA EVALUACION ANTERIOR
@@ -960,8 +960,8 @@ nombreImagenPosterior = 'Posterior'+'_'+time.strftime("%Y%m%d")+'_'+time.strftim
 anguloTolerancia = 0.0
 distanciaTolerancia = 0.0
 
-resultadosAnterior = evaluacionAnterior('DSC_0376.jpg')
-resultadosPosterior = evaluacionPosterior('posterior.jpg')
+resultadosAnterior = evaluacionAnterior('https://i.imgur.com/qRb4dv6.jpg')
+resultadosPosterior = evaluacionPosterior('https://i.imgur.com/xIYYjkc.jpg')
 
 dataTablaAnterior = pd.DataFrame(resultadosAnterior)
 print(dataTablaAnterior.T)

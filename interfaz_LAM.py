@@ -9,7 +9,7 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
 import datetime
-from skimage import (data, io, filters, data_dir, 
+from skimage import (data, io, filters, data_dir,
                      morphology, transform, img_as_ubyte)
 import matplotlib.pyplot as plt
 
@@ -29,7 +29,7 @@ def botonCalcular():
     toplevel.iconbitmap('icon.ico')
     r_lbl = Label(toplevel,text='\n\nCalculando, por favor espere')
     r_lbl.pack()
-    
+
 def botonReporte():
     toplevel = Toplevel(raiz)
     toplevel.geometry('250x100')
@@ -38,7 +38,7 @@ def botonReporte():
     toplevel.iconbitmap('icon.ico')
     r_lbl = Label(toplevel,text='\n\nGenerando reportes, espere...')
     r_lbl.pack()
-    
+
 def botonLimpiar():
     cuadroNombre.set('')
     cuadroFecha.set(fechaActual)
@@ -52,7 +52,7 @@ def botonLimpiar():
 
 def botonCargarA():
     global anterior
-    
+
     fichero=filedialog.askopenfilename(title='Abrir',
             initialdir='C:',filetypes=(('Imagenes','*.jpg'),
             ('Imagenes','*.png'),('Todos los ficheros','*.*')))
@@ -63,7 +63,7 @@ def botonCargarA():
 
 def botonCargarP():
     global posterior
-    
+
     fichero=filedialog.askopenfilename(title='Abrir',
             initialdir='C:',filetypes=(('Imagenes','*.jpg'),
             ('Imagenes','*.png'),('Todos los ficheros','*.*')))
@@ -71,10 +71,10 @@ def botonCargarP():
     plt.figure(2)
     io.imshow(posterior)
     plt.show()
-    
+
 def botonCargarL():
     global lateralD
-    
+
     fichero=filedialog.askopenfilename(title='Abrir',
             initialdir='C:',filetypes=(('Imagenes','*.jpg'),
             ('Imagenes','*.png'),('Todos los ficheros','*.*')))
@@ -82,7 +82,7 @@ def botonCargarL():
     plt.figure(3)
     io.imshow(lateralD)
     plt.show()
-    
+
 def acercaDe():
     a=messagebox.showinfo('LAM',
                           'LAM esta en construcción\n Version 1.0 en Python')
@@ -111,9 +111,9 @@ miFrame.config(width='882',height='362')
 miFrame.config(bd=3,relief='groove')
 #miFrame.config(cursor='hand2')
 
-fondo=PhotoImage(file='fondo_interfaz_LAM.gif')
+fondo=PhotoImage(file='fondo_interfaz_LAM.gif') ##https://i.imgur.com/GDmEQ3i.gif
 Label(miFrame,image=fondo).place(x=0,y=0)
-#Label(miFrame, text='Por Youssef Abarca', 
+#Label(miFrame, text='Por Youssef Abarca',
 #      fg='red',font=('Comic Sans Ms',24)).place(x=300,y=200)
 def __init__(self, parent, controller):
     tk.Frame.__init__(self, parent)
@@ -186,7 +186,7 @@ Button(miFrame, text='Calcular',width='15',
 
 Button(miFrame, text='Reporte',width='15',
     command=botonReporte).place(x=605,y=50)
-    
+
 Button(miFrame, text='Limpiar',width='15',
     command=botonLimpiar).place(x=605,y=80)
 
@@ -195,7 +195,7 @@ Button(miFrame, text='Cargar Imagen',width='15',
 
 Button(miFrame, text='Cargar Imagen',width='15',
     command=botonCargarP).place(x=310,y=125)
-    
+
 Button(miFrame, text='Cargar Imagen',width='15',
     command=botonCargarL).place(x=575,y=125)
 
