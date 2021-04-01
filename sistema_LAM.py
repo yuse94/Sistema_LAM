@@ -126,6 +126,18 @@ def cuadricula(centroX, centroY, tamanioX, tamanioY, tamanioDivisiones):
 
     return X, Y, xHorizontal, yHorizontal, xVertical, yVertical
 
+def get_image(path, height=1*mm):
+    """
+    Obtener la imagen con una altura determinada
+    :param path:
+    :param height:
+    :return Image(path, height=height, width=(height * aspect)):
+    """
+    img = utils.ImageReader(path)
+    iw, ih = img.getSize()
+    aspect = iw / float(ih)
+    return Image(path, height=height, width=(height * aspect))
+
 # Funciones de la vista Anterior
 
 def tablaAnteriorParteUno(puntoAnatomicoUno, puntoAnatomicoDos):
@@ -144,11 +156,11 @@ def tablaAnteriorParteUno(puntoAnatomicoUno, puntoAnatomicoDos):
     """
 
     distancia = puntoAnatomicoDos - puntoAnatomicoUno
-    angulo = np.angle(complex(distancia[1], distancia[0]), deg=True)
+    angulo = -np.angle(complex(distancia[1], distancia[0]), deg=True)
 
-    if angulo < -anguloTolerancia:
+    if angulo > anguloTolerancia:
         descendido = 'Der.'
-    elif angulo > anguloTolerancia:
+    elif angulo < -anguloTolerancia:
         descendido = 'Izq.'
     else:
         descendido = 'Alin.'
@@ -178,10 +190,10 @@ def tablaAnteriorParteDos(puntoAnatomicoUno, puntoAnatomicoDos, escala):
 
     distancia = (puntoAnatomicoUno[1] - puntoAnatomicoDos[1]) * escala
 
-    if distancia < -distanciaTolerancia:
-        direccion = 'Izq.'
-    elif distancia > distanciaTolerancia:
+    if distancia > distanciaTolerancia:
         direccion = 'Der.'
+    elif distancia < -distanciaTolerancia:
+        direccion = 'Izq.'
     else:
         direccion = 'Alin.'
 
@@ -205,30 +217,18 @@ def tablaAnteriorParteTres(puntoAnatomicoUno, puntoAnatomicoDos):
     """
 
     distancia = puntoAnatomicoUno - puntoAnatomicoDos
-    angulo = abs(np.angle(complex(distancia[1], distancia[0]), deg=True))
+    angulo = abs(np.angle(complex(distancia[1], distancia[0]), deg=True)) - 90
 
-    if angulo > 90+anguloTolerancia:
+    if angulo > anguloTolerancia:
         direccion = 'Rot.Ext.'
-    elif angulo < 90-anguloTolerancia:
+    elif angulo < -anguloTolerancia:
         direccion = 'Rot.Int.'
     else:
         direccion = 'Alin.'
 
-    angulo = round((angulo - 90), 4)
+    angulo = round((angulo), 4)
 
     return direccion, angulo
-
-def get_image(path, height=1*mm):
-    """
-    Obtener la imagen con una altura determinada
-    :param path:
-    :param height:
-    :return Image(path, height=height, width=(height * aspect)):
-    """
-    img = utils.ImageReader(path)
-    iw, ih = img.getSize()
-    aspect = iw / float(ih)
-    return Image(path, height=height, width=(height * aspect))
 
 # Funciones de la vista Posterior
 
@@ -250,9 +250,9 @@ def tablaPosteriorParteUno(puntoAnatomicoUno, puntoAnatomicoDos):
     distancia = puntoAnatomicoDos - puntoAnatomicoUno
     angulo = np.angle(complex(distancia[1], distancia[0]), deg=True)
 
-    if angulo > -anguloTolerancia:
+    if angulo > anguloTolerancia:
         descendido = 'Der.'
-    elif angulo < anguloTolerancia:
+    elif angulo < -anguloTolerancia:
         descendido = 'Izq.'
     else:
         descendido = 'Alin.'
@@ -280,12 +280,12 @@ def tablaPosteriorParteDos(puntoAnatomicoUno, puntoAnatomicoDos, escala):
     |||||||||||||||||||||||||||||||||||||||||||||||
     """
 
-    distancia = (puntoAnatomicoUno[1] - puntoAnatomicoDos[1]) * escala
+    distancia = (puntoAnatomicoDos[1] - puntoAnatomicoUno[1]) * escala
 
-    if distancia > -distanciaTolerancia:
-        direccion = 'Izq.'
-    elif distancia < distanciaTolerancia:
+    if distancia > distanciaTolerancia:
         direccion = 'Der.'
+    elif distancia < -distanciaTolerancia:
+        direccion = 'Izq.'
     else:
         direccion = 'Alin.'
 
@@ -309,16 +309,16 @@ def tablaPosteriorParteTres(puntoAnatomicoUno, puntoAnatomicoDos):
     """
 
     distancia = puntoAnatomicoUno - puntoAnatomicoDos
-    angulo = abs(np.angle(complex(distancia[1], distancia[0]), deg=True))
+    angulo = 90 - abs(np.angle(complex(distancia[1], distancia[0]), deg=True))
 
-    if angulo > 90 + anguloTolerancia:
-        direccion = 'Varo'
-    elif angulo < 90 - anguloTolerancia:
+    if angulo > anguloTolerancia:
         direccion = 'Valgo'
+    elif angulo < -anguloTolerancia:
+        direccion = 'Varo'
     else:
         direccion = 'Alin.'
 
-    angulo = round((angulo - 90), 4)
+    angulo = round((angulo), 4)
 
     return direccion, angulo
 
@@ -342,16 +342,16 @@ def tablaLateralDParteUno(puntoAnatomicoUno, puntoAnatomicoDos):
     """
 
     distancia = puntoAnatomicoUno - puntoAnatomicoDos
-    angulo = abs(np.angle(complex(distancia[1], distancia[0]), deg=True))
+    angulo = 90 - abs(np.angle(complex(distancia[1], distancia[0]), deg=True))
 
-    if angulo < -90 - anguloTolerancia:
+    if angulo < -anguloTolerancia:
         direccion = 'Pos.'
-    elif angulo > -90 + anguloTolerancia:
+    elif angulo > anguloTolerancia:
         direccion = 'Ant.'
     else:
         direccion = 'Alin.'
 
-    angulo = round((angulo + 90), 4)
+    angulo = round((angulo), 4)
 
     return direccion, angulo
 
@@ -370,7 +370,7 @@ def tablaLateralDParteDos(puntoAnatomicoUno, puntoAnatomicoDos):
     """
 
     distancia = puntoAnatomicoUno - puntoAnatomicoDos
-    angulo = abs(np.angle(complex(distancia[1], distancia[0]), deg=True))
+    angulo = 180 - abs(np.angle(complex(distancia[1], distancia[0]), deg=True))
 
     if angulo > 15:
         direccion = 'Ant.'
@@ -402,11 +402,11 @@ def tablaLateralDParteTres(puntoAnatomicoUno, puntoAnatomicoDos, escala):
     |||||||||||||||||||||||||||||||||||||||||||||||
     """
 
-    distancia = (puntoAnatomicoUno[1] - puntoAnatomicoDos[1]) * escala
+    distancia = (puntoAnatomicoDos[1] - puntoAnatomicoUno[1]) * escala
 
-    if distancia < distanciaTolerancia:
+    if distancia > distanciaTolerancia:
         direccion = 'Ant.'
-    elif distancia > -distanciaTolerancia:
+    elif distancia < -distanciaTolerancia:
         direccion = 'Pos.'
     else:
         direccion = 'Alin.'
@@ -1195,9 +1195,9 @@ nombreImagenLateralD = 'LateralD'+'_'+time.strftime("%Y%m%d")+'_'+time.strftime(
 anguloTolerancia = 0.0
 distanciaTolerancia = 0.0
 
-resultadosAnterior = evaluacionAnterior('https://i.imgur.com/qRb4dv6.jpg')
-resultadosPosterior = evaluacionPosterior('https://i.imgur.com/xIYYjkc.jpg')
-resultadosLateralD = evaluacionLateralD('https://i.imgur.com/2fvjwk1.jpg')
+resultadosAnterior = evaluacionAnterior('https://i.imgur.com/qRb4dv6.jpg')      # https://i.imgur.com/qRb4dv6.jpg
+resultadosPosterior = evaluacionPosterior('https://i.imgur.com/xIYYjkc.jpg')    # https://i.imgur.com/xIYYjkc.jpg
+resultadosLateralD = evaluacionLateralD('https://i.imgur.com/2fvjwk1.jpg')      # https://i.imgur.com/2fvjwk1.jpg
 
 dataTablaAnterior = pd.DataFrame(resultadosAnterior)
 print(dataTablaAnterior.T)
