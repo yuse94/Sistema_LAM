@@ -2,6 +2,10 @@
 LAM está en construcción
 Versión Consola de python3 0.1
 """
+
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 from skimage import (io, filters,
                      morphology, transform, img_as_ubyte)
 from skimage.color import rgb2gray
@@ -11,7 +15,6 @@ from openpyxl import load_workbook
 ###############################
 from tkinter import *
 from tkinter import filedialog
-from tkinter import messagebox
 ##############################
 
 import matplotlib.pyplot as plt
