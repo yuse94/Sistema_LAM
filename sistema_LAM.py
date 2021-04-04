@@ -505,8 +505,8 @@ class numeracionPaginas(canvas.Canvas):
 def evaluacionAnterior(fotoAnterior):
     imagen = io.imread(fotoAnterior)
     imagen = escalarImagen(imagen)
-    io.imshow(imagen)
-    plt.show()
+    #io.imshow(imagen)
+    #plt.close()            # Para mostrar la imagen cambiar "close" por "show"
     imagenAnterior = ajustarImagen(imagen)
 
     imagenAnteriorFiltrada = filtroColorVerde(imagenAnterior)
@@ -666,7 +666,7 @@ def evaluacionAnterior(fotoAnterior):
         time.sleep(1)
 
         plt.savefig(dirImagenAnterior, dpi=500)
-        plt.show()
+        plt.close()     # Para mostrar la imagen cambiar "close" por "show"
 
         # TA1
         hombroDescendido, anguloHombro = tablaAnteriorParteUno(F3, F4)
@@ -696,8 +696,8 @@ def evaluacionAnterior(fotoAnterior):
 def evaluacionPosterior(fotoPosterior):
     imagen = io.imread(fotoPosterior)
     imagen = escalarImagen(imagen)
-    io.imshow(imagen)
-    plt.show()
+    #io.imshow(imagen)
+    #plt.close()            # Para mostrar la imagen cambiar "close" por "show"
     imagenPosterior = ajustarImagen(imagen)
 
     imagenPosteriorFiltrada = filtroColorVerde(imagenPosterior)
@@ -845,7 +845,7 @@ def evaluacionPosterior(fotoPosterior):
         time.sleep(1)
 
         plt.savefig(dirImagenPosterior, dpi=500)
-        plt.show()
+        plt.close()     # Para mostrar la imagen cambiar "close" por "show"
 
         # TP1
         hombroDescendido, anguloHombro = tablaPosteriorParteUno(P4, P3)
@@ -876,8 +876,8 @@ def evaluacionPosterior(fotoPosterior):
 def evaluacionLateralD(fotoLateralD):
     imagen = io.imread(fotoLateralD)
     imagen = escalarImagen(imagen)
-    io.imshow(imagen)
-    plt.show()
+    #io.imshow(imagen)
+    #plt.close()            # Para mostrar la imagen cambiar "close" por "show"
     imagenLateralD = ajustarImagen(imagen)
 
     imagenLateralDFiltrada = filtroColorVerde(imagenLateralD)
@@ -971,7 +971,7 @@ def evaluacionLateralD(fotoLateralD):
         time.sleep(1)
 
         plt.savefig(dirImagenLateralD, dpi=500)
-        plt.show()
+        plt.close()     # Para mostrar la imagen cambiar "close" por "show"
 
         # TL1
         direccionCabezaHombro, anguloCabezaHombro = tablaLateralDParteUno(L1, L2)
@@ -1210,7 +1210,7 @@ class reportePDF(object):
 
 ####### PROGRAMA #######
 
-####### Datos ######
+# Datos Personales
 
 date = datetime.datetime.now()
 fechaActual = time.strftime("%d/%m/%Y")
@@ -1223,15 +1223,16 @@ peso = 50
 talla = 165
 ocupacion = 'Técnico'
 
-examenAnterior = True
-examenPosterior = True
-examenLateralD = True
+anguloTolerancia = 0.0
+distanciaTolerancia = 0.0
+
+# Creacion del directorio LAM
 
 dirLAM = '~\\Documents\\LAM\\'
 dirVoltario = dirLAM + nombre + '\\'
 dirImagen = dirVoltario + 'Imagenes\\'
 
-directorio=os.path.expanduser(dirLAM)
+directorio = os.path.expanduser(dirLAM)
 carpetaVoluntario = os.path.expanduser(dirVoltario)
 imgVoluntario = os.path.expanduser(dirImagen)
 
@@ -1250,16 +1251,19 @@ if (os.path.isdir(imgVoluntario) == False):
     os.mkdir(imgVoluntario)
     imgVoluntario = os.path.expanduser(dirImagen)
 
+# Datos para la ejecución
+
+examenAnterior = True
+examenPosterior = True
+examenLateralD = True
+
 nombreImagenAnterior = 'Anterior'+'_'+time.strftime("%Y%m%d")+'_'+time.strftime("%H%M%S")
 nombreImagenPosterior = 'Posterior'+'_'+time.strftime("%Y%m%d")+'_'+time.strftime("%H%M%S")
 nombreImagenLateralD = 'LateralD'+'_'+time.strftime("%Y%m%d")+'_'+time.strftime("%H%M%S")
 
-anguloTolerancia = 0.0
-distanciaTolerancia = 0.0
-
-resultadosAnterior = evaluacionAnterior('Pruebas_adultos/CZ anterior.JPG')      # https://i.imgur.com/qRb4dv6.jpg
-resultadosPosterior = evaluacionPosterior('Pruebas_adultos/CZ posterior.JPG')    # https://i.imgur.com/xIYYjkc.jpg
-resultadosLateralD = evaluacionLateralD('Pruebas_adultos/CZ lateral.JPG')      # https://i.imgur.com/2fvjwk1.jpg
+resultadosAnterior = evaluacionAnterior('Pruebas_adultos/JA anterior.JPG')      # https://i.imgur.com/qRb4dv6.jpg
+resultadosPosterior = evaluacionPosterior('Pruebas_adultos/GR posterior.JPG')    # https://i.imgur.com/xIYYjkc.jpg
+resultadosLateralD = evaluacionLateralD('Pruebas_adultos/JA lateral.JPG')      # https://i.imgur.com/2fvjwk1.jpg
 
 if(resultadosAnterior == 0):
     examenAnterior = False
