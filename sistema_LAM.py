@@ -8,6 +8,12 @@ from skimage.color import rgb2gray
 from skimage.measure import label, regionprops
 from openpyxl import load_workbook
 
+###############################
+from tkinter import *
+from tkinter import filedialog
+from tkinter import messagebox
+##############################
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -543,7 +549,7 @@ def evaluacionAnterior(fotoAnterior):
         print("Existen demasiados puntos en la imagen")
         plt.figure(1)
         plt.title('Vista Anterior: {0}/{1}'.format(len(centrosCoordenadaX), 14))
-        plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="1")
+        plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="5")
         io.imshow(imagenAnterior)
         plt.show()
 
@@ -551,7 +557,7 @@ def evaluacionAnterior(fotoAnterior):
         print("Existen menos puntos en la imagen")
         plt.figure(1)
         plt.title('Vista Anterior: {0}/{1}'.format(len(centrosCoordenadaX), 14))
-        plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="1")
+        plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="5")
         io.imshow(imagenAnterior)
         plt.show()
 
@@ -732,7 +738,7 @@ def evaluacionPosterior(fotoPosterior):
         print("Existen demasiados puntos en la imagen")
         plt.figure(1)
         plt.title('Vista Posterior: {0}/{1}'.format(len(centrosCoordenadaX), 12))
-        plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="1")
+        plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="5")
         io.imshow(imagenPosterior)
         plt.show()
 
@@ -740,7 +746,7 @@ def evaluacionPosterior(fotoPosterior):
         print("Existen menos puntos en la imagen")
         plt.figure(1)
         plt.title('Vista Posterior: {0}/{1}'.format(len(centrosCoordenadaX), 12))
-        plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="1")
+        plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="5")
         io.imshow(imagenPosterior)
         plt.show()
 
@@ -903,7 +909,7 @@ def evaluacionLateralD(fotoLateralD):
         print("Existen demasiados puntos en la imagen")
         plt.figure(1)
         plt.title('Lateral Derecha: {0}/{1}'.format(len(centrosCoordenadaX), 7))
-        plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="1")
+        plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="5")
         io.imshow(imagenLateralD)
         plt.show()
 
@@ -911,7 +917,7 @@ def evaluacionLateralD(fotoLateralD):
         print("Existen menos puntos en la imagen")
         plt.figure(1)
         plt.title('Lateral Derecha: {0}/{1}'.format(len(centrosCoordenadaX), 7))
-        plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="1")
+        plt.plot(centrosCoordenadaX, centrosCoordenadaY, 'b*', markersize="5")
         io.imshow(imagenLateralD)
         plt.show()
 
@@ -1208,6 +1214,80 @@ class reportePDF(object):
             return "Error inesperado: Permiso denegado."
         # +--------------------------------------------+
 
+# Cargar imagenes (Funciones temporales)
+
+def cargarImagenAnterior():
+    root = Tk()
+
+    def botonCargar():
+        global fotoAnterior
+        fotoAnterior=filedialog.askopenfilename(title='Abrir',
+                initialdir='C:',filetypes=(('Imagenes','*.jpg'),
+                ('Imagenes','*.png'),('Todos los ficheros','*.*')))
+        root.destroy()
+
+    try:
+        root.iconbitmap('icon.ico')
+    except TclError:
+        print ('No ico file found')
+
+    root.title('Análisis Postural LAM')
+
+    root.geometry('300x50')
+    Label(root, text="Cargue la imagen de la vista anteriror").pack()
+    # Enlezamos la función a la acción del botón
+    fichero = Button(root, text="Cargar imagen", command=botonCargar).pack()
+
+    root.mainloop()
+
+def cargarImagenPosterior():
+    root = Tk()
+
+    def botonCargar():
+        global fotoPosterior
+        fotoPosterior=filedialog.askopenfilename(title='Abrir',
+                initialdir='C:',filetypes=(('Imagenes','*.jpg'),
+                ('Imagenes','*.png'),('Todos los ficheros','*.*')))
+        root.destroy()
+
+    try:
+        root.iconbitmap('icon.ico')
+    except TclError:
+        print ('No ico file found')
+
+    root.title('Análisis Postural LAM')
+
+    root.geometry('300x50')
+    Label(root, text="Cargue la imagen de la vista posterior").pack()
+    # Enlezamos la función a la acción del botón
+    fichero = Button(root, text="Cargar imagen", command=botonCargar).pack()
+
+    root.mainloop()
+
+def cargarImagenLateralD():
+    root = Tk()
+
+    def botonCargar():
+        global fotoLateralD
+        fotoLateralD=filedialog.askopenfilename(title='Abrir',
+                initialdir='C:',filetypes=(('Imagenes','*.jpg'),
+                ('Imagenes','*.png'),('Todos los ficheros','*.*')))
+        root.destroy()
+
+    try:
+        root.iconbitmap('icon.ico')
+    except TclError:
+        print ('No ico file found')
+
+    root.title('Análisis Postural LAM')
+
+    root.geometry('300x50')
+    Label(root, text="Cargue la imagen de la vista lateral derecha").pack()
+    # Enlezamos la función a la acción del botón
+    fichero = Button(root, text="Cargar imagen", command=botonCargar).pack()
+
+    root.mainloop()
+
 ####### PROGRAMA #######
 
 # Datos Personales
@@ -1216,12 +1296,15 @@ date = datetime.datetime.now()
 fechaActual = time.strftime("%d/%m/%Y")
 
 fecha = fechaActual
-nombre = 'Youssef Abarca'
-edad = 25
-genero = 'M'
-peso = 50
-talla = 165
-ocupacion = 'Técnico'
+
+print("DATOS PERSONALES")
+
+nombre = input("Nombre: ")
+edad = int(input("Edad: "))
+genero = input("Genero (M/F): ")
+peso = float(input("Peso en Kg: "))
+talla = float(input("Altura en cm: "))
+ocupacion = input("Ocupación: ")
 
 anguloTolerancia = 0.0
 distanciaTolerancia = 0.0
@@ -1257,26 +1340,79 @@ examenAnterior = True
 examenPosterior = True
 examenLateralD = True
 
+# Condicion para saber que analisis realizar:
+
+examenAnterior = bool(int(input("Vista Anterior 1/0: ")))
+examenPosterior = bool(int(input("Vista Posterior 1/0: ")))
+examenLateralD = bool(int(input("Vista Lateral Derecha 1/0: ")))
+
 nombreImagenAnterior = 'Anterior'+'_'+time.strftime("%Y%m%d")+'_'+time.strftime("%H%M%S")
 nombreImagenPosterior = 'Posterior'+'_'+time.strftime("%Y%m%d")+'_'+time.strftime("%H%M%S")
 nombreImagenLateralD = 'LateralD'+'_'+time.strftime("%Y%m%d")+'_'+time.strftime("%H%M%S")
 
-resultadosAnterior = evaluacionAnterior('Pruebas_adultos/JA anterior.JPG')      # https://i.imgur.com/qRb4dv6.jpg
-resultadosPosterior = evaluacionPosterior('Pruebas_adultos/GR posterior.JPG')    # https://i.imgur.com/xIYYjkc.jpg
-resultadosLateralD = evaluacionLateralD('Pruebas_adultos/JA lateral.JPG')      # https://i.imgur.com/2fvjwk1.jpg
+fotoAnterior=''
+fotoPosterior=''
+fotoLateralD=''
 
-if(resultadosAnterior == 0):
-    examenAnterior = False
+resultadosAnterior = 0
+resultadosPosterior = 0
+resultadosLateralD = 0
 
-if(resultadosPosterior == 0):
-    examenPosterior = False
+# Pruaba de cargado de imagenes en caso de imagenes erroneas
 
-if(resultadosLateralD == 0):
-    examenLateralD = False
+if (examenAnterior):
+    cargarImagenAnterior()
+    resultadosAnterior = evaluacionAnterior(fotoAnterior)
+
+    while (resultadosAnterior == 0):
+
+        recargarImagen = bool(int(input("Imagen Anterior con Error. ¿Desea cargar otra imagen? 1/0: ")))
+
+        if recargarImagen == True:
+            cargarImagenAnterior()
+            resultadosAnterior = evaluacionAnterior(fotoAnterior)  # https://i.imgur.com/qRb4dv6.jpg
+
+        else:
+            examenAnterior = False
+            break
+
+if (examenPosterior):
+    cargarImagenPosterior()
+    resultadosPosterior = evaluacionPosterior(fotoPosterior)    # https://i.imgur.com/xIYYjkc.jpg
+
+    while (resultadosPosterior == 0):
+
+        recargarImagen = bool(int(input("Imagen Posterior con Error. ¿Desea cargar otra imagen? 1/0: ")))
+
+        if recargarImagen == True:
+            cargarImagenPosterior()
+            resultadosPosterior = evaluacionPosterior(fotoPosterior)  # https://i.imgur.com/xIYYjkc.jpg
+
+        else:
+            examenPosterior = False
+            break
+
+if (examenLateralD):
+    cargarImagenLateralD()
+    resultadosLateralD = evaluacionLateralD(fotoLateralD)      # https://i.imgur.com/2fvjwk1.jpg
+
+    while (resultadosLateralD == 0):
+
+        recargarImagen = bool(int(input("Imagen Lateral Derecha con Error. ¿Desea cargar otra imagen? 1/0: ")))
+
+        if recargarImagen == True:
+            cargarImagenLateralD()
+            resultadosLateralD = evaluacionLateralD(fotoLateralD)  # https://i.imgur.com/2fvjwk1.jpg
+
+        else:
+            examenLateralD = False
+            break
+
+###############################
 
 if(examenAnterior):
     dataTablaAnterior = pd.DataFrame(resultadosAnterior)
-    print(dataTablaAnterior.T)
+    #print(dataTablaAnterior.T)
 
     direccionImagenAnterior = '=HYPERLINK("' + imgVoluntario + nombreImagenAnterior + '.jpg","' + nombreImagenAnterior + '")'
     encabezadoAnterior = pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]', 'Ocupación',
@@ -1293,9 +1429,9 @@ if(examenAnterior):
                                            'Rotación Pie Derecho', 'Ángulo Pie Derecho', 'Dirección Imagen',
                                            'Dirección del Reporte'])
 
-if(resultadosPosterior):
+if(examenPosterior):
     dataTablaPosterior = pd.DataFrame(resultadosPosterior)
-    print(dataTablaPosterior.T)
+    #print(dataTablaPosterior.T)
 
     direccionImagenPosterior = '=HYPERLINK("' + imgVoluntario + nombreImagenPosterior + '.jpg","' + nombreImagenPosterior + '")'
 
@@ -1313,9 +1449,9 @@ if(resultadosPosterior):
                                             'Dirección Pie Derecho', 'Ángulo Pie Derecho', 'Dirección Imagen',
                                             'Dirección del Reporte'])
 
-if(resultadosLateralD):
+if(examenLateralD):
     dataTablaLateralD = pd.DataFrame(resultadosLateralD)
-    print(dataTablaLateralD.T)
+    #print(dataTablaLateralD.T)
 
     direccionImagenLateralD = '=HYPERLINK("' + imgVoluntario + nombreImagenLateralD + '.jpg","' + nombreImagenLateralD + '")'
 
@@ -1369,7 +1505,7 @@ with pd.ExcelWriter(dirDBxlsx, engine='openpyxl') as writer:
                                              header=False, index=False, startrow=nCeldasAnterior+1, startcol=30)
         time.sleep(1)
 
-    if (resultadosPosterior):
+    if (examenPosterior):
 
         encabezadoPosterior.T.to_excel(writer, 'Posterior',
                                       header=True, index=False, startrow=0, startcol=0)
@@ -1383,7 +1519,7 @@ with pd.ExcelWriter(dirDBxlsx, engine='openpyxl') as writer:
                                              header=False, index=False, startrow=nCeldasPosterior+1, startcol=30)
         time.sleep(1)
 
-    if (resultadosLateralD):
+    if (examenLateralD):
 
         encabezadoLateralD.T.to_excel(writer, 'LateralD',
                                       header=True, index=False, startrow=0, startcol=0)
@@ -1401,4 +1537,3 @@ with pd.ExcelWriter(dirDBxlsx, engine='openpyxl') as writer:
     writer.save()
 
 print('LISTOOOOOOOO')
-input()
