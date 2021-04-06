@@ -696,10 +696,11 @@ def evaluacionAnterior(fotoAnterior):
         direccionPieIzquierdo, anguloPieIzquierdo = tablaAnteriorParteTres(F12, F14)
         direccionPieDerecho, anguloPieDerecho = tablaAnteriorParteTres(F13, F11)
 
-        datos = [hombroDescendido, anguloHombro, pelvisDescendida, anguloPelvis, rodillaDescendida, anguloRodilla,
-                 direccionFrente, distanciaFrente, direccionHombros, distanciaHombros, direccionOmbligo, distanciaOmbligo,
-                 direccionPelvis, distanciaPelvis, direccionRodillas, distanciaRodillas, direccionPies, distanciaPies,
-                 direccionPieIzquierdo, anguloPieIzquierdo, direccionPieDerecho, anguloPieDerecho]
+        datos = [anguloTolerancia, distanciaTolerancia, hombroDescendido, anguloHombro, pelvisDescendida, anguloPelvis,
+                 rodillaDescendida, anguloRodilla,direccionFrente, distanciaFrente, direccionHombros, distanciaHombros,
+                 direccionOmbligo, distanciaOmbligo, direccionPelvis, distanciaPelvis, direccionRodillas,
+                 distanciaRodillas, direccionPies, distanciaPies, direccionPieIzquierdo, anguloPieIzquierdo,
+                 direccionPieDerecho, anguloPieDerecho]
 
         return datos
     return 0
@@ -875,11 +876,11 @@ def evaluacionPosterior(fotoPosterior):
         direccionPieIzquierdo, anguloPieIzquierdo = tablaPosteriorParteTres(P10, P12)
         direccionPieDerecho, anguloPieDerecho = tablaPosteriorParteTres(P11, P9)
 
-        datos = [hombroDescendido, anguloHombro, pelvisDescendida, anguloPelvis, rodillaDescendida, anguloRodilla,
-                 direccionHombros, distanciaHombros, direccion7maCervical, distancia7maCervical, direccion5taToracica,
-                 distancia5taToracica, direccionPelvis, distanciaPelvis, direccionRodillas, distanciaRodillas,
-                 direccionTobillos, distanciaTobillos, direccionPieIzquierdo, anguloPieIzquierdo, direccionPieDerecho,
-                 anguloPieDerecho]
+        datos = [anguloTolerancia, distanciaTolerancia, hombroDescendido, anguloHombro, pelvisDescendida, anguloPelvis,
+                 rodillaDescendida, anguloRodilla, direccionHombros, distanciaHombros, direccion7maCervical,
+                 distancia7maCervical, direccion5taToracica, distancia5taToracica, direccionPelvis, distanciaPelvis,
+                 direccionRodillas, distanciaRodillas, direccionTobillos, distanciaTobillos, direccionPieIzquierdo,
+                 anguloPieIzquierdo, direccionPieDerecho, anguloPieDerecho]
 
         return datos
     return 0
@@ -1001,10 +1002,11 @@ def evaluacionLateralD(fotoLateralD):
         direccionRodilla, distanciaRodilla = tablaLateralDParteTres(L7, L6, razonDeEscala)
 
 
-        datos = [direccionCabezaHombro, anguloCabezaHombro, direccionHombroPelvis, anguloHombroPelvis,
-                 direccionCaderaRodillas, anguloCaderaRodillas, direccionRodillasPies, anguloRodillasPies,
-                 direccionPelvis, anguloPelvis, direccionCabeza, distanciaCabeza, direccionHombro, distanciaHombro,
-                 direccionPelvisL3, distanciaPelvis, direccionCadera, distanciaCadera, direccionRodilla, distanciaRodilla]
+        datos = [anguloTolerancia, distanciaTolerancia,direccionCabezaHombro, anguloCabezaHombro, direccionHombroPelvis,
+                 anguloHombroPelvis, direccionCaderaRodillas, anguloCaderaRodillas, direccionRodillasPies,
+                 anguloRodillasPies, direccionPelvis, anguloPelvis, direccionCabeza, distanciaCabeza, direccionHombro,
+                 distanciaHombro, direccionPelvisL3, distanciaPelvis, direccionCadera, distanciaCadera,
+                 direccionRodilla, distanciaRodilla]
 
         return datos
     return 0
@@ -1097,29 +1099,29 @@ class reportePDF(object):
         historia.append(Paragraph("Evaluación Postural", alineacionTitulo))
         historia.append(Spacer(1, 4 * mm))
         historia.append(tablaDatos)
-        historia.append(get_image("https://i.imgur.com/KRPTibG.png", height=100*mm))
+        historia.append(get_image("logo.png", height=100*mm)) # https://i.imgur.com/KRPTibG.png
         historia.append(PageBreak())
 
         # PAGINA TABLA EVALUACION ANTERIOR
         if (examenAnterior):
             tablaAnteriorParteUnoPDF = Table([['Segmento Corporal', 'Descendido', 'Ángulo'],
-                                              ['Hombro', dbAnterior[0], dbAnterior[1]],
-                                              ['Pelvis', dbAnterior[2], dbAnterior[3]],
-                                              ['Rodilla', dbAnterior[4], dbAnterior[5]]],
+                                              ['Hombro', dbAnterior[2], dbAnterior[3]],
+                                              ['Pelvis', dbAnterior[4], dbAnterior[5]],
+                                              ['Rodilla', dbAnterior[6], dbAnterior[7]]],
                                              colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
 
             tablaAnteriorParteDosPDF = Table([['Referencia', 'Dirección', 'Distancia'],
-                                              ['Frente', dbAnterior[6], dbAnterior[7]],
-                                              ['Hombros', dbAnterior[8], dbAnterior[9]],
-                                              ['Ombligo', dbAnterior[10], dbAnterior[11]],
-                                              ['Pelvis', dbAnterior[12], dbAnterior[13]],
-                                              ['Rodillas', dbAnterior[14], dbAnterior[15]],
-                                              ['Pies', dbAnterior[16], dbAnterior[17]]],
+                                              ['Frente', dbAnterior[8], dbAnterior[9]],
+                                              ['Hombros', dbAnterior[10], dbAnterior[11]],
+                                              ['Ombligo', dbAnterior[12], dbAnterior[13]],
+                                              ['Pelvis', dbAnterior[14], dbAnterior[15]],
+                                              ['Rodillas', dbAnterior[16], dbAnterior[17]],
+                                              ['Pies', dbAnterior[18], dbAnterior[19]]],
                                              colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
 
             tablaAnteriorParteTresPDF = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
-                                              ['Pie Izquierdo', dbAnterior[18], dbAnterior[19]],
-                                              ['Pie Derecho', dbAnterior[20], dbAnterior[21]]],
+                                              ['Pie Izquierdo', dbAnterior[20], dbAnterior[21]],
+                                              ['Pie Derecho', dbAnterior[22], dbAnterior[23]]],
                                              colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
 
             historia.append(get_image(imgVoluntario + nombreImagenAnterior+'.jpg', height=100*mm))
@@ -1137,23 +1139,23 @@ class reportePDF(object):
         # PAGINA TABLA EVALUACION POSTERIOR
         if (examenPosterior):
             tablaPosteriorParteUnoPDF = Table([['Segmento Corporal', 'Descendido', 'Ángulo'],
-                                              ['Hombro', dbPosterior[0], dbPosterior[1]],
-                                              ['Pelvis', dbPosterior[2], dbPosterior[3]],
-                                              ['Rodilla', dbPosterior[4], dbPosterior[5]]],
+                                              ['Hombro', dbPosterior[2], dbPosterior[3]],
+                                              ['Pelvis', dbPosterior[4], dbPosterior[5]],
+                                              ['Rodilla', dbPosterior[6], dbPosterior[7]]],
                                              colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
 
             tablaPosteriorParteDosPDF = Table([['Referencia', 'Dirección', 'Distancia'],
-                                              ['Hombros', dbPosterior[6], dbPosterior[7]],
-                                              ['7ma Cervical', dbPosterior[8], dbPosterior[9]],
-                                              ['5ta Torácica', dbPosterior[10], dbPosterior[11]],
-                                              ['Pelvis', dbPosterior[12], dbPosterior[13]],
-                                              ['Rodillas', dbPosterior[14], dbPosterior[15]],
-                                              ['Tobillos', dbPosterior[16], dbPosterior[17]]],
+                                              ['Hombros', dbPosterior[8], dbPosterior[9]],
+                                              ['7ma Cervical', dbPosterior[10], dbPosterior[11]],
+                                              ['5ta Torácica', dbPosterior[12], dbPosterior[13]],
+                                              ['Pelvis', dbPosterior[14], dbPosterior[15]],
+                                              ['Rodillas', dbPosterior[16], dbPosterior[17]],
+                                              ['Tobillos', dbPosterior[18], dbPosterior[19]]],
                                              colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
 
             tablaPosteriorParteTresPDF = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
-                                              ['Pie Izquierdo', dbPosterior[18], dbPosterior[19]],
-                                              ['Pie Derecho', dbPosterior[20], dbPosterior[21]]],
+                                              ['Pie Izquierdo', dbPosterior[20], dbPosterior[21]],
+                                              ['Pie Derecho', dbPosterior[22], dbPosterior[23]]],
                                              colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
 
             historia.append(get_image(imgVoluntario + nombreImagenPosterior+'.jpg', height=100*mm))
@@ -1171,22 +1173,22 @@ class reportePDF(object):
         # PAGINA TABLA EVALUACION LATERALD
         if (examenLateralD):
             tablaLateralDParteUnoPDF = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
-                                              ['Cabeza-Hombro', dbLateralD[0], dbLateralD[1]],
-                                              ['Hombro-Pelvis', dbLateralD[2], dbLateralD[3]],
-                                              ['Caderas-Rodillas', dbLateralD[4], dbLateralD[5]],
-                                              ['Rodillas-Pies', dbLateralD[6], dbLateralD[7]]],
+                                              ['Cabeza-Hombro', dbLateralD[2], dbLateralD[3]],
+                                              ['Hombro-Pelvis', dbLateralD[4], dbLateralD[5]],
+                                              ['Caderas-Rodillas', dbLateralD[6], dbLateralD[7]],
+                                              ['Rodillas-Pies', dbLateralD[8], dbLateralD[9]]],
                                              colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
 
             tablaLateralDParteDosPDF = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
-                                              ['Pelvis', dbLateralD[8], dbLateralD[9]]],
+                                              ['Pelvis', dbLateralD[10], dbLateralD[11]]],
                                              colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
 
             tablaLateralDParteTresPDF = Table([['Referencia', 'Dirección', 'Distancia'],
-                                              ['Cabeza', dbLateralD[10], dbLateralD[11]],
-                                              ['Hombro', dbLateralD[12], dbLateralD[13]],
-                                              ['Pelvis', dbLateralD[14], dbLateralD[15]],
-                                              ['Cadera', dbLateralD[16], dbLateralD[17]],
-                                              ['Rodilla', dbLateralD[18], dbLateralD[19]]],
+                                              ['Cabeza', dbLateralD[12], dbLateralD[13]],
+                                              ['Hombro', dbLateralD[14], dbLateralD[15]],
+                                              ['Pelvis', dbLateralD[16], dbLateralD[17]],
+                                              ['Cadera', dbLateralD[18], dbLateralD[19]],
+                                              ['Rodilla', dbLateralD[20], dbLateralD[21]]],
                                              colWidths=(self.ancho - 100) / 5, hAlign="LEFT", style=estiloTablaResultados)
 
             historia.append(get_image(imgVoluntario + nombreImagenLateralD+'.jpg', height=100*mm))
@@ -1295,9 +1297,9 @@ def cargarImagenLateralD():
 
 ####### PROGRAMA #######
 
-# Datos Personales
-
 while True:
+
+    # Datos Personales
 
     date = datetime.datetime.now()
     fechaActual = time.strftime("%d/%m/%Y")
@@ -1313,8 +1315,10 @@ while True:
     talla = float(input("Altura en cm: "))
     ocupacion = input("Ocupación: ")
 
-    anguloTolerancia = 0.0
-    distanciaTolerancia = 0.0
+    print("\nIngrese las tolerancias: \n")
+
+    anguloTolerancia = float(input("Tolerancia en grados para los ángulos:  "))
+    distanciaTolerancia = float(input("Tolerancia en cm para las distancias: "))
 
     # Creacion del directorio LAM
 
@@ -1425,6 +1429,7 @@ while True:
 
         direccionImagenAnterior = '=HYPERLINK("' + imgVoluntario + nombreImagenAnterior + '.jpg","' + nombreImagenAnterior + '")'
         encabezadoAnterior = pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]', 'Ocupación',
+                                               'Ángulo de tolerancia', 'Distancia de tolerancia',
                                                'Hombro Descendido', 'Ángulo del hombro',
                                                'Pelvis Descendida', 'Ángulo de la Pelvis',
                                                'Rodilla Descendida', 'Ángulo de Rodilla',
@@ -1445,6 +1450,7 @@ while True:
         direccionImagenPosterior = '=HYPERLINK("' + imgVoluntario + nombreImagenPosterior + '.jpg","' + nombreImagenPosterior + '")'
 
         encabezadoPosterior = pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]', 'Ocupación',
+                                                'Ángulo de tolerancia', 'Distancia de tolerancia',
                                                 'Hombro Descendido', 'Ángulo del hombro',
                                                 'Pelvis Descendida', 'Ángulo de la Pelvis',
                                                 'Rodilla Descendida', 'Ángulo de Rodilla',
@@ -1465,6 +1471,7 @@ while True:
         direccionImagenLateralD = '=HYPERLINK("' + imgVoluntario + nombreImagenLateralD + '.jpg","' + nombreImagenLateralD + '")'
 
         encabezadoLateralD = pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]', 'Ocupación',
+                                               'Ángulo de tolerancia', 'Distancia de tolerancia',
                                                'Dirección Cabeza-Hombro', 'Ángulo Cabeza-Hombro',
                                                'Dirección Hombro-Pelvis', 'Ángulo Hombro-Pelvis',
                                                'Dirección Caderas-Rodillas', 'Ángulo Caderas-Rodillas',
@@ -1509,9 +1516,9 @@ while True:
             dataTablaAnterior.T.to_excel(writer, 'Anterior',
                                                  header=False, index=False, startrow=nCeldasAnterior+1, startcol=7)
             pd.DataFrame({'link':[direccionImagenAnterior]}).T.to_excel(writer, 'Anterior',
-                                                                        header=False, index=False, startrow=nCeldasAnterior+1, startcol=29)
+                                                                        header=False, index=False, startrow=nCeldasAnterior+1, startcol=31)
             pd.DataFrame({'link':[direccionReporte]}).T.to_excel(writer, 'Anterior',
-                                                 header=False, index=False, startrow=nCeldasAnterior+1, startcol=30)
+                                                 header=False, index=False, startrow=nCeldasAnterior+1, startcol=32)
             time.sleep(0.2)
 
         if (examenPosterior):
@@ -1523,9 +1530,9 @@ while True:
             dataTablaPosterior.T.to_excel(writer, 'Posterior',
                                                  header=False, index=False, startrow=nCeldasPosterior+1, startcol=7)
             pd.DataFrame({'link':[direccionImagenPosterior]}).T.to_excel(writer, 'Posterior',
-                                                                        header=False, index=False, startrow=nCeldasPosterior+1, startcol=29)
+                                                                        header=False, index=False, startrow=nCeldasPosterior+1, startcol=31)
             pd.DataFrame({'link':[direccionReporte]}).T.to_excel(writer, 'Posterior',
-                                                 header=False, index=False, startrow=nCeldasPosterior+1, startcol=30)
+                                                 header=False, index=False, startrow=nCeldasPosterior+1, startcol=32)
             time.sleep(0.2)
 
         if (examenLateralD):
@@ -1537,9 +1544,9 @@ while True:
             dataTablaLateralD.T.to_excel(writer, 'LateralD',
                                                  header=False, index=False, startrow=nCeldasLateralD+1, startcol=7)
             pd.DataFrame({'link':[direccionImagenLateralD]}).T.to_excel(writer, 'LateralD',
-                                                                        header=False, index=False, startrow=nCeldasLateralD+1, startcol=27)
+                                                                        header=False, index=False, startrow=nCeldasLateralD+1, startcol=29)
             pd.DataFrame({'link':[direccionReporte]}).T.to_excel(writer, 'LateralD',
-                                                 header=False, index=False, startrow=nCeldasLateralD+1, startcol=28)
+                                                 header=False, index=False, startrow=nCeldasLateralD+1, startcol=30)
 
             time.sleep(0.2)
 
@@ -1551,3 +1558,5 @@ while True:
     if salir:
         break
     os.system("cls")
+
+# Para crear ejecutable: pyinstaller --onefile --icon=icon.ico sistema_LAM.py
