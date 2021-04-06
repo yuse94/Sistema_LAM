@@ -56,14 +56,14 @@ Para los resultados de esta tabla, en la primera parte el parámetro descendido 
 | Hombros |||
 | Pelvis |||
 | Rodilla |||
-| **Referencia** | **Dirección** | ** Distancia ** |
+| **Referencia** | **Dirección** | **Distancia** |
 | Frente|||
 | Hombros|||
 | Ombligo|||
 | Pelvis|||
 | Rodillas|||
 | Pies|||
-| ** Segmento Corporal ** | **Dirección** | **Ángulo** |
+| **Segmento Corporal** | **Dirección** | **Ángulo** |
 | Pie Izquierdo|||
 | Pie Derecho||||
 
@@ -76,14 +76,14 @@ Los parámetros de la parte uno y dos de esta tabla, se representan de igual man
 | Hombros |||
 | Pelvis |||
 | Rodilla |||
-| **Referencia** | **Dirección** | ** Distancia ** |
+| **Referencia** | **Dirección** | **Distancia** |
 | Hombros |||
 | 7ma Cervical |||
 | 5ta Torácica |||
 | Pelvis |||
 | Rodillas |||
 | Tobillos |||
-| ** Segmento Corporal ** | **Dirección** | **Ángulo** |
+| **Segmento Corporal** | **Dirección** | **Ángulo** |
 | Pie Izquierdo|||
 | Pie Derecho||||
 
@@ -97,9 +97,9 @@ En los resultados de esta tabla el parámetro dirección representan si la incli
 | Hombro-Pelvis |||
 | Caderas-Rodillas |||
 | Rodillas-Pies |||
-| ** Segmento Corporal ** | **Dirección** | ** Ángulo ** |
+| **Segmento Corporal** | **Dirección** | **Ángulo** |
 | Pelvis |||
-| ** Referencia ** | **Dirección** | ** Distancia ** |
+| **Referencia** | **Dirección** | **Distancia** |
 | Cabeza |||
 | Hombro |||
 | Pelvis |||
@@ -144,7 +144,6 @@ Actualmente el sistema se ejecuta en la consola usando ventanas emergentes para 
 	![](https://i.imgur.com/ZiAIvXe.jpg)
 	
 5. Una vez terminado el proceso los archivos finales son generados en: 
-6. 
 
 > C:\Users\Nombre_de_Usuario\Documents\LAM
 
