@@ -1,5 +1,7 @@
 # Lectura Automática de Marcadores (LAM) para realizar evaluaciones posturales V0.1
+
 ![](https://i.imgur.com/KRPTibG.png)
+
 En la práctica clínica, las evaluaciones de la postura se realizan como parte del examen físico. Cuando se realizan en la clínica, las evaluaciones posturales son a menudo subjetivas, y las anormalidades son inspeccionadas visualmente. Esta forma de evaluación cualitativa tiene baja sensibilidad, así como baja confiabilidad. Depende en gran medida de experiencias pasadas y de interpretaciones subjetivas. En consecuencia, se requieren instrumentos estandarizados y validados para realizar evaluaciones más precisas y sistemáticas. La postura puede evaluarse cualitativa y cuantitativamente a través de la interpretación rigurosa de imágenes fotográficas que también pueden usarse para monitorear los resultados del tratamiento. Las mediciones cuantitativas permiten a los médicos e investigadores no sólo realizar una evaluación precisa de los cambios posturales, sino también controlar la mejoría. Sin embargo, más estudios son necesarios para validar y estimar la fiabilidad de cada uno de estos sistemas.
 
 **Tabla de contenidos**
@@ -11,10 +13,13 @@ La finalidad de este proyecto es proponer un sistema para realizar evaluaciones 
 
 # Metodología
 Las etapas de las cuales consta el proyecto son la definición de los puntos anatómicos, la captura de fotografías, el desarrollo de la aplicación y la forma en la cual se presenta la información.
+
 ![](https://i.imgur.com/tATWCAx.png)
+
 Se definieron los puntos anatómicos de interés para realizar evaluaciones posturales, además de definir la información requerida por el fisioterapeuta para dar un diagnóstico. En la siguiente etapa se establece el protocolo para la captura de fotografías, donde los principales recursos que se analizaron son la altura de la cámara, distancia entre el participante y la cámara, y la iluminación del espacio. En la etapa de desarrollo se realizó principalmente la preparación de las imágenes incluyendo esto la filtración y segmentación, posteriormente se desarrollaron las funciones que permiten la obtención de los parámetros posturales. Por último, en la etapa final se estableció presentar los parámetros posturales en un formato de informe PDF, además de adjuntar los mismos en una base de datos de Excel.
 ## Definición de Puntos Anatómicos
 Una vez realizado el estado del arte sobre aplicaciones y métodos que existen para llevar a cabo una evaluación postural, en especial los artículos donde se definieron qué puntos anatómicos son considerados importantes en una evaluación fotogramétrica de la postura, los puntos anatómicos que se consideraron para el desarrollo del sistema LAM son:
+
 ![](https://i.imgur.com/UNplCes.jpg)
 
 | Vista anterior del plano frontal | Vista posterior del plano frontal | Vista lateral derecha | 
@@ -37,7 +42,9 @@ Una vez realizado el estado del arte sobre aplicaciones y métodos que existen p
 Se ubicaron dos marcadores adicionales que sirven como referencia al momento de cuadrar la imagen y obtener el factor de escala para transformar los píxeles a centímetros. Estos puntos adicionales están ubicados uno a cada lado de la persona y separados con una distancia de 100 centímetros (R1 y R2).
 ## Captura de Fotografías
 Para la captura de fotografías, los principales aspectos que se deben analizar son la altura de la cámara, distancia entre el participante y la cámara, y la iluminación del espacio
+
 ![](https://i.imgur.com/6C6T9Qo.png)
+
 Se colocan los marcadores sobre la persona (etiquetas verdes circulares) junto con los dos marcadores de referencia. La cámara se posicionó de forma paralela a la persona a una distancia de 2.50 metros y colocando el lente de la cámara a una altura de 1.10 metros. Las fotografías deben ser tomadas con una iluminación mínima de 200 lux. La resolución de la cámara a utilizar tiene que ser superior o igual a los 12 megapíxeles (Mpx) y el modo de configuración estar en automático.
 ## Tablas de resultados
 Con los puntos anatómicos definidos se establecieron los resultados requeridos por el fisioterapeuta para que este pueda dar un diagnóstico. Los datos requeridos se muestran en tablas, los formatos de las tablas de resultados para cada una de las vistas a analizar fueron propuestos por el centro **HABILITAR Cuenca-Ecuador**.
@@ -129,14 +136,21 @@ Actualmente el sistema se ejecuta en la consola usando ventanas emergentes para 
 1. Una vez ejecutado el programa primeramente se debe llenar la información de la persona sometida a la evaluación.
 2. Se ingresan las evaluaciones que se van a realizar.
 3. Se Ingresa la tolerancia para etiquetar un segmento corporal o referencia como alineada:
+
 	![](https://i.imgur.com/7TkPLqH.jpg)
+	
 4. Se muestran las ventanas emergentes para cargar cada una de las fotografías a procesar. En caso de que exista algún error, el sistema nos mostrara cual es el error y si deseamos cargar otra imagen o descartar esa evaluación:
+
 	![](https://i.imgur.com/ZiAIvXe.jpg)
+	
 5. Una vez terminado el proceso los archivos finales son generados en: 
+6. 
+
 > C:\Users\Nombre_de_Usuario\Documents\LAM
 
-	Donde se encuentra un archivo con el nombre* DB_LAM.xlsx*  que guarda toda la información y hipervínculos de las evaluaciones realizadas con éxito. Además, se generan las carpetas con los nombres de las diferentes personas que se realizaron las evaluaciones, que en su interior contienen con sus reportes en PDF y las fotografías analizadas.
-	![](https://i.imgur.com/EdmMuJM.png)
+Donde se encuentra un archivo con el nombre* DB_LAM.xlsx*  que guarda toda la información y hipervínculos de las evaluaciones realizadas con éxito. Además, se generan las carpetas con los nombres de las diferentes personas que se realizaron las evaluaciones, que en su interior contienen con sus reportes en PDF y las fotografías analizadas.
+
+![](https://i.imgur.com/EdmMuJM.png)
 
 El reporte PDF contendrá la siguiente información:
 
@@ -146,5 +160,6 @@ El reporte PDF contendrá la siguiente información:
 ![](https://i.imgur.com/D2VTmDP.jpg)
 
 # Licencia
+
 Las condiciones de uso de este código se encuentran el archivo LICENSE.
 
