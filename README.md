@@ -45,7 +45,7 @@ Para la captura de fotografías, los principales aspectos que se deben analizar 
 
 ![](https://i.imgur.com/6C6T9Qo.png)
 
-Se colocan los marcadores sobre la persona (etiquetas verdes circulares) junto con los dos marcadores de referencia. La cámara se posicionó de forma paralela a la persona a una distancia de 2.50 metros y colocando el lente de la cámara a una altura de 1.10 metros. Las fotografías deben ser tomadas con una iluminación mínima de 200 lux. La resolución de la cámara a utilizar tiene que ser superior o igual a los 12 megapíxeles (Mpx) y el modo de configuración estar en automático.
+Se colocan los marcadores sobre la persona (Etiquetas verdes circulares) junto con los dos marcadores de referencia. La cámara se posicionó de forma paralela a la persona a una distancia de 2.50 metros y colocando el lente de la cámara a una altura de 1.10 metros. Las fotografías deben ser tomadas con una iluminación mínima de 200 lux. La resolución de la cámara a utilizar tiene que ser superior o igual a los 12 megapíxeles (Mpx) y el modo de configuración estar en automático.
 ## Tablas de resultados
 Con los puntos anatómicos definidos se establecieron los resultados requeridos por el fisioterapeuta para que este pueda dar un diagnóstico. Los datos requeridos se muestran en tablas, los formatos de las tablas de resultados para cada una de las vistas a analizar fueron propuestos por el centro **HABILITAR Cuenca-Ecuador**.
 **Tabla de resultados para la vista anterior, plano frontal**
