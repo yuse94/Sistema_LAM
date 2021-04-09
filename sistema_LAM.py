@@ -10,6 +10,7 @@ import pandas as pd
 import datetime
 import os
 import time
+import webbrowser as wb
 
 from skimage import (io, filters,
                      morphology, transform, img_as_ubyte)
@@ -1636,12 +1637,13 @@ if __name__ == '__main__':
                 writer.save()
                 print('Datos agregados con éxito\n')
 
+            wb.open_new(carpeta_voluntario+nombre_pdf+'.pdf')
+
             salir = bool(int(input('Desea salir? 1: Si | 0: NO => ')))
 
             if salir:
                 break
             os.system("cls")
-
     else:
         print('El tiempo de uso a finalizado el: ', datetime.date(2021, 6, 1))
         input()
