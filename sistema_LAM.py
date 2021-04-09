@@ -543,8 +543,8 @@ class NumeracionPaginas(canvas.Canvas):
 
 # Funciones de evaluacion
 
-def evaluacion_anterior(foto_anterior):
-    imagen = io.imread(foto_anterior)
+def evaluacion_anterior(dir_foto_anterior):
+    imagen = io.imread(dir_foto_anterior)
     imagen = escalar_imagen(imagen)
     # io.imshow(imagen)
     # plt.close()            # Para mostrar la imagen cambiar "close" por "show"
@@ -599,7 +599,7 @@ def evaluacion_anterior(foto_anterior):
     else:
 
         f1 = (centros_coordenada_y[0], centros_coordenada_x[0])
-        f2 = (centros_coordenada_y[1], centros_coordenada_x[1])
+        # f2 = (centros_coordenada_y[1], centros_coordenada_x[1])
 
         coordenada_temp_y = [centros_coordenada_y[2], centros_coordenada_y[3], centros_coordenada_y[4]]
         coordenada_temp_x = [centros_coordenada_x[2], centros_coordenada_x[3], centros_coordenada_x[4]]
@@ -611,7 +611,7 @@ def evaluacion_anterior(foto_anterior):
         f4 = coordenada_temp_y[posicion[0]], coordenada_temp_x[posicion[0]]
         coordenada_temp_y.pop(posicion[0])
         coordenada_temp_x.pop(posicion[0])
-        f5 = coordenada_temp_y[0], coordenada_temp_x[0]
+        # f5 = coordenada_temp_y[0], coordenada_temp_x[0]
 
         coordenada_temp_y = [centros_coordenada_y[5], centros_coordenada_y[6], centros_coordenada_y[7]]
         coordenada_temp_x = [centros_coordenada_x[5], centros_coordenada_x[6], centros_coordenada_x[7]]
@@ -655,10 +655,10 @@ def evaluacion_anterior(foto_anterior):
         # F2 y F5 aún sin uso
 
         f1 = np.array(f1)
-        f2 = np.array(f2)
+        # f2 = np.array(f2)
         f3 = np.array(f3)
         f4 = np.array(f4)
-        f5 = np.array(f5)
+        # f5 = np.array(f5)
         f6 = np.array(f6)
         f7 = np.array(f7)
         f8 = np.array(f8)
@@ -737,8 +737,8 @@ def evaluacion_anterior(foto_anterior):
     return 0
 
 
-def evaluacion_posterior(foto_posterior):
-    imagen = io.imread(foto_posterior)
+def evaluacion_posterior(dir_foto_posterior):
+    imagen = io.imread(dir_foto_posterior)
     imagen = escalar_imagen(imagen)
     # io.imshow(imagen)
     # plt.close()            # Para mostrar la imagen cambiar "close" por "show"
@@ -920,8 +920,8 @@ def evaluacion_posterior(foto_posterior):
     return 0
 
 
-def evaluacion_lateral_d(foto_lateral_d):
-    imagen = io.imread(foto_lateral_d)
+def evaluacion_lateral_d(dir_foto_lateral_d):
+    imagen = io.imread(dir_foto_lateral_d)
     imagen = escalar_imagen(imagen)
     # io.imshow(imagen)
     # plt.close()            # Para mostrar la imagen cambiar "close" por "show"
@@ -1052,41 +1052,12 @@ class ReportePdf(object):
     Exportar los datos del analisis al PDF.
     """
 
-    def __init__(self, nombre_pdf):
+    def __init__(self, nombre_archivo_pdf):
         super(ReportePdf, self).__init__()
 
-        self.nombre_pdf = nombre_pdf
+        self.nombre_pdf = nombre_archivo_pdf
         self.estilos = getSampleStyleSheet()
-
-    @staticmethod
-    def encabezado_pie_pagina(canvas, archivo_pdf):
-        """Guarde el estado de nuestro lienzo para que podamos aprovecharlo"""
-
-        canvas.saveState()
-        estilos = getSampleStyleSheet()
-
-        alineacion = ParagraphStyle(name="alineacion", alignment=TA_RIGHT,
-                                    parent=estilos["Normal"])
-
-        # Encabezado
-        encabezado_nombre = Paragraph(nombre, estilos["Normal"])
-        encabezado_nombre.wrap(archivo_pdf.width, archivo_pdf.topMargin)
-        encabezado_nombre.drawOn(canvas, archivo_pdf.leftMargin, 736)
-
-        fecha = utcnow().to("local").format("dddd, DD - MMMM - YYYY", locale="es")
-        fecha_reporte = fecha.replace("-", "de")
-
-        encabezado_fecha = Paragraph(fecha_reporte, alineacion)
-        encabezado_fecha.wrap(archivo_pdf.width, archivo_pdf.topMargin)
-        encabezado_fecha.drawOn(canvas, archivo_pdf.leftMargin, 736)
-
-        # Pie de página
-        pie_pagina = Paragraph("Lectura automatica de marcadores", estilos["Normal"])
-        pie_pagina.wrap(archivo_pdf.width, archivo_pdf.bottomMargin)
-        pie_pagina.drawOn(canvas, archivo_pdf.leftMargin, 15 * mm + (5 * mm))
-
-        # Suelta el lienzo
-        canvas.restoreState()
+        self.ancho, self.alto = letter
 
     def exportar(self, db_anterior, db_posterior, db_lateral_d):
         """Exportar los datos a un archivo PDF."""
@@ -1103,8 +1074,6 @@ class ReportePdf(object):
 
         parrafo_secundario = PS(name="centrar", alignment=TA_LEFT, fontSize=10,
                                 leading=16, textColor=black)
-
-        self.ancho, self.alto = letter
 
         estilo_tabla_datos = [("BACKGROUND", (0, 0), (-1, 0), cornflowerblue),
                               ("TEXTCOLOR", (0, 0), (-1, 0), whitesmoke),
@@ -1251,8 +1220,8 @@ class ReportePdf(object):
                                         title="Reporte PDF", author="Youssef Abarca")
 
         try:
-            archivo_pdf.build(historia, onFirstPage=self.encabezado_pie_pagina,
-                              onLaterPages=self.encabezado_pie_pagina,
+            archivo_pdf.build(historia, onFirstPage=encabezado_pie_pagina,
+                              onLaterPages=encabezado_pie_pagina,
                               canvasmaker=NumeracionPaginas)
 
             # +------------------------------------+
@@ -1262,6 +1231,36 @@ class ReportePdf(object):
             # +--------------------------------------------+
             return "Error inesperado: Permiso denegado."
         # +--------------------------------------------+
+
+
+def encabezado_pie_pagina(canvas_encabezado, archivo_pdf):
+    """Guarde el estado de nuestro lienzo para que podamos aprovecharlo"""
+
+    canvas_encabezado.saveState()
+    estilos = getSampleStyleSheet()
+
+    alineacion = ParagraphStyle(name="alineacion", alignment=TA_RIGHT,
+                                parent=estilos["Normal"])
+
+    # Encabezado
+    encabezado_nombre = Paragraph(nombre, estilos["Normal"])
+    encabezado_nombre.wrap(archivo_pdf.width, archivo_pdf.topMargin)
+    encabezado_nombre.drawOn(canvas_encabezado, archivo_pdf.leftMargin, 736)
+
+    fecha_encabezado = utcnow().to("local").format("dddd, DD - MMMM - YYYY", locale="es")
+    fecha_reporte = fecha_encabezado.replace("-", "de")
+
+    encabezado_fecha = Paragraph(fecha_reporte, alineacion)
+    encabezado_fecha.wrap(archivo_pdf.width, archivo_pdf.topMargin)
+    encabezado_fecha.drawOn(canvas_encabezado, archivo_pdf.leftMargin, 736)
+
+    # Pie de página
+    pie_pagina = Paragraph("Lectura Automática de Marcadores", estilos["Normal"])
+    pie_pagina.wrap(archivo_pdf.width, archivo_pdf.bottomMargin)
+    pie_pagina.drawOn(canvas_encabezado, archivo_pdf.leftMargin, 15 * mm + (5 * mm))
+
+    # Suelta el lienzo
+    canvas_encabezado.restoreState()
 
 
 # Cargar imagenes (Funciones temporales)
@@ -1400,15 +1399,11 @@ if __name__ == '__main__':
                 os.mkdir(img_voluntario)
                 img_voluntario = os.path.expanduser(dir_imagen)
 
-            # Datos para la ejecución
-
-            examen_anterior = True
-            examen_posterior = True
-            examen_lateral_d = True
-
             # Condicion para saber que analisis realizar:
 
             print("\nEvaluaciones a realizar => 1: Si | 0: NO\n")
+
+            # Datos para la ejecución
 
             examen_anterior = bool(int(input("Vista Anterior 1/0: ")))
             examen_posterior = bool(int(input("Vista Posterior 1/0: ")))
@@ -1478,12 +1473,25 @@ if __name__ == '__main__':
                         break
 
             ###############################
+            encabezado_anterior = []
+            encabezado_posterior = []
+            encabezado_lateral_d = []
+
+            data_tabla_anterior = []
+            data_tabla_posterior = []
+            data_tabla_lateral_d = []
+
+            direccion_imagen_anterior = []
+            direccion_imagen_posterior = []
+            direccion_imagen_lateral_d = []
 
             if examen_anterior:
                 data_tabla_anterior = pd.DataFrame(resultados_anterior)
                 # print(dataTablaAnterior.T)
 
-                direccion_imagen_anterior = '=HYPERLINK("' + img_voluntario + nombre_imagen_anterior + '.jpg","' + nombre_imagen_anterior + '")'
+                direccion_imagen_anterior = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(img_voluntario,
+                                                                                        nombre_imagen_anterior,
+                                                                                        nombre_imagen_anterior)
                 encabezado_anterior = pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
                                                         'Ocupación',
                                                         'Ángulo de tolerancia', 'Distancia de tolerancia',
@@ -1505,7 +1513,9 @@ if __name__ == '__main__':
                 data_tabla_posterior = pd.DataFrame(resultados_posterior)
                 # print(dataTablaPosterior.T)
 
-                direccion_imagen_posterior = '=HYPERLINK("' + img_voluntario + nombre_imagen_posterior + '.jpg","' + nombre_imagen_posterior + '")'
+                direccion_imagen_posterior = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(img_voluntario,
+                                                                                         nombre_imagen_posterior,
+                                                                                         nombre_imagen_posterior)
 
                 encabezado_posterior = pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
                                                          'Ocupación',
@@ -1529,7 +1539,9 @@ if __name__ == '__main__':
                 data_tabla_lateral_d = pd.DataFrame(resultados_lateral_d)
                 # print(dataTablaLateralD.T)
 
-                direccion_imagen_lateral_d = '=HYPERLINK("' + img_voluntario + nombre_imagen_lateral_d + '.jpg","' + nombre_imagen_lateral_d + '")'
+                direccion_imagen_lateral_d = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(img_voluntario,
+                                                                                         nombre_imagen_lateral_d,
+                                                                                         nombre_imagen_lateral_d)
 
                 encabezado_lateral_d = pd.DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
                                                          'Ocupación',
@@ -1548,7 +1560,9 @@ if __name__ == '__main__':
                                                          'Dirección del Reporte'])
 
             nombre_pdf = generar_reporte(resultados_anterior, resultados_posterior, resultados_lateral_d)
-            direccion_reporte = '=HYPERLINK("' + carpeta_voluntario + nombre_pdf + '.pdf","' + nombre_pdf + '")'
+
+            direccion_reporte = '=HYPERLINK(\"{0}{1}.pdf\",\"{2}\")'.format(carpeta_voluntario, nombre_pdf,
+                                                                            nombre_pdf)
 
             encabezado_datos = pd.DataFrame([fecha, nombre, edad, genero, peso, talla, ocupacion])
 
