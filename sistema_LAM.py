@@ -9,7 +9,7 @@ from os import path, mkdir, system
 from time import strftime, sleep
 from datetime import datetime, date
 from pandas import DataFrame, ExcelWriter, read_excel
-from numpy import zeros, max, min, arctan, pi, arange, meshgrid, hstack, angle, array, sqrt, mean
+from numpy import max, min, arctan, pi, arange, meshgrid, hstack, angle, array, sqrt, mean
 from warnings import simplefilter
 from webbrowser import open_new
 from skimage import (io, filters,
@@ -61,13 +61,9 @@ def filtro_color_verde(imagen):
     canal_verde = rgb2gray(imagen[:, :, 1]) / 255.0
     imagen_gris = rgb2gray(imagen)
 
-    imagen_solo_verde = zeros((len(canal_verde), len(canal_verde[1, :])))
+    imagen_solo_verde = canal_verde - imagen_gris
 
-    for i in range(0, len(canal_verde)):
-        for j in range(0, len(canal_verde[1, :])):
-            imagen_solo_verde[i][j] = canal_verde[i][j] - imagen_gris[i][j]
-            if imagen_solo_verde[i][j] < 0:
-                imagen_solo_verde[i][j] = 0
+    imagen_solo_verde[imagen_solo_verde < 0] = 0
 
     if max(imagen_solo_verde) <= 1:
         imagen_solo_verde = filters.median(imagen_solo_verde) * 255
@@ -149,7 +145,7 @@ def cuadricula(centro_x, centro_y, tamanio_x, tamanio_y, tamanio_divisiones):
     return mesh_x, mesh_y, x_horizontal, y_horizontal, x_vertical, y_vertical
 
 
-def get_image(path_img, height=1 * mm):
+def get_image_for_pdf(path_img, height=1 * mm):
     """
     Obtener la imagen con una altura determinada
     :param path_img:
@@ -1095,7 +1091,7 @@ class ReportePdf(object):
         tabla_datos.argW[1] = 38 * mm
 
         historia = [Paragraph("Evaluación Postural", alineacion_titulo), Spacer(1, 4 * mm), tabla_datos,
-                    get_image("logo.png", height=100 * mm), PageBreak()]  # https://i.imgur.com/KRPTibG.png
+                    get_image_for_pdf("logo.png", height=100 * mm), PageBreak()]  # https://i.imgur.com/KRPTibG.png
 
         # PAGINA TABLA EVALUACION ANTERIOR
         if examen_anterior:
@@ -1122,7 +1118,7 @@ class ReportePdf(object):
                                                colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                style=estilo_tabla_resultados)
 
-            historia.append(get_image(img_voluntario + nombre_imagen_anterior + '.jpg', height=100 * mm))
+            historia.append(get_image_for_pdf(img_voluntario + nombre_imagen_anterior + '.jpg', height=100 * mm))
             historia.append(Paragraph("Grados con respecto a la horizontal:", parrafo_principal))
             historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafo_secundario))
             historia.append(tabla_anterior_parte_1_pdf)
@@ -1159,7 +1155,7 @@ class ReportePdf(object):
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            historia.append(get_image(img_voluntario + nombre_imagen_posterior + '.jpg', height=100 * mm))
+            historia.append(get_image_for_pdf(img_voluntario + nombre_imagen_posterior + '.jpg', height=100 * mm))
             historia.append(Paragraph("Grados con respecto a la horizontal:", parrafo_principal))
             historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafo_secundario))
             historia.append(tabla_posterior_parte_1_pdf)
@@ -1195,7 +1191,7 @@ class ReportePdf(object):
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            historia.append(get_image(img_voluntario + nombre_imagen_lateral_d + '.jpg', height=100 * mm))
+            historia.append(get_image_for_pdf(img_voluntario + nombre_imagen_lateral_d + '.jpg', height=100 * mm))
             historia.append(Paragraph("Grados con respecto a la vertical:", parrafo_principal))
             historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafo_secundario))
             historia.append(tabla_lateral_d_parte_1_pdf)
