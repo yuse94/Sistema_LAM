@@ -87,8 +87,9 @@ def ajustar_imagen(imagen):
     """
 
     imagen_filtrada = filtro_color_verde(imagen)
-    referencia_1 = Etiquetas(imagen_filtrada).referencia_1
-    referencia_2 = Etiquetas(imagen_filtrada).referencia_2
+
+    referencias = etiquetas(imagen_filtrada)
+    referencia_1, referencia_2 = referencias[0], referencias[1]
 
     coordenadas_referencia = referencia_2 - referencia_1
     angulo_de_rotacion_imagen = np.arctan(coordenadas_referencia[0] / coordenadas_referencia[1])
@@ -449,58 +450,50 @@ def tabla_lateral_d_parte_3(punto_anatomico_1, punto_anatomico_2, escala):
 
 # Clase de segmentación
 
-class Etiquetas:
-    """
-    Realiza la segmentacion de las etiquetas ayuda a indentificar:
-    self.referencia_1 => Punto de refercia uno
-    self.referencia_2 => Punto de refercia dos
-    self.centros_coordenada_y; self.centros_coordenada_x => Devuelte las cordenadas
-    ordenadas de arriba a abajo conforme aparecen
-    self.razon_de_escala => Escala segun los puntos de referencia para obtener valores en cm
-    """
+def etiquetas(imagen):
+    imagen = label(imagen)
+    regiones = regionprops(imagen)
+    centros_coordenada_y = []
+    centros_coordenadas_x = []
+    for i in range(0, len(regiones)):
+        y, x = regiones[i].centroid
+        centros_coordenada_y.append(y)
+        centros_coordenadas_x.append(x)
 
-    def __init__(self, imagen):
-        etiquetas = label(imagen)
-        regiones = regionprops(etiquetas)
-        centros_coordenada_y = []
-        centros_coordenadas_x = []
-        for i in range(0, len(regiones)):
-            y, x = regiones[i].centroid
-            centros_coordenada_y.append(y)
-            centros_coordenadas_x.append(x)
+    posicion_coordenada = [i for i, x in enumerate(centros_coordenadas_x) if x == min(centros_coordenadas_x)]
+    referencia_1 = [centros_coordenada_y[posicion_coordenada[0]], centros_coordenadas_x[posicion_coordenada[0]]]
+    centros_coordenada_y.pop(posicion_coordenada[0])
+    centros_coordenadas_x.pop(posicion_coordenada[0])
 
-        posicion_coordenada = [i for i, x in enumerate(centros_coordenadas_x) if x == min(centros_coordenadas_x)]
-        referencia_1 = [centros_coordenada_y[posicion_coordenada[0]], centros_coordenadas_x[posicion_coordenada[0]]]
-        centros_coordenada_y.pop(posicion_coordenada[0])
-        centros_coordenadas_x.pop(posicion_coordenada[0])
+    posicion_coordenada = [i for i, x in enumerate(centros_coordenadas_x) if x == max(centros_coordenadas_x)]
+    referencia_2 = [centros_coordenada_y[posicion_coordenada[0]], centros_coordenadas_x[posicion_coordenada[0]]]
+    centros_coordenada_y.pop(posicion_coordenada[0])
+    centros_coordenadas_x.pop(posicion_coordenada[0])
 
-        posicion_coordenada = [i for i, x in enumerate(centros_coordenadas_x) if x == max(centros_coordenadas_x)]
-        referencia_2 = [centros_coordenada_y[posicion_coordenada[0]], centros_coordenadas_x[posicion_coordenada[0]]]
-        centros_coordenada_y.pop(posicion_coordenada[0])
-        centros_coordenadas_x.pop(posicion_coordenada[0])
+    etiquetas_de_referencia = [referencia_1, referencia_2]
 
-        etiquetas_de_referencia = [referencia_1, referencia_2]
+    if etiquetas_de_referencia[0][0] == etiquetas_de_referencia[1][0]:
+        referencia_1 = etiquetas_de_referencia[0]
+        referencia_2 = etiquetas_de_referencia[1]
+    else:
+        referencia_coordenada_y = [etiquetas_de_referencia[0][0], etiquetas_de_referencia[1][0]]
+        posicion_coordenada = [i for i, x in enumerate(referencia_coordenada_y) if
+                               x == min(referencia_coordenada_y)]
+        referencia_1 = etiquetas_de_referencia[posicion_coordenada[0]]
+        posicion_coordenada = [i for i, x in enumerate(referencia_coordenada_y) if
+                               x == max(referencia_coordenada_y)]
+        referencia_2 = etiquetas_de_referencia[posicion_coordenada[0]]
 
-        if etiquetas_de_referencia[0][0] == etiquetas_de_referencia[1][0]:
-            referencia_1 = etiquetas_de_referencia[0]
-            referencia_2 = etiquetas_de_referencia[1]
-        else:
-            referencia_coordenada_y = [etiquetas_de_referencia[0][0], etiquetas_de_referencia[1][0]]
-            posicion_coordenada = [i for i, x in enumerate(referencia_coordenada_y) if
-                                   x == min(referencia_coordenada_y)]
-            referencia_1 = etiquetas_de_referencia[posicion_coordenada[0]]
-            posicion_coordenada = [i for i, x in enumerate(referencia_coordenada_y) if
-                                   x == max(referencia_coordenada_y)]
-            referencia_2 = etiquetas_de_referencia[posicion_coordenada[0]]
+    etiquetas_de_referencia = [referencia_1[1], referencia_2[1]]
+    etiquetas_de_referencia.sort()
 
-        etiquetas_de_referencia = [referencia_1[1], referencia_2[1]]
-        etiquetas_de_referencia.sort()
+    referencia_1 = np.array(referencia_1)
+    referencia_2 = np.array(referencia_2)
+    centros_coordenada_y = np.array(centros_coordenada_y)
+    centros_coordenada_x = np.array(centros_coordenadas_x)
+    razon_de_escala = 100.0 / np.sqrt((etiquetas_de_referencia[0] ** 2 + etiquetas_de_referencia[1] ** 2))
 
-        self.referencia_1 = np.array(referencia_1)
-        self.referencia_2 = np.array(referencia_2)
-        self.centros_coordenada_y = np.array(centros_coordenada_y)
-        self.centros_coordenada_x = np.array(centros_coordenadas_x)
-        self.razon_de_escala = 100.0 / np.sqrt((etiquetas_de_referencia[0] ** 2 + etiquetas_de_referencia[1] ** 2))
+    return [referencia_1, referencia_2, centros_coordenada_y, centros_coordenada_x, razon_de_escala]
 
 
 # REPORTE PDF
@@ -551,11 +544,9 @@ def evaluacion_anterior(dir_foto_anterior):
     imagen_anterior = ajustar_imagen(imagen)
 
     imagen_anterior_filtrada = filtro_color_verde(imagen_anterior)
-    referencia_1 = Etiquetas(imagen_anterior_filtrada).referencia_1
-    referencia_2 = Etiquetas(imagen_anterior_filtrada).referencia_2
-    centros_coordenada_y = Etiquetas(imagen_anterior_filtrada).centros_coordenada_y
-    centros_coordenada_x = Etiquetas(imagen_anterior_filtrada).centros_coordenada_x
-    razon_de_escala = Etiquetas(imagen_anterior_filtrada).razon_de_escala
+
+    [referencia_1, referencia_2, centros_coordenada_y,
+     centros_coordenada_x, razon_de_escala] = etiquetas(imagen_anterior_filtrada)
 
     '''
     PUTNOS ANATOMICOS
@@ -745,11 +736,9 @@ def evaluacion_posterior(dir_foto_posterior):
     imagen_posterior = ajustar_imagen(imagen)
 
     imagen_posterior_filtrada = filtro_color_verde(imagen_posterior)
-    referencia_1 = Etiquetas(imagen_posterior_filtrada).referencia_1
-    referencia_2 = Etiquetas(imagen_posterior_filtrada).referencia_2
-    centros_coordenada_y = Etiquetas(imagen_posterior_filtrada).centros_coordenada_y
-    centros_coordenada_x = Etiquetas(imagen_posterior_filtrada).centros_coordenada_x
-    razon_de_escala = Etiquetas(imagen_posterior_filtrada).razon_de_escala
+
+    [referencia_1, referencia_2, centros_coordenada_y,
+     centros_coordenada_x, razon_de_escala] = etiquetas(imagen_posterior_filtrada)
 
     '''
     PUTNOS ANATOMICOS
@@ -928,11 +917,9 @@ def evaluacion_lateral_d(dir_foto_lateral_d):
     imagen_lateral_d = ajustar_imagen(imagen)
 
     imagen_lateral_d_filtrada = filtro_color_verde(imagen_lateral_d)
-    referencia_1 = Etiquetas(imagen_lateral_d_filtrada).referencia_1
-    referencia_2 = Etiquetas(imagen_lateral_d_filtrada).referencia_2
-    centros_coordenada_y = Etiquetas(imagen_lateral_d_filtrada).centros_coordenada_y
-    centros_coordenada_x = Etiquetas(imagen_lateral_d_filtrada).centros_coordenada_x
-    razon_de_escala = Etiquetas(imagen_lateral_d_filtrada).razon_de_escala
+
+    [referencia_1, referencia_2, centros_coordenada_y,
+     centros_coordenada_x, razon_de_escala] = etiquetas(imagen_lateral_d_filtrada)
 
     '''
     PUTNOS ANATOMICOS
@@ -1348,6 +1335,11 @@ def cargar_imagen_lateral_d():
 year = datetime.datetime.now().year
 month = datetime.datetime.now().month
 day = datetime.datetime.now().day
+
+
+def run():
+    pass
+
 
 if __name__ == '__main__':
 
