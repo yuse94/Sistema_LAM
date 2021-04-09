@@ -10,8 +10,8 @@ import pandas as pd
 import datetime
 import os
 import time
-import webbrowser as wb
 
+from webbrowser import open_new
 from skimage import (io, filters,
                      morphology, transform, img_as_ubyte)
 from skimage.color import rgb2gray
@@ -1637,7 +1637,7 @@ if __name__ == '__main__':
                 writer.save()
                 print('Datos agregados con éxito\n')
 
-            wb.open_new(carpeta_voluntario+nombre_pdf+'.pdf')
+            open_new(carpeta_voluntario+nombre_pdf+'.pdf')
 
             salir = bool(int(input('Desea salir? 1: Si | 0: NO => ')))
 
