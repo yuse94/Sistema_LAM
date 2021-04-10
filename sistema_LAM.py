@@ -1338,11 +1338,6 @@ year = datetime.now().year
 month = datetime.now().month
 day = datetime.now().day
 
-
-def run():
-    pass
-
-
 if __name__ == '__main__':
 
     if date(year, month, day) <= date(2021, 6, 1):
@@ -1358,16 +1353,62 @@ if __name__ == '__main__':
             print("\nDATOS PERSONALES\n")
 
             nombre = input("Nombre: ")
-            edad = int(input("Edad: "))
-            genero = input("Genero (M/F): ")
-            peso = float(input("Peso en Kg: "))
-            talla = float(input("Altura en cm: "))
+            nombre = nombre.strip().title()
+
+            try:
+                edad = int(input("Edad: "))
+                while edad <= 0:
+                    print('Ingrese un valor válido > 0')
+                    edad = int(input("Edad: "))
+            except ValueError:
+                print('Error en ingreso de edad')
+                edad = None
+
+            genero = input("Género (M/F): ")
+            genero = genero.strip().upper()
+            if not (genero == 'M' or genero == 'F'):
+                print('Error al ingresar género')
+                genero = None
+
+            try:
+                peso = float(input("Peso en Kg: "))
+                while peso <= 0:
+                    print('Ingrese un valor válido > 0')
+                    peso = float(input("Peso en Kg: "))
+            except ValueError:
+                print('Error en ingreso de peso')
+                peso = None
+
+            try:
+                talla = float(input("Altura en cm: "))
+                while talla <= 0:
+                    print('Ingrese un valor válido > 0')
+                    talla = float(input("Altura en cm: "))
+            except ValueError:
+                print('Error en ingreso de altura')
+                talla = None
+
             ocupacion = input("Ocupación: ")
+            ocupacion = ocupacion.strip().title()
 
             print("\nIngrese las tolerancias: \n")
+            try:
+                angulo_tolerancia = float(input("Tolerancia en grados para los ángulos: "))
+                while angulo_tolerancia < 0:
+                    print('Ingrese un valor válido > 0')
+                    angulo_tolerancia = float(input("Tolerancia en grados para los ángulos: "))
+            except ValueError:
+                print('Tolerancia de grados inválida, se asigna el valor de 0')
+                angulo_tolerancia = 0
 
-            angulo_tolerancia = float(input("Tolerancia en grados para los ángulos:  "))
-            distancia_tolerancia = float(input("Tolerancia en cm para las distancias: "))
+            try:
+                distancia_tolerancia = float(input("Tolerancia en cm para las distancias: "))
+                while distancia_tolerancia < 0:
+                    print('Ingrese un valor válido > 0')
+                    distancia_tolerancia = float(input("Tolerancia en cm para las distancias: "))
+            except ValueError:
+                print('Tolerancia de distancias inválida, se asigna el valor de 0')
+                distancia_tolerancia = 0
 
             # Creacion del directorio LAM
 
@@ -1399,9 +1440,20 @@ if __name__ == '__main__':
 
             # Datos para la ejecución
 
-            examen_anterior = bool(int(input("Vista Anterior 1/0: ")))
-            examen_posterior = bool(int(input("Vista Posterior 1/0: ")))
-            examen_lateral_d = bool(int(input("Vista Lateral Derecha 1/0: ")))
+            if not input("Vista Anterior 1/0: ").strip() == '0':
+                examen_anterior = True
+            else:
+                examen_anterior = False
+
+            if not input("Vista Posterior 1/0: ").strip() == '0':
+                examen_posterior = True
+            else:
+                examen_posterior = False
+
+            if not input("Vista Lateral Derecha 1/0: ").strip() == '0':
+                examen_lateral_d = True
+            else:
+                examen_lateral_d = False
 
             nombre_imagen_anterior = 'Anterior' + '_' + strftime("%Y%m%d") + '_' + strftime("%H%M%S")
             nombre_imagen_posterior = 'Posterior' + '_' + strftime("%Y%m%d") + '_' + strftime("%H%M%S")
