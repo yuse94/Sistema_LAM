@@ -495,7 +495,7 @@ def etiquetas(imagen):
     centros_coordenada_x = array(centros_coordenadas_x)
     razon_de_escala = 100.0 / sqrt((etiquetas_de_referencia[0] ** 2 + etiquetas_de_referencia[1] ** 2))
 
-    return [referencia_1, referencia_2, centros_coordenada_y, centros_coordenada_x, razon_de_escala]
+    return referencia_1, referencia_2, centros_coordenada_y, centros_coordenada_x, razon_de_escala
 
 
 # REPORTE PDF
@@ -720,11 +720,11 @@ def evaluacion_anterior(dir_foto_anterior):
         direccion_pie_izquierdo, angulo_pie_izquierdo = tabla_anterior_parte_3(f12, f14)
         direccion_pie_derecho, angulo_pie_derecho = tabla_anterior_parte_3(f13, f11)
 
-        datos = [angulo_tolerancia, distancia_tolerancia, hombro_descendido, angulo_hombro, pelvis_descendida,
+        datos = (angulo_tolerancia, distancia_tolerancia, hombro_descendido, angulo_hombro, pelvis_descendida,
                  angulo_pelvis, rodilla_descendida, angulo_rodilla, direccion_frente, distancia_frente,
                  direccion_hombros, distancia_hombros, direccion_ombligo, distancia_ombligo, direccion_pelvis,
                  distancia_pelvis, direccion_rodillas, distancia_rodillas, direccion_pies, distancia_pies,
-                 direccion_pie_izquierdo, angulo_pie_izquierdo, direccion_pie_derecho, angulo_pie_derecho]
+                 direccion_pie_izquierdo, angulo_pie_izquierdo, direccion_pie_derecho, angulo_pie_derecho)
 
         return datos
     return 0
@@ -900,12 +900,12 @@ def evaluacion_posterior(dir_foto_posterior):
         direccion_pie_izquierdo, angulo_pie_izquierdo = tabla_posterior_parte_3(p10, p12)
         direccion_pie_derecho, angulo_pie_derecho = tabla_posterior_parte_3(p11, p9)
 
-        datos = [angulo_tolerancia, distancia_tolerancia, hombro_descendido, angulo_hombro, pelvis_descendida,
+        datos = (angulo_tolerancia, distancia_tolerancia, hombro_descendido, angulo_hombro, pelvis_descendida,
                  angulo_pelvis, rodilla_descendida, angulo_rodilla, direccion_hombros, distancia_hombros,
                  direccion_7ma_cervical, distancia_7ma_cervical, direccion_5ta_toracica, distancia_5ta_toracica,
                  direccion_pelvis, distancia_pelvis, direccion_rodillas, distancia_rodillas, direccion_tobillos,
                  distancia_tobillos, direccion_pie_izquierdo, angulo_pie_izquierdo, direccion_pie_derecho,
-                 angulo_pie_derecho]
+                 angulo_pie_derecho)
 
         return datos
     return 0
@@ -1026,11 +1026,11 @@ def evaluacion_lateral_d(dir_foto_lateral_d):
         direccion_cadera, distancia_cadera = tabla_lateral_d_parte_3(l7, l5, razon_de_escala)
         direccion_rodilla, distancia_rodilla = tabla_lateral_d_parte_3(l7, l6, razon_de_escala)
 
-        datos = [angulo_tolerancia, distancia_tolerancia, direccion_cabeza_hombro, angulo_cabeza_hombro,
+        datos = (angulo_tolerancia, distancia_tolerancia, direccion_cabeza_hombro, angulo_cabeza_hombro,
                  direccion_hombro_pelvis, angulo_hombro_pelvis, direccion_cadera_rodillas, angulo_cadera_rodillas,
                  direccion_rodillas_pies, angulo_rodillas_pies, direccion_pelvis, angulo_pelvis, direccion_cabeza,
                  distancia_cabeza, direccion_hombro, distancia_hombro, direccion_pelvis_tabla_3, distancia_pelvis,
-                 direccion_cadera, distancia_cadera, direccion_rodilla, distancia_rodilla]
+                 direccion_cadera, distancia_cadera, direccion_rodilla, distancia_rodilla)
 
         return datos
     return 0
@@ -1064,16 +1064,16 @@ class ReportePdf(object):
         parrafo_secundario = PS(name="centrar", alignment=TA_LEFT, fontSize=10,
                                 leading=16, textColor=black)
 
-        estilo_tabla_datos = [("BACKGROUND", (0, 0), (-1, 0), cornflowerblue),
+        estilo_tabla_datos = (("BACKGROUND", (0, 0), (-1, 0), cornflowerblue),
                               ("TEXTCOLOR", (0, 0), (-1, 0), whitesmoke),
                               ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                               ("ALIGN", (0, 0), (0, -1), "LEFT"),
                               ("VALIGN", (0, 0), (-1, -1), "MIDDLE", black),  # Texto centrado y alineado a la izquierda
                               ("INNERGRID", (0, 0), (-1, -1), 0.50, black),  # Lineas internas
                               ("BOX", (0, 0), (-1, -1), 0.25, black),  # Linea (Marco) externa
-                              ]
+                              )
 
-        estilo_tabla_resultados = [("BACKGROUND", (0, 0), (-1, 0), lightsteelblue),
+        estilo_tabla_resultados = (("BACKGROUND", (0, 0), (-1, 0), lightsteelblue),
                                    ("TEXTCOLOR", (0, 0), (-1, 0), black),
                                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                                    ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
@@ -1082,10 +1082,10 @@ class ReportePdf(object):
                                    # Texto centrado y alineado a la izquierda
                                    ("INNERGRID", (0, 0), (-1, -1), 0.50, black),  # Lineas internas
                                    ("BOX", (0, 0), (-1, -1), 0.25, black)  # Linea (Marco) externa
-                                   ]
+                                   )
 
-        tabla_datos = Table([['Fecha', 'Nombre', 'Edad', 'Género', 'Peso [kg]', 'Talla [cm]', 'Ocupación'],
-                             [fecha, nombre, edad, genero, peso, talla, ocupacion]], colWidths=(self.ancho - 100) / 7,
+        tabla_datos = Table((('Fecha', 'Nombre', 'Edad', 'Género', 'Peso [kg]', 'Talla [cm]', 'Ocupación'),
+                             (fecha, nombre, edad, genero, peso, talla, ocupacion)), colWidths=(self.ancho - 100) / 7,
                             hAlign="CENTER", style=estilo_tabla_datos)
 
         tabla_datos.argW[1] = 38 * mm
@@ -1095,26 +1095,26 @@ class ReportePdf(object):
 
         # PAGINA TABLA EVALUACION ANTERIOR
         if examen_anterior:
-            tabla_anterior_parte_1_pdf = Table([['Segmento Corporal', 'Descendido', 'Ángulo'],
-                                                ['Hombro', db_anterior[2], db_anterior[3]],
-                                                ['Pelvis', db_anterior[4], db_anterior[5]],
-                                                ['Rodilla', db_anterior[6], db_anterior[7]]],
+            tabla_anterior_parte_1_pdf = Table((('Segmento Corporal', 'Descendido', 'Ángulo'),
+                                                ('Hombro', db_anterior[2], db_anterior[3]),
+                                                ('Pelvis', db_anterior[4], db_anterior[5]),
+                                                ('Rodilla', db_anterior[6], db_anterior[7])),
                                                colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                style=estilo_tabla_resultados)
 
-            tabla_anterior_parte_2_pdf = Table([['Referencia', 'Dirección', 'Distancia'],
-                                                ['Frente', db_anterior[8], db_anterior[9]],
-                                                ['Hombros', db_anterior[10], db_anterior[11]],
-                                                ['Ombligo', db_anterior[12], db_anterior[13]],
-                                                ['Pelvis', db_anterior[14], db_anterior[15]],
-                                                ['Rodillas', db_anterior[16], db_anterior[17]],
-                                                ['Pies', db_anterior[18], db_anterior[19]]],
+            tabla_anterior_parte_2_pdf = Table((('Referencia', 'Dirección', 'Distancia'),
+                                                ('Frente', db_anterior[8], db_anterior[9]),
+                                                ('Hombros', db_anterior[10], db_anterior[11]),
+                                                ('Ombligo', db_anterior[12], db_anterior[13]),
+                                                ('Pelvis', db_anterior[14], db_anterior[15]),
+                                                ('Rodillas', db_anterior[16], db_anterior[17]),
+                                                ('Pies', db_anterior[18], db_anterior[19])),
                                                colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                style=estilo_tabla_resultados)
 
-            tabla_anterior_parte_3_pdf = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
-                                                ['Pie Izquierdo', db_anterior[20], db_anterior[21]],
-                                                ['Pie Derecho', db_anterior[22], db_anterior[23]]],
+            tabla_anterior_parte_3_pdf = Table((('Segmento Corporal', 'Dirección', 'Ángulo'),
+                                                ('Pie Izquierdo', db_anterior[20], db_anterior[21]),
+                                                ('Pie Derecho', db_anterior[22], db_anterior[23])),
                                                colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                style=estilo_tabla_resultados)
 
@@ -1132,26 +1132,26 @@ class ReportePdf(object):
 
         # PAGINA TABLA EVALUACION POSTERIOR
         if examen_posterior:
-            tabla_posterior_parte_1_pdf = Table([['Segmento Corporal', 'Descendido', 'Ángulo'],
-                                                 ['Hombro', db_posterior[2], db_posterior[3]],
-                                                 ['Pelvis', db_posterior[4], db_posterior[5]],
-                                                 ['Rodilla', db_posterior[6], db_posterior[7]]],
+            tabla_posterior_parte_1_pdf = Table((('Segmento Corporal', 'Descendido', 'Ángulo'),
+                                                 ('Hombro', db_posterior[2], db_posterior[3]),
+                                                 ('Pelvis', db_posterior[4], db_posterior[5]),
+                                                 ('Rodilla', db_posterior[6], db_posterior[7])),
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            tabla_posterior_parte_2_pdf = Table([['Referencia', 'Dirección', 'Distancia'],
-                                                 ['Hombros', db_posterior[8], db_posterior[9]],
-                                                 ['7ma Cervical', db_posterior[10], db_posterior[11]],
-                                                 ['5ta Torácica', db_posterior[12], db_posterior[13]],
-                                                 ['Pelvis', db_posterior[14], db_posterior[15]],
-                                                 ['Rodillas', db_posterior[16], db_posterior[17]],
-                                                 ['Tobillos', db_posterior[18], db_posterior[19]]],
+            tabla_posterior_parte_2_pdf = Table((('Referencia', 'Dirección', 'Distancia'),
+                                                 ('Hombros', db_posterior[8], db_posterior[9]),
+                                                 ('7ma Cervical', db_posterior[10], db_posterior[11]),
+                                                 ('5ta Torácica', db_posterior[12], db_posterior[13]),
+                                                 ('Pelvis', db_posterior[14], db_posterior[15]),
+                                                 ('Rodillas', db_posterior[16], db_posterior[17]),
+                                                 ('Tobillos', db_posterior[18], db_posterior[19])),
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            tabla_posterior_parte_3_pdf = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
-                                                 ['Pie Izquierdo', db_posterior[20], db_posterior[21]],
-                                                 ['Pie Derecho', db_posterior[22], db_posterior[23]]],
+            tabla_posterior_parte_3_pdf = Table((('Segmento Corporal', 'Dirección', 'Ángulo'),
+                                                 ('Pie Izquierdo', db_posterior[20], db_posterior[21]),
+                                                 ('Pie Derecho', db_posterior[22], db_posterior[23])),
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
@@ -1169,25 +1169,25 @@ class ReportePdf(object):
 
         # PAGINA TABLA EVALUACION LATERALD
         if examen_lateral_d:
-            tabla_lateral_d_parte_1_pdf = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
-                                                 ['Cabeza-Hombro', db_lateral_d[2], db_lateral_d[3]],
-                                                 ['Hombro-Pelvis', db_lateral_d[4], db_lateral_d[5]],
-                                                 ['Caderas-Rodillas', db_lateral_d[6], db_lateral_d[7]],
-                                                 ['Rodillas-Pies', db_lateral_d[8], db_lateral_d[9]]],
+            tabla_lateral_d_parte_1_pdf = Table((('Segmento Corporal', 'Dirección', 'Ángulo'),
+                                                 ('Cabeza-Hombro', db_lateral_d[2], db_lateral_d[3]),
+                                                 ('Hombro-Pelvis', db_lateral_d[4], db_lateral_d[5]),
+                                                 ('Caderas-Rodillas', db_lateral_d[6], db_lateral_d[7]),
+                                                 ('Rodillas-Pies', db_lateral_d[8], db_lateral_d[9])),
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            tabla_lateral_d_parte_2_pdf = Table([['Segmento Corporal', 'Dirección', 'Ángulo'],
-                                                 ['Pelvis', db_lateral_d[10], db_lateral_d[11]]],
+            tabla_lateral_d_parte_2_pdf = Table((('Segmento Corporal', 'Dirección', 'Ángulo'),
+                                                 ('Pelvis', db_lateral_d[10], db_lateral_d[11])),
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            tabla_lateral_d_parte_3_pdf = Table([['Referencia', 'Dirección', 'Distancia'],
-                                                 ['Cabeza', db_lateral_d[12], db_lateral_d[13]],
-                                                 ['Hombro', db_lateral_d[14], db_lateral_d[15]],
-                                                 ['Pelvis', db_lateral_d[16], db_lateral_d[17]],
-                                                 ['Cadera', db_lateral_d[18], db_lateral_d[19]],
-                                                 ['Rodilla', db_lateral_d[20], db_lateral_d[21]]],
+            tabla_lateral_d_parte_3_pdf = Table((('Referencia', 'Dirección', 'Distancia'),
+                                                 ('Cabeza', db_lateral_d[12], db_lateral_d[13]),
+                                                 ('Hombro', db_lateral_d[14], db_lateral_d[15]),
+                                                 ('Pelvis', db_lateral_d[16], db_lateral_d[17]),
+                                                 ('Cadera', db_lateral_d[18], db_lateral_d[19]),
+                                                 ('Rodilla', db_lateral_d[20], db_lateral_d[21])),
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
@@ -1538,7 +1538,7 @@ if __name__ == '__main__':
                 direccion_imagen_anterior = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(img_voluntario,
                                                                                         nombre_imagen_anterior,
                                                                                         nombre_imagen_anterior)
-                encabezado_anterior = DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
+                encabezado_anterior = DataFrame((), ('Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
                                                      'Ocupación',
                                                      'Ángulo de tolerancia', 'Distancia de tolerancia',
                                                      'Hombro Descendido', 'Ángulo del hombro',
@@ -1553,7 +1553,7 @@ if __name__ == '__main__':
                                                      'Rotación Pie Izquierdo', 'Ángulo Pie Izquierdo',
                                                      'Rotación Pie Derecho', 'Ángulo Pie Derecho',
                                                      'Dirección Imagen',
-                                                     'Dirección del Reporte'])
+                                                     'Dirección del Reporte'))
 
             if examen_posterior:
                 data_tabla_posterior = DataFrame(resultados_posterior)
@@ -1563,7 +1563,7 @@ if __name__ == '__main__':
                                                                                          nombre_imagen_posterior,
                                                                                          nombre_imagen_posterior)
 
-                encabezado_posterior = DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
+                encabezado_posterior = DataFrame((), ('Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
                                                       'Ocupación',
                                                       'Ángulo de tolerancia', 'Distancia de tolerancia',
                                                       'Hombro Descendido', 'Ángulo del hombro',
@@ -1579,7 +1579,7 @@ if __name__ == '__main__':
                                                       'Dirección Pie Izquierdo', 'Ángulo Pie Izquierdo',
                                                       'Dirección Pie Derecho', 'Ángulo Pie Derecho',
                                                       'Dirección Imagen',
-                                                      'Dirección del Reporte'])
+                                                      'Dirección del Reporte'))
 
             if examen_lateral_d:
                 data_tabla_lateral_d = DataFrame(resultados_lateral_d)
@@ -1589,7 +1589,7 @@ if __name__ == '__main__':
                                                                                          nombre_imagen_lateral_d,
                                                                                          nombre_imagen_lateral_d)
 
-                encabezado_lateral_d = DataFrame([], ['Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
+                encabezado_lateral_d = DataFrame((), ('Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
                                                       'Ocupación',
                                                       'Ángulo de tolerancia', 'Distancia de tolerancia',
                                                       'Dirección Cabeza-Hombro', 'Ángulo Cabeza-Hombro',
@@ -1603,7 +1603,7 @@ if __name__ == '__main__':
                                                       'Dirección de la Cadera', 'Distancia de la Cadera',
                                                       'Dirección de la Rodilla', 'Distancia de la Rodilla',
                                                       'Dirección Imagen',
-                                                      'Dirección del Reporte'])
+                                                      'Dirección del Reporte'))
 
             nombre_pdf = generar_reporte(resultados_anterior, resultados_posterior, resultados_lateral_d)
 
