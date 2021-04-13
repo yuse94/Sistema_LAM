@@ -1338,17 +1338,23 @@ year = datetime.now().year
 month = datetime.now().month
 day = datetime.now().day
 
-if __name__ == '__main__':
+fecha_actual = date(year, month, day)
+fecha_vencimiento = date(2021, 6, 12)
 
-    if date(year, month, day) <= date(2021, 6, 1):
+dias_de_prueba = (fecha_vencimiento - fecha_actual).days
+
+if __name__ == '__main__':
+    if (fecha_vencimiento - fecha_actual).days > 0:
+        print(f'\nLe quedan {dias_de_prueba} días de prueba')
+    else:
+        print(f'\nEl tiempo de prueba se ha terminado')
+
+    if fecha_actual < fecha_vencimiento:
         while True:
 
             # Datos Personales
 
-            date = datetime.now()
-            fecha_actual = strftime("%d/%m/%Y")
-
-            fecha = fecha_actual
+            fecha = strftime("%d/%m/%Y")
 
             print("\nDATOS PERSONALES\n")
 
@@ -1698,7 +1704,7 @@ if __name__ == '__main__':
                 break
             system("cls")
     else:
-        print('El tiempo de uso a finalizado el: ', date(2021, 6, 1))
+        print(f'El tiempo finalizó el {fecha_vencimiento}')
         input()
 
 # Para crear ejecutable: pyinstaller --onefile --icon=icon.ico sistema_LAM.py
