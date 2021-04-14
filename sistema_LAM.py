@@ -1706,3 +1706,4 @@ if __name__ == '__main__':
         input()
 
 # Para crear ejecutable: pyinstaller --onefile --icon=icon.ico sistema_LAM.py
+# Nota: Primero se debe agregar el hook faltande (hook-skimage.filters.py) en la libreria \PyInstaller\hooks\
