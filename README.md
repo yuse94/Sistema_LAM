@@ -130,7 +130,10 @@ reportlab | 3.5.65
 tkinter | 8.6
 
 Y las librerías estándar de Python 3.8: **warnings, datetime, time, os.**
-Para crea un ejecutable se utilizó la librería **pyinstaller 4.2** agregando los **hooks** faltantes de la librería **scikit-image** para su correcta ejecución.
+Para crea un ejecutable se utilizó la librería **pyinstaller 4.2** agregando los **hooks** faltantes de la librería **scikit-image** para su correcta ejecución. 
+
+*Nota:* Primero se debe agregar el hook faltande (hook-skimage.filters.py) en la libreria \PyInstaller\hooks\. Para poder compilar un .exe
+
 # Cómo usar
 Actualmente el sistema se ejecuta en la consola usando ventanas emergentes para realizar el cargado de las fotografías, y en caso de existir algún error mostrar la fotografía para que el usuario pueda visualizar el error en la lectura de los marcadores.
 1. Una vez ejecutado el programa primeramente se debe llenar la información de la persona sometida a la evaluación.
