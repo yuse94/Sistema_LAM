@@ -1088,8 +1088,6 @@ class ReportePdf(object):
                              (fecha, nombre, edad, genero, peso, talla, ocupacion)), colWidths=(self.ancho - 100) / 7,
                             hAlign="CENTER", style=estilo_tabla_datos)
 
-        tabla_datos.argW[1] = 38 * mm
-
         historia = [Paragraph("Evaluación Postural", alineacion_titulo), Spacer(1, 4 * mm), tabla_datos,
                     get_image_for_pdf("logo.png", height=100 * mm), PageBreak()]  # https://i.imgur.com/KRPTibG.png
 
