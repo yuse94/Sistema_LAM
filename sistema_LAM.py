@@ -3,8 +3,7 @@ LAM está en construcción
 Versión Consola de python3 0.1
 """
 
-import matplotlib.pyplot as plt
-
+from matplotlib.pyplot import show, figure, title, plot, savefig, close
 from os import path, mkdir, system
 from time import strftime, sleep
 from datetime import datetime, date
@@ -12,8 +11,7 @@ from pandas import DataFrame, ExcelWriter, read_excel
 from numpy import max, min, arctan, pi, arange, meshgrid, hstack, angle, array, sqrt, mean
 from warnings import simplefilter
 from webbrowser import open_new
-from skimage import (io, filters,
-                     morphology, transform, img_as_ubyte)
+from skimage import io, filters, morphology, transform, img_as_ubyte
 from skimage.color import rgb2gray
 from skimage.measure import label, regionprops
 from openpyxl import load_workbook
@@ -47,7 +45,7 @@ def escalar_imagen(imagen):
     """
 
     if len(imagen[1]) > 1000 or len(imagen) > 2000:  # Tamaño maximo en X, Y
-        imagen = transform.rescale(imagen, 4.0 / 5.0, multichannel=True)
+        imagen = transform.rescale(imagen, 0.8, multichannel=True)
         imagen = escalar_imagen(imagen)
     return img_as_ubyte(imagen)
 
@@ -58,17 +56,14 @@ def filtro_color_verde(imagen):
     :return imagen_filtrada:
     """
 
-    canal_verde = rgb2gray(imagen[:, :, 1]) / 255.0
-    imagen_gris = rgb2gray(imagen)
+    canal_verde = rgb2gray(imagen[:, :, 1])
+    imagen_gris = rgb2gray(imagen) * 255
 
     imagen_solo_verde = canal_verde - imagen_gris
 
     imagen_solo_verde[imagen_solo_verde < 0] = 0
 
-    if max(imagen_solo_verde) <= 1:
-        imagen_solo_verde = filters.median(imagen_solo_verde) * 255
-    else:
-        imagen_solo_verde = filters.median(imagen_solo_verde)
+    imagen_solo_verde = filters.median(imagen_solo_verde)
 
     umbral_color_verde = round(max(imagen_solo_verde) * 0.32)
     imagen_binaria_verde = imagen_solo_verde > umbral_color_verde
@@ -97,8 +92,10 @@ def ajustar_imagen(imagen):
 
     espacio_recorte_imagen = abs(referencia_1[1] - referencia_2[1]) / 10
 
-    imagen_ajustada = imagen_rotada[:, int(round(etiquetas_de_referencia[0] - espacio_recorte_imagen)): int(
-        round(etiquetas_de_referencia[1] + espacio_recorte_imagen))]
+    x_1 = int(round(etiquetas_de_referencia[0] - espacio_recorte_imagen))
+    x_2 = int(round(etiquetas_de_referencia[1] + espacio_recorte_imagen))
+
+    imagen_ajustada = imagen_rotada[:, x_1:x_2]
 
     imagen_ajustada = img_as_ubyte(imagen_ajustada)
 
@@ -154,8 +151,8 @@ def get_image_for_pdf(path_img, height=1 * mm):
     """
 
     img = utils.ImageReader(path_img)
-    iw, ih = img.getSize()
-    aspect = iw / float(ih)
+    img_width, img_height = img.getSize()
+    aspect = img_width / float(img_height)
     return Image(path_img, height=height, width=(height * aspect))
 
 
@@ -461,6 +458,7 @@ def etiquetas(imagen):
     regiones = regionprops(imagen)
     centros_coordenada_y = []
     centros_coordenadas_x = []
+
     for i in range(0, len(regiones)):
         y, x = regiones[i].centroid
         centros_coordenada_y.append(y)
@@ -476,28 +474,11 @@ def etiquetas(imagen):
     centros_coordenada_y.pop(posicion_coordenada[0])
     centros_coordenadas_x.pop(posicion_coordenada[0])
 
-    etiquetas_de_referencia = [referencia_1, referencia_2]
-
-    if etiquetas_de_referencia[0][0] == etiquetas_de_referencia[1][0]:
-        referencia_1 = etiquetas_de_referencia[0]
-        referencia_2 = etiquetas_de_referencia[1]
-    else:
-        referencia_coordenada_y = [etiquetas_de_referencia[0][0], etiquetas_de_referencia[1][0]]
-        posicion_coordenada = [i for i, x in enumerate(referencia_coordenada_y) if
-                               x == min(referencia_coordenada_y)]
-        referencia_1 = etiquetas_de_referencia[posicion_coordenada[0]]
-        posicion_coordenada = [i for i, x in enumerate(referencia_coordenada_y) if
-                               x == max(referencia_coordenada_y)]
-        referencia_2 = etiquetas_de_referencia[posicion_coordenada[0]]
-
-    etiquetas_de_referencia = [referencia_1[1], referencia_2[1]]
-    etiquetas_de_referencia.sort()
-
     referencia_1 = array(referencia_1)
     referencia_2 = array(referencia_2)
     centros_coordenada_y = array(centros_coordenada_y)
     centros_coordenada_x = array(centros_coordenadas_x)
-    razon_de_escala = 100.0 / sqrt((etiquetas_de_referencia[0] ** 2 + etiquetas_de_referencia[1] ** 2))
+    razon_de_escala = 100.0 / sqrt((referencia_1[1] ** 2 + referencia_2[1] ** 2))
 
     return referencia_1, referencia_2, centros_coordenada_y, centros_coordenada_x, razon_de_escala
 
@@ -510,8 +491,8 @@ def generar_reporte(datos_anterior, datos_posterior, datos_lateral_d):
     """
 
     nombre_archivo_pdf = nombre + '_' + strftime("%Y%m%d") + '_' + strftime("%H%M%S")
-    reporte = ReportePdf(carpeta_voluntario + nombre_archivo_pdf + '.pdf').exportar(datos_anterior, datos_posterior,
-                                                                                    datos_lateral_d)
+    reporte = ReportePdf(dir_voluntario + nombre_archivo_pdf + '.pdf').exportar(datos_anterior, datos_posterior,
+                                                                                datos_lateral_d)
     print(reporte)
     return nombre_archivo_pdf
 
@@ -545,7 +526,7 @@ class NumeracionPaginas(canvas.Canvas):
 
 def evaluacion_anterior(dir_foto_anterior):
 
-    global img_voluntario, nombre_imagen_anterior
+    global dir_imagen, nombre_imagen_anterior
 
     imagen = io.imread(dir_foto_anterior)
     imagen = escalar_imagen(imagen)
@@ -583,19 +564,19 @@ def evaluacion_anterior(dir_foto_anterior):
 
     if len(centros_coordenada_x) > 14:
         print("Existen demasiados puntos en la imagen")
-        plt.figure(1)
-        plt.title('Vista Anterior: {0}/{1}'.format(len(centros_coordenada_x), 14))
-        plt.plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="5")
+        figure(1)
+        title('Vista Anterior: {0}/{1}'.format(len(centros_coordenada_x), 14))
+        plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="5")
         io.imshow(imagen_anterior)
-        plt.show()
+        show()
 
     elif len(centros_coordenada_x) < 14:
         print("Existen menos puntos en la imagen")
-        plt.figure(1)
-        plt.title('Vista Anterior: {0}/{1}'.format(len(centros_coordenada_x), 14))
-        plt.plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="5")
+        figure(1)
+        title('Vista Anterior: {0}/{1}'.format(len(centros_coordenada_x), 14))
+        plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="5")
         io.imshow(imagen_anterior)
-        plt.show()
+        show()
 
     else:
 
@@ -676,16 +657,16 @@ def evaluacion_anterior(dir_foto_anterior):
         f_centro_x = array(f_centro_x)
         f_centro_pies = array(f_centro_pies)
 
-        plt.figure(1)
-        plt.title('Vista Anterior')
+        figure(1)
+        title('Vista Anterior')
 
-        plt.plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="1")
+        plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="1")
 
-        plt.plot(f_centro_hombros[1], f_centro_hombros[0], 'rx', markersize="3")
-        plt.plot(f_centro_y[1], f_centro_y[0], 'rx', markersize="3")
-        plt.plot(f_centro_rodillas[1], f_centro_rodillas[0], 'rx', markersize="3")
-        plt.plot(f_centro_x[1], f_centro_x[0], 'rx', markersize="3")
-        plt.plot(f_centro_pies[1], f_centro_pies[0], 'rx', markersize="3")
+        plot(f_centro_hombros[1], f_centro_hombros[0], 'rx', markersize="3")
+        plot(f_centro_y[1], f_centro_y[0], 'rx', markersize="3")
+        plot(f_centro_rodillas[1], f_centro_rodillas[0], 'rx', markersize="3")
+        plot(f_centro_x[1], f_centro_x[0], 'rx', markersize="3")
+        plot(f_centro_pies[1], f_centro_pies[0], 'rx', markersize="3")
 
         coordenadas_referencia = referencia_2 - referencia_1
         tamanio_divisiones = sqrt((coordenadas_referencia[0] ** 2 + coordenadas_referencia[1] ** 2)) / 20.0
@@ -699,17 +680,17 @@ def evaluacion_anterior(dir_foto_anterior):
          y_horizontal, x_vertical, y_vertical) = cuadricula(centro_x, centro_y, tamanio_x,
                                                             tamanio_y, tamanio_divisiones)
 
-        plt.plot(x_cuadricula, y_cuadricula, 'k', x_cuadricula.T, y_cuadricula.T, 'k', linewidth=0.1)
-        plt.plot(x_horizontal, y_horizontal, 'r', linewidth=0.3)
-        plt.plot(x_vertical, y_vertical, 'r', linewidth=0.3)
+        plot(x_cuadricula, y_cuadricula, 'k', x_cuadricula.T, y_cuadricula.T, 'k', linewidth=0.1)
+        plot(x_horizontal, y_horizontal, 'r', linewidth=0.3)
+        plot(x_vertical, y_vertical, 'r', linewidth=0.3)
 
         io.imshow(imagen_anterior)
 
-        dir_imagen_anterior = img_voluntario + nombre_imagen_anterior + '.jpg'
+        dir_imagen_anterior = dir_imagen + nombre_imagen_anterior + '.jpg'
         # time.sleep(1)
 
-        plt.savefig(dir_imagen_anterior, dpi=500)
-        plt.close()  # Para mostrar la imagen cambiar "close" por "show"
+        savefig(dir_imagen_anterior, dpi=500)
+        close()  # Para mostrar la imagen cambiar "close" por "show"
 
         # TA1
         hombro_descendido, angulo_hombro = tabla_anterior_parte_1(f3, f4)
@@ -776,19 +757,19 @@ def evaluacion_posterior(dir_foto_posterior):
 
     if len(centros_coordenada_x) > 12:
         print("Existen demasiados puntos en la imagen")
-        plt.figure(1)
-        plt.title('Vista Posterior: {0}/{1}'.format(len(centros_coordenada_x), 12))
-        plt.plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="5")
+        figure(1)
+        title('Vista Posterior: {0}/{1}'.format(len(centros_coordenada_x), 12))
+        plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="5")
         io.imshow(imagen_posterior)
-        plt.show()
+        show()
 
     elif len(centros_coordenada_x) < 12:
         print("Existen menos puntos en la imagen")
-        plt.figure(1)
-        plt.title('Vista Posterior: {0}/{1}'.format(len(centros_coordenada_x), 12))
-        plt.plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="5")
+        figure(1)
+        title('Vista Posterior: {0}/{1}'.format(len(centros_coordenada_x), 12))
+        plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="5")
         io.imshow(imagen_posterior)
-        plt.show()
+        show()
 
     else:
 
@@ -859,16 +840,16 @@ def evaluacion_posterior(dir_foto_posterior):
         p_centro_tobillos = array(p_centro_tobillos)
         p_centro_x = array(p_centro_x)
 
-        plt.figure(1)
-        plt.title('Vista Posterior')
+        figure(1)
+        title('Vista Posterior')
 
-        plt.plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="1")
+        plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="1")
 
-        plt.plot(p_centro_hombros[1], p_centro_hombros[0], 'rx', markersize="3")
-        plt.plot(p_centro_y[1], p_centro_y[0], 'rx', markersize="3")
-        plt.plot(p_centro_rodillas[1], p_centro_rodillas[0], 'rx', markersize="3")
-        plt.plot(p_centro_tobillos[1], p_centro_tobillos[0], 'rx', markersize="3")
-        plt.plot(p_centro_x[1], p_centro_x[0], 'rx', markersize="3")
+        plot(p_centro_hombros[1], p_centro_hombros[0], 'rx', markersize="3")
+        plot(p_centro_y[1], p_centro_y[0], 'rx', markersize="3")
+        plot(p_centro_rodillas[1], p_centro_rodillas[0], 'rx', markersize="3")
+        plot(p_centro_tobillos[1], p_centro_tobillos[0], 'rx', markersize="3")
+        plot(p_centro_x[1], p_centro_x[0], 'rx', markersize="3")
 
         coordenadas_referencia = referencia_2 - referencia_1
         tamanio_divisiones = sqrt((coordenadas_referencia[0] ** 2 + coordenadas_referencia[1] ** 2)) / 20.0
@@ -882,17 +863,17 @@ def evaluacion_posterior(dir_foto_posterior):
          y_horizontal, x_vertical, y_vertical) = cuadricula(centro_x, centro_y, tamanio_x,
                                                             tamanio_y, tamanio_divisiones)
 
-        plt.plot(x_cuadricula, y_cuadricula, 'k', x_cuadricula.T, y_cuadricula.T, 'k', linewidth=0.1)
-        plt.plot(x_horizontal, y_horizontal, 'r', linewidth=0.3)
-        plt.plot(x_vertical, y_vertical, 'r', linewidth=0.3)
+        plot(x_cuadricula, y_cuadricula, 'k', x_cuadricula.T, y_cuadricula.T, 'k', linewidth=0.1)
+        plot(x_horizontal, y_horizontal, 'r', linewidth=0.3)
+        plot(x_vertical, y_vertical, 'r', linewidth=0.3)
 
         io.imshow(imagen_posterior)
 
-        dir_imagen_posterior = img_voluntario + nombre_imagen_posterior + '.jpg'
+        dir_imagen_posterior = dir_imagen + nombre_imagen_posterior + '.jpg'
         # time.sleep(1)
 
-        plt.savefig(dir_imagen_posterior, dpi=500)
-        plt.close()  # Para mostrar la imagen cambiar "close" por "show"
+        savefig(dir_imagen_posterior, dpi=500)
+        close()  # Para mostrar la imagen cambiar "close" por "show"
 
         # TP1
         hombro_descendido, angulo_hombro = tabla_posterior_parte_1(p4, p3)
@@ -951,19 +932,19 @@ def evaluacion_lateral_d(dir_foto_lateral_d):
 
     if len(centros_coordenada_x) > 7:
         print("Existen demasiados puntos en la imagen")
-        plt.figure(1)
-        plt.title('Lateral Derecha: {0}/{1}'.format(len(centros_coordenada_x), 7))
-        plt.plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="5")
+        figure(1)
+        title('Lateral Derecha: {0}/{1}'.format(len(centros_coordenada_x), 7))
+        plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="5")
         io.imshow(imagen_lateral_d)
-        plt.show()
+        show()
 
     elif len(centros_coordenada_x) < 7:
         print("Existen menos puntos en la imagen")
-        plt.figure(1)
-        plt.title('Lateral Derecha: {0}/{1}'.format(len(centros_coordenada_x), 7))
-        plt.plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="5")
+        figure(1)
+        title('Lateral Derecha: {0}/{1}'.format(len(centros_coordenada_x), 7))
+        plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="5")
         io.imshow(imagen_lateral_d)
-        plt.show()
+        show()
 
     else:
 
@@ -993,12 +974,12 @@ def evaluacion_lateral_d(dir_foto_lateral_d):
 
         l_centro_y = array(l_centro_y)
 
-        plt.figure(1)
-        plt.title('Vista Lateral Derecha')
+        figure(1)
+        title('Vista Lateral Derecha')
 
-        plt.plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="1")
+        plot(centros_coordenada_x, centros_coordenada_y, 'b*', markersize="1")
 
-        plt.plot(l_centro_y[1], l_centro_y[0], 'rx', markersize="3")
+        plot(l_centro_y[1], l_centro_y[0], 'rx', markersize="3")
 
         coordenadas_referencia = referencia_2 - referencia_1
         tamanio_divisiones = sqrt((coordenadas_referencia[0] ** 2 + coordenadas_referencia[1] ** 2)) / 20.0
@@ -1012,17 +993,17 @@ def evaluacion_lateral_d(dir_foto_lateral_d):
          y_horizontal, x_vertical, y_vertical) = cuadricula(centro_x, centro_y, tamanio_x,
                                                             tamanio_y, tamanio_divisiones)
 
-        plt.plot(x_cuadricula, y_cuadricula, 'k', x_cuadricula.T, y_cuadricula.T, 'k', linewidth=0.1)
-        plt.plot(x_horizontal, y_horizontal, 'r', linewidth=0.3)
-        plt.plot(x_vertical, y_vertical, 'r', linewidth=0.3)
+        plot(x_cuadricula, y_cuadricula, 'k', x_cuadricula.T, y_cuadricula.T, 'k', linewidth=0.1)
+        plot(x_horizontal, y_horizontal, 'r', linewidth=0.3)
+        plot(x_vertical, y_vertical, 'r', linewidth=0.3)
 
         io.imshow(imagen_lateral_d)
 
-        dir_imagen_lateral_d = img_voluntario + nombre_imagen_lateral_d + '.jpg'
+        dir_imagen_lateral_d = dir_imagen + nombre_imagen_lateral_d + '.jpg'
         # time.sleep(1)
 
-        plt.savefig(dir_imagen_lateral_d, dpi=500)
-        plt.close()  # Para mostrar la imagen cambiar "close" por "show"
+        savefig(dir_imagen_lateral_d, dpi=500)
+        close()  # Para mostrar la imagen cambiar "close" por "show"
 
         # TL1
         direccion_cabeza_hombro, angulo_cabeza_hombro = tabla_lateral_d_parte_1(l1, l2)
@@ -1133,7 +1114,7 @@ class ReportePdf(object):
                                                colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                style=estilo_tabla_resultados)
 
-            historia.append(get_image_for_pdf(img_voluntario + nombre_imagen_anterior + '.jpg', height=100 * mm))
+            historia.append(get_image_for_pdf(dir_imagen + nombre_imagen_anterior + '.jpg', height=100 * mm))
             historia.append(Paragraph("Grados con respecto a la horizontal:", parrafo_principal))
             historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafo_secundario))
             historia.append(tabla_anterior_parte_1_pdf)
@@ -1170,7 +1151,7 @@ class ReportePdf(object):
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            historia.append(get_image_for_pdf(img_voluntario + nombre_imagen_posterior + '.jpg', height=100 * mm))
+            historia.append(get_image_for_pdf(dir_imagen + nombre_imagen_posterior + '.jpg', height=100 * mm))
             historia.append(Paragraph("Grados con respecto a la horizontal:", parrafo_principal))
             historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafo_secundario))
             historia.append(tabla_posterior_parte_1_pdf)
@@ -1206,7 +1187,7 @@ class ReportePdf(object):
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            historia.append(get_image_for_pdf(img_voluntario + nombre_imagen_lateral_d + '.jpg', height=100 * mm))
+            historia.append(get_image_for_pdf(dir_imagen + nombre_imagen_lateral_d + '.jpg', height=100 * mm))
             historia.append(Paragraph("Grados con respecto a la vertical:", parrafo_principal))
             historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafo_secundario))
             historia.append(tabla_lateral_d_parte_1_pdf)
@@ -1353,7 +1334,7 @@ def run():
     global angulo_tolerancia, distancia_tolerancia
     global examen_anterior, examen_posterior, examen_lateral_d
     global foto_anterior, foto_posterior, foto_lateral_d
-    global img_voluntario, carpeta_voluntario, directorio
+    global dir_imagen, dir_voluntario, dir_lam
     global nombre_imagen_anterior, nombre_imagen_posterior, nombre_imagen_lateral_d
 
     # Datos Personales
@@ -1420,29 +1401,29 @@ def run():
         print('Tolerancia de distancias inválida, se asigna el valor de 0')
         distancia_tolerancia = 0
 
-    # Creacion del directorio LAM
+    # Creacion del dir_lam LAM
 
     dir_lam = '~\\Documents\\LAM\\'
-    dir_voltario = dir_lam + nombre + '\\'
-    dir_imagen = dir_voltario + 'Imagenes\\'
+    dir_voluntario = dir_lam + nombre + '\\'
+    dir_imagen = dir_voluntario + 'Imagenes\\'
 
-    directorio = path.expanduser(dir_lam)
-    carpeta_voluntario = path.expanduser(dir_voltario)
-    img_voluntario = path.expanduser(dir_imagen)
+    dir_lam = path.expanduser(dir_lam)
+    dir_voluntario = path.expanduser(dir_voluntario)
+    dir_imagen = path.expanduser(dir_imagen)
 
-    dir_db_xlsx = directorio + 'DB_LAM.xlsx'
+    dir_db_xlsx = dir_lam + 'DB_LAM.xlsx'
 
-    if not path.isdir(directorio):
-        mkdir(directorio)
-        directorio = path.expanduser(dir_lam)
+    if not path.isdir(dir_lam):
+        mkdir(dir_lam)
+        dir_lam = path.expanduser(dir_lam)
 
-    if not path.isdir(carpeta_voluntario):
-        mkdir(carpeta_voluntario)
-        carpeta_voluntario = path.expanduser(dir_voltario)
+    if not path.isdir(dir_voluntario):
+        mkdir(dir_voluntario)
+        dir_voluntario = path.expanduser(dir_voluntario)
 
-    if not path.isdir(img_voluntario):
-        mkdir(img_voluntario)
-        img_voluntario = path.expanduser(dir_imagen)
+    if not path.isdir(dir_imagen):
+        mkdir(dir_imagen)
+        dir_imagen = path.expanduser(dir_imagen)
 
     # Condicion para saber que analisis realizar:
 
@@ -1545,7 +1526,7 @@ def run():
         data_tabla_anterior = DataFrame(resultados_anterior)
         # print(dataTablaAnterior.T)
 
-        direccion_imagen_anterior = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(img_voluntario,
+        direccion_imagen_anterior = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(dir_imagen,
                                                                                 nombre_imagen_anterior,
                                                                                 nombre_imagen_anterior)
         encabezado_anterior = DataFrame((), ('Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
@@ -1569,7 +1550,7 @@ def run():
         data_tabla_posterior = DataFrame(resultados_posterior)
         # print(dataTablaPosterior.T)
 
-        direccion_imagen_posterior = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(img_voluntario,
+        direccion_imagen_posterior = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(dir_imagen,
                                                                                  nombre_imagen_posterior,
                                                                                  nombre_imagen_posterior)
 
@@ -1595,7 +1576,7 @@ def run():
         data_tabla_lateral_d = DataFrame(resultados_lateral_d)
         # print(dataTablaLateralD.T)
 
-        direccion_imagen_lateral_d = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(img_voluntario,
+        direccion_imagen_lateral_d = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(dir_imagen,
                                                                                  nombre_imagen_lateral_d,
                                                                                  nombre_imagen_lateral_d)
 
@@ -1617,7 +1598,7 @@ def run():
 
     nombre_pdf = generar_reporte(resultados_anterior, resultados_posterior, resultados_lateral_d)
 
-    direccion_reporte = '=HYPERLINK(\"{0}{1}.pdf\",\"{2}\")'.format(carpeta_voluntario, nombre_pdf,
+    direccion_reporte = '=HYPERLINK(\"{0}{1}.pdf\",\"{2}\")'.format(dir_voluntario, nombre_pdf,
                                                                     nombre_pdf)
 
     encabezado_datos = DataFrame([fecha, nombre, edad, genero, peso, talla, ocupacion])
@@ -1700,14 +1681,34 @@ def run():
         writer.save()
         print('Datos agregados con éxito\n')
 
-    open_new(carpeta_voluntario + nombre_pdf + '.pdf')
+    open_new(dir_voluntario + nombre_pdf + '.pdf')
 
+def menu ():
+    while True:
+        print(f'{"*"*5} MENU {"*"*5}')
+        print('1. Hacer analisis postural')
+        print('2. Abrir archivo')
+        print('3. Cambiar configuracion')
+        print('4. Salir')
+
+        option = int(input("Ingrese una opcion: "))
+
+        if option == 1:
+            pass
+        elif option == 2:
+            pass
+        elif option == 3:
+            pass
+        elif option == 4:
+            break
+        else:
+            print('El valor ingresado es incorrecto')
 
 # PROGRAMA
 
 if __name__ == '__main__':
 
-    # Fechas para el tiempo de usp
+    # Fechas para el tiempo de uso
 
     year = datetime.now().year
     month = datetime.now().month
@@ -1746,9 +1747,9 @@ if __name__ == '__main__':
         foto_posterior = []
         foto_lateral_d = []
 
-        carpeta_voluntario = ""
-        img_voluntario = ""
-        directorio = ""
+        dir_voluntario = ""
+        dir_imagen = ""
+        dir_lam = ""
 
         nombre_imagen_anterior = ""
         nombre_imagen_posterior = ""
