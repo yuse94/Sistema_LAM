@@ -512,9 +512,9 @@ class ReportePdf(object):
         db_posterior = dict_db['Posterior']
         db_lateral_d = dict_db['Lateral_d']
 
-        nombre_imagen_anterior = dict_img['Anterior']
-        nombre_imagen_posterior = dict_img['Posterior']
-        nombre_imagen_lateral_d = dict_img['Lateral_d']
+        ubicacion_imagen_anterior = dict_img['Anterior']
+        ubicacion_imagen_posterior = dict_img['Posterior']
+        ubicacion_imagen_lateral_d = dict_img['Lateral_d']
 
         assessment_date = strftime("%d/%m/%Y")
         patient_name = patient.get_name()
@@ -571,31 +571,24 @@ class ReportePdf(object):
         # PAGINA TABLA EVALUACION ANTERIOR
 
         if examen_anterior:
+            df = db_anterior['table_1']
 
-            tabla_anterior_parte_1_pdf = Table((('Segmento Corporal', 'Descendido', 'Ángulo'),
-                                                ('Hombro', db_anterior[2], db_anterior[3]),
-                                                ('Pelvis', db_anterior[4], db_anterior[5]),
-                                                ('Rodilla', db_anterior[6], db_anterior[7])),
+            tabla_anterior_parte_1_pdf = Table([df.columns.values.tolist()] + df.values.tolist(),
                                                colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                style=estilo_tabla_resultados)
 
-            tabla_anterior_parte_2_pdf = Table((('Referencia', 'Dirección', 'Distancia'),
-                                                ('Frente', db_anterior[8], db_anterior[9]),
-                                                ('Hombros', db_anterior[10], db_anterior[11]),
-                                                ('Ombligo', db_anterior[12], db_anterior[13]),
-                                                ('Pelvis', db_anterior[14], db_anterior[15]),
-                                                ('Rodillas', db_anterior[16], db_anterior[17]),
-                                                ('Pies', db_anterior[18], db_anterior[19])),
+            df = db_anterior['table_2']
+            tabla_anterior_parte_2_pdf = Table([df.columns.values.tolist()] + df.values.tolist(),
                                                colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                style=estilo_tabla_resultados)
 
-            tabla_anterior_parte_3_pdf = Table((('Segmento Corporal', 'Dirección', 'Ángulo'),
-                                                ('Pie Izquierdo', db_anterior[20], db_anterior[21]),
-                                                ('Pie Derecho', db_anterior[22], db_anterior[23])),
+            df = db_anterior['table_3']
+
+            tabla_anterior_parte_3_pdf = Table([df.columns.values.tolist()] + df.values.tolist(),
                                                colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                style=estilo_tabla_resultados)
 
-            historia.append(get_image_for_pdf(images_directory + nombre_imagen_anterior + '.jpg', height=100 * mm))
+            historia.append(get_image_for_pdf(ubicacion_imagen_anterior + '.jpg', height=100 * mm))
             historia.append(Paragraph("Grados con respecto a la horizontal:", parrafo_principal))
             historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafo_secundario))
             historia.append(tabla_anterior_parte_1_pdf)
@@ -609,31 +602,25 @@ class ReportePdf(object):
 
         # PAGINA TABLA EVALUACION POSTERIOR
         if examen_posterior:
+            df = db_posterior['table_1']
 
-            tabla_posterior_parte_1_pdf = Table((('Segmento Corporal', 'Descendido', 'Ángulo'),
-                                                 ('Hombro', db_posterior[2], db_posterior[3]),
-                                                 ('Pelvis', db_posterior[4], db_posterior[5]),
-                                                 ('Rodilla', db_posterior[6], db_posterior[7])),
+            tabla_posterior_parte_1_pdf = Table([df.columns.values.tolist()] + df.values.tolist(),
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            tabla_posterior_parte_2_pdf = Table((('Referencia', 'Dirección', 'Distancia'),
-                                                 ('Hombros', db_posterior[8], db_posterior[9]),
-                                                 ('7ma Cervical', db_posterior[10], db_posterior[11]),
-                                                 ('5ta Torácica', db_posterior[12], db_posterior[13]),
-                                                 ('Pelvis', db_posterior[14], db_posterior[15]),
-                                                 ('Rodillas', db_posterior[16], db_posterior[17]),
-                                                 ('Tobillos', db_posterior[18], db_posterior[19])),
+            df = db_posterior['table_2']
+
+            tabla_posterior_parte_2_pdf = Table([df.columns.values.tolist()] + df.values.tolist(),
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            tabla_posterior_parte_3_pdf = Table((('Segmento Corporal', 'Dirección', 'Ángulo'),
-                                                 ('Pie Izquierdo', db_posterior[20], db_posterior[21]),
-                                                 ('Pie Derecho', db_posterior[22], db_posterior[23])),
+            df = db_posterior['table_3']
+
+            tabla_posterior_parte_3_pdf = Table([df.columns.values.tolist()] + df.values.tolist(),
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            historia.append(get_image_for_pdf(images_directory + nombre_imagen_posterior + '.jpg', height=100 * mm))
+            historia.append(get_image_for_pdf(ubicacion_imagen_posterior + '.jpg', height=100 * mm))
             historia.append(Paragraph("Grados con respecto a la horizontal:", parrafo_principal))
             historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafo_secundario))
             historia.append(tabla_posterior_parte_1_pdf)
@@ -647,30 +634,24 @@ class ReportePdf(object):
 
         # PAGINA TABLA EVALUACION LATERALD
         if examen_lateral_d:
-
-            tabla_lateral_d_parte_1_pdf = Table((('Segmento Corporal', 'Dirección', 'Ángulo'),
-                                                 ('Cabeza-Hombro', db_lateral_d[2], db_lateral_d[3]),
-                                                 ('Hombro-Pelvis', db_lateral_d[4], db_lateral_d[5]),
-                                                 ('Caderas-Rodillas', db_lateral_d[6], db_lateral_d[7]),
-                                                 ('Rodillas-Pies', db_lateral_d[8], db_lateral_d[9])),
+            df = db_lateral_d['table_1']
+            tabla_lateral_d_parte_1_pdf = Table([df.columns.values.tolist()] + df.values.tolist(),
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            tabla_lateral_d_parte_2_pdf = Table((('Segmento Corporal', 'Dirección', 'Ángulo'),
-                                                 ('Pelvis', db_lateral_d[10], db_lateral_d[11])),
+            df = db_lateral_d['table_2']
+
+            tabla_lateral_d_parte_2_pdf = Table([df.columns.values.tolist()] + df.values.tolist(),
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            tabla_lateral_d_parte_3_pdf = Table((('Referencia', 'Dirección', 'Distancia'),
-                                                 ('Cabeza', db_lateral_d[12], db_lateral_d[13]),
-                                                 ('Hombro', db_lateral_d[14], db_lateral_d[15]),
-                                                 ('Pelvis', db_lateral_d[16], db_lateral_d[17]),
-                                                 ('Cadera', db_lateral_d[18], db_lateral_d[19]),
-                                                 ('Rodilla', db_lateral_d[20], db_lateral_d[21])),
+            df = db_lateral_d['table_3']
+
+            tabla_lateral_d_parte_3_pdf = Table([df.columns.values.tolist()] + df.values.tolist(),
                                                 colWidths=(self.ancho - 100) / 5, hAlign="LEFT",
                                                 style=estilo_tabla_resultados)
 
-            historia.append(get_image_for_pdf(images_directory + nombre_imagen_lateral_d + '.jpg', height=100 * mm))
+            historia.append(get_image_for_pdf(ubicacion_imagen_lateral_d + '.jpg', height=100 * mm))
             historia.append(Paragraph("Grados con respecto a la vertical:", parrafo_principal))
             historia.append(Paragraph("El ángulo ideal debe ser <strong>0°</strong>.", parrafo_secundario))
             historia.append(tabla_lateral_d_parte_1_pdf)
@@ -685,7 +666,7 @@ class ReportePdf(object):
             historia.append(PageBreak())
 
         archivo_pdf = SimpleDocTemplate(self.nombre_pdf, leftMargin=50, rightMargin=50, pagesize=A4,
-                                        title="Reporte PDF", author="Youssef Abarca")
+                                        title="Reporte PDF LAM", author="Youssef Abarca")
 
         try:
             archivo_pdf.build(historia, onLaterPages=encabezado_pie_pagina,
@@ -768,8 +749,7 @@ def encabezado_pie_pagina(canvas_encabezado, archivo_pdf):
 
 # FUNCTIONS FOR POSTURAL ASSESSMENTS
 
-def evaluacion_anterior(image_directory, name_image, tolerance_angle, tolerance_distance):
-
+def evaluacion_anterior(image_directory, name_image, tolerance_angle, tolerance_distance, tamanio_cuadricula):
     imagen = io.imread(image_directory)
     imagen = escalar_imagen(imagen)
     # io.imshow(imagen)
@@ -911,7 +891,8 @@ def evaluacion_anterior(image_directory, name_image, tolerance_angle, tolerance_
         plot(f_centro_pies[1], f_centro_pies[0], 'rx', markersize="3")
 
         coordenadas_referencia = referencia_2 - referencia_1
-        tamanio_divisiones = sqrt((coordenadas_referencia[0] ** 2 + coordenadas_referencia[1] ** 2)) / 20.0
+        tamanio_divisiones = sqrt((coordenadas_referencia[0] ** 2 + coordenadas_referencia[1] ** 2))
+        tamanio_divisiones = tamanio_divisiones * tamanio_cuadricula / 100
 
         centro_x = f_centro_x[1]
         centro_y = f_centro_y[0]
@@ -928,7 +909,7 @@ def evaluacion_anterior(image_directory, name_image, tolerance_angle, tolerance_
 
         io.imshow(imagen_anterior)
 
-        dir_imagen_anterior = images_directory + name_image + '.jpg'
+        dir_imagen_anterior = name_image + '.jpg'
         # time.sleep(1)
 
         savefig(dir_imagen_anterior, dpi=500)
@@ -957,18 +938,52 @@ def evaluacion_anterior(image_directory, name_image, tolerance_angle, tolerance_
         direccion_pie_izquierdo, angulo_pie_izquierdo = tabla_anterior_parte_3(f12, f14, tolerance_angle)
         direccion_pie_derecho, angulo_pie_derecho = tabla_anterior_parte_3(f13, f11, tolerance_angle)
 
-        datos = (tolerance_angle, tolerance_distance, hombro_descendido, angulo_hombro, pelvis_descendida,
-                 angulo_pelvis, rodilla_descendida, angulo_rodilla, direccion_frente, distancia_frente,
-                 direccion_hombros, distancia_hombros, direccion_ombligo, distancia_ombligo, direccion_pelvis,
-                 distancia_pelvis, direccion_rodillas, distancia_rodillas, direccion_pies, distancia_pies,
-                 direccion_pie_izquierdo, angulo_pie_izquierdo, direccion_pie_derecho, angulo_pie_derecho)
+        # datos = (tolerance_angle, tolerance_distance, hombro_descendido, angulo_hombro, pelvis_descendida,
+        #          angulo_pelvis, rodilla_descendida, angulo_rodilla, direccion_frente, distancia_frente,
+        #          direccion_hombros, distancia_hombros, direccion_ombligo, distancia_ombligo, direccion_pelvis,
+        #          distancia_pelvis, direccion_rodillas, distancia_rodillas, direccion_pies, distancia_pies,
+        #          direccion_pie_izquierdo, angulo_pie_izquierdo, direccion_pie_derecho, angulo_pie_derecho)
+
+        data_table_1 = {'Segmento Corporal': ('Hombros', 'Pelvis', 'Rodillas'),
+                        'Descendido': (hombro_descendido, pelvis_descendida, rodilla_descendida),
+                        'Ángulo': (angulo_hombro, angulo_pelvis, angulo_rodilla)}
+
+        df_table_1 = DataFrame(data_table_1)
+
+        data_table_2 = {'Referencia': ('Frente', 'Hombros', 'Ombligo', 'Pelvis', 'Rodillas', 'Pies'),
+                        'Dirección': (direccion_frente, direccion_hombros, direccion_ombligo, direccion_pelvis,
+                                      direccion_rodillas, direccion_pies),
+                        'Distancia': (distancia_frente, distancia_hombros, distancia_ombligo, distancia_pelvis,
+                                      distancia_rodillas, distancia_pies)}
+
+        df_table_2 = DataFrame(data_table_2)
+
+        data_table_3 = {'Segmento Corporal': ('Pie Izquierdo', 'Pie Derecho'),
+                        'Dirección': (direccion_pie_izquierdo, direccion_pie_derecho),
+                        'Ángulo': (angulo_pie_izquierdo, angulo_pie_derecho)}
+
+        df_table_3 = DataFrame(data_table_3)
+
+        print(f'\n\n{"*" * 10} VISTA ANTERIOR {"*" * 10}')
+
+        print('\nGRADOS CON RESPECTO A LA HORIZONTAL:')
+        print('El ángulo ideal debe ser 0°.\n')
+        print(df_table_1)
+        print('\n\nDISTANCIA CON RESPECTO A LA VERTICAL:')
+        print('La distancia ideal debe ser 0 cm.\n')
+        print(df_table_2)
+        print('\n\nGRADOS DE ROTACIÓN DE LOS PIES:\n')
+        print(df_table_3)
+
+        datos = {'table_1': df_table_1,
+                 'table_2': df_table_2,
+                 'table_3': df_table_3}
 
         return datos
     return 0
 
 
-def evaluacion_posterior(image_directory, name_image, tolerance_angle, tolerance_distance):
-
+def evaluacion_posterior(image_directory, name_image, tolerance_angle, tolerance_distance, tamanio_cuadricula):
     imagen = io.imread(image_directory)
     imagen = escalar_imagen(imagen)
     # io.imshow(imagen)
@@ -1098,7 +1113,8 @@ def evaluacion_posterior(image_directory, name_image, tolerance_angle, tolerance
         plot(p_centro_x[1], p_centro_x[0], 'rx', markersize="3")
 
         coordenadas_referencia = referencia_2 - referencia_1
-        tamanio_divisiones = sqrt((coordenadas_referencia[0] ** 2 + coordenadas_referencia[1] ** 2)) / 20.0
+        tamanio_divisiones = sqrt((coordenadas_referencia[0] ** 2 + coordenadas_referencia[1] ** 2))
+        tamanio_divisiones = tamanio_divisiones * tamanio_cuadricula / 100
 
         centro_x = p_centro_x[1]
         centro_y = p_centro_y[0]
@@ -1115,7 +1131,7 @@ def evaluacion_posterior(image_directory, name_image, tolerance_angle, tolerance
 
         io.imshow(imagen_posterior)
 
-        dir_imagen_posterior = images_directory + name_image + '.jpg'
+        dir_imagen_posterior = name_image + '.jpg'
         # time.sleep(1)
 
         savefig(dir_imagen_posterior, dpi=500)
@@ -1144,19 +1160,54 @@ def evaluacion_posterior(image_directory, name_image, tolerance_angle, tolerance
         direccion_pie_izquierdo, angulo_pie_izquierdo = tabla_posterior_parte_3(p10, p12, tolerance_angle)
         direccion_pie_derecho, angulo_pie_derecho = tabla_posterior_parte_3(p11, p9, tolerance_angle)
 
-        datos = (tolerance_angle, tolerance_distance, hombro_descendido, angulo_hombro, pelvis_descendida,
-                 angulo_pelvis, rodilla_descendida, angulo_rodilla, direccion_hombros, distancia_hombros,
-                 direccion_7ma_cervical, distancia_7ma_cervical, direccion_5ta_toracica, distancia_5ta_toracica,
-                 direccion_pelvis, distancia_pelvis, direccion_rodillas, distancia_rodillas, direccion_tobillos,
-                 distancia_tobillos, direccion_pie_izquierdo, angulo_pie_izquierdo, direccion_pie_derecho,
-                 angulo_pie_derecho)
+        # datos = (tolerance_angle, tolerance_distance, hombro_descendido, angulo_hombro, pelvis_descendida,
+        #          angulo_pelvis, rodilla_descendida, angulo_rodilla, direccion_hombros, distancia_hombros,
+        #          direccion_7ma_cervical, distancia_7ma_cervical, direccion_5ta_toracica, distancia_5ta_toracica,
+        #          direccion_pelvis, distancia_pelvis, direccion_rodillas, distancia_rodillas, direccion_tobillos,
+        #          distancia_tobillos, direccion_pie_izquierdo, angulo_pie_izquierdo, direccion_pie_derecho,
+        #          angulo_pie_derecho)
+
+        data_table_1 = {'Segmento Corporal': ('Hombros', 'Pelvis', 'Rodillas'),
+                        'Descendido': (hombro_descendido, pelvis_descendida, rodilla_descendida),
+                        'Ángulo': (angulo_hombro, angulo_pelvis, angulo_rodilla)}
+
+        df_table_1 = DataFrame(data_table_1)
+
+        data_table_2 = {'Referencia': ('Frente', 'Hombros', 'Ombligo', 'Pelvis', 'Rodillas', 'Pies'),
+                        'Dirección': (direccion_hombros, direccion_7ma_cervical, direccion_5ta_toracica,
+                                      direccion_pelvis, direccion_rodillas, direccion_tobillos),
+                        'Distancia': (distancia_hombros, distancia_7ma_cervical, distancia_5ta_toracica,
+                                      distancia_pelvis, distancia_rodillas, distancia_tobillos)}
+
+        df_table_2 = DataFrame(data_table_2)
+
+        data_table_3 = {'Segmento Corporal': ('Pie Izquierdo', 'Pie Derecho'),
+                        'Dirección': (direccion_pie_izquierdo, direccion_pie_derecho),
+                        'Ángulo': (angulo_pie_izquierdo, angulo_pie_derecho)}
+
+        df_table_3 = DataFrame(data_table_3)
+
+        print(f'\n\n{"*" * 10} VISTA POSTERIOR {"*" * 10}')
+
+        print('\nGRADOS CON RESPECTO A LA HORIZONTAL:')
+        print('El ángulo ideal debe ser 0°.\n')
+        print(df_table_1)
+        print('\n\nDISTANCIA CON RESPECTO A LA VERTICAL:')
+        print('La distancia ideal debe ser 0 cm.\n')
+        print(df_table_2)
+        print('\n\nGRADOS DE ROTACIÓN DE LOS PIES:')
+        print('El ángulo ideal debe ser 0°.\n')
+        print(df_table_3)
+
+        datos = {'table_1': df_table_1,
+                 'table_2': df_table_2,
+                 'table_3': df_table_3}
 
         return datos
     return 0
 
 
-def evaluacion_lateral_d(image_directory, name_image, tolerance_angle, tolerance_distance):
-
+def evaluacion_lateral_d(image_directory, name_image, tolerance_angle, tolerance_distance, tamanio_cuadricula):
     imagen = io.imread(image_directory)
     imagen = escalar_imagen(imagen)
     # io.imshow(imagen)
@@ -1232,7 +1283,8 @@ def evaluacion_lateral_d(image_directory, name_image, tolerance_angle, tolerance
         plot(l_centro_y[1], l_centro_y[0], 'rx', markersize="3")
 
         coordenadas_referencia = referencia_2 - referencia_1
-        tamanio_divisiones = sqrt((coordenadas_referencia[0] ** 2 + coordenadas_referencia[1] ** 2)) / 20.0
+        tamanio_divisiones = sqrt((coordenadas_referencia[0] ** 2 + coordenadas_referencia[1] ** 2))
+        tamanio_divisiones = tamanio_divisiones * tamanio_cuadricula / 100
 
         centro_x = l7[1]
         centro_y = l_centro_y[0]
@@ -1249,7 +1301,7 @@ def evaluacion_lateral_d(image_directory, name_image, tolerance_angle, tolerance
 
         io.imshow(imagen_lateral_d)
 
-        dir_imagen_lateral_d = images_directory + name_image + '.jpg'
+        dir_imagen_lateral_d = name_image + '.jpg'
         # time.sleep(1)
 
         savefig(dir_imagen_lateral_d, dpi=500)
@@ -1272,17 +1324,352 @@ def evaluacion_lateral_d(image_directory, name_image, tolerance_angle, tolerance
         direccion_cadera, distancia_cadera = tabla_lateral_d_parte_3(l7, l5, razon_de_escala, tolerance_distance)
         direccion_rodilla, distancia_rodilla = tabla_lateral_d_parte_3(l7, l6, razon_de_escala, tolerance_distance)
 
-        datos = (tolerance_angle, tolerance_distance, direccion_cabeza_hombro, angulo_cabeza_hombro,
-                 direccion_hombro_pelvis, angulo_hombro_pelvis, direccion_cadera_rodillas, angulo_cadera_rodillas,
-                 direccion_rodillas_pies, angulo_rodillas_pies, direccion_pelvis, angulo_pelvis, direccion_cabeza,
-                 distancia_cabeza, direccion_hombro, distancia_hombro, direccion_pelvis_tabla_3, distancia_pelvis,
-                 direccion_cadera, distancia_cadera, direccion_rodilla, distancia_rodilla)
+        # datos = (tolerance_angle, tolerance_distance, direccion_cabeza_hombro, angulo_cabeza_hombro,
+        #          direccion_hombro_pelvis, angulo_hombro_pelvis, direccion_cadera_rodillas, angulo_cadera_rodillas,
+        #          direccion_rodillas_pies, angulo_rodillas_pies, direccion_pelvis, angulo_pelvis, direccion_cabeza,
+        #          distancia_cabeza, direccion_hombro, distancia_hombro, direccion_pelvis_tabla_3, distancia_pelvis,
+        #          direccion_cadera, distancia_cadera, direccion_rodilla, distancia_rodilla)
+
+        data_table_1 = {'Segmento Corporal': ('Cabeza-Hombro', 'Hombro-Pelvis', 'Cadera-Rodilla', 'Rodilla-Pies'),
+                        'Dirección': (direccion_cabeza_hombro, direccion_hombro_pelvis, direccion_cadera_rodillas,
+                                      direccion_rodillas_pies),
+                        'Ángulo': (angulo_cabeza_hombro, angulo_hombro_pelvis, angulo_cadera_rodillas,
+                                   angulo_rodillas_pies)}
+
+        df_table_1 = DataFrame(data_table_1)
+
+        data_table_2 = {'Segmento Corporal': ['Pelvis'],
+                        'Dirección': [direccion_pelvis],
+                        'Ángulo': [angulo_pelvis]}
+
+        df_table_2 = DataFrame(data_table_2)
+
+        data_table_3 = {'Referencia': ('Cabeza', 'Hombros', 'Pelvis', 'Caderas', 'Rodillas'),
+                        'Dirección': (direccion_cabeza, direccion_hombro, direccion_pelvis_tabla_3, direccion_cadera,
+                                      direccion_rodilla),
+                        'Distancia': (distancia_cabeza, distancia_hombro, distancia_pelvis, distancia_cadera,
+                                      distancia_rodilla)}
+
+        df_table_3 = DataFrame(data_table_3)
+
+        print(f'\n\n{"*" * 10} VISTA LATERAL DERECHA {"*" * 10}')
+
+        print('\nGRADOS CON RESPECTO A LA VERTICAL:')
+        print('El ángulo ideal debe ser 0°.\n')
+        print(df_table_1)
+        print('\n\nGRADOS CON RESPECTO A LA HORIZONTAL:')
+        print('El ángulo normal entre los marcadores pélvicos anterior y posterior')
+        print('de 10° con una tolerancia de ±5°.\n')
+        print(df_table_2)
+        print('\n\nDISTANCIA CON RESPECTO A LA VERTICAL:')
+        print('La distancia ideal debe ser 0 cm.\n')
+        print(df_table_3)
+
+        datos = {'table_1': df_table_1,
+                 'table_2': df_table_2,
+                 'table_3': df_table_3}
 
         return datos
     return 0
 
 
-class PatientData:
+def postural_assessment(angulo_tolerancia, distancia_tolerancia, tamanio_cuadricula):
+    global foto
+    global examen_anterior, examen_posterior, examen_lateral_d
+
+    # Datos Personales
+
+    print("\nDATOS PERSONALES\n")
+
+    global patient_name
+
+    patient = Patient()
+
+    patient_name = patient.get_name()
+    patient_age = patient.get_age()
+    patient_gender = patient.get_gender()
+    weight_kg = patient.get_weight_kg()
+    height_cm = patient.get_height_cm()
+    occupation = patient.get_occupation()
+
+    lam_directory, patient_directory, images_directory, dir_db_xlsx = create_directories()
+
+    # Condicion para saber que analisis realizar:
+
+    print("\nEvaluaciones a realizar => 1: Si | 0: NO\n")
+
+    # Datos para la ejecución
+
+    examen_anterior = input("Vista Anterior 1/0: ").strip() == '1'
+    examen_posterior = input("Vista Posterior 1/0: ").strip() == '1'
+    examen_lateral_d = input("Vista Lateral Derecha 1/0: ").strip() == '1'
+
+    nombre_imagen_anterior = 'Anterior' + '_' + strftime("%Y%m%d") + '_' + strftime("%H%M%S")
+    nombre_imagen_posterior = 'Posterior' + '_' + strftime("%Y%m%d") + '_' + strftime("%H%M%S")
+    nombre_imagen_lateral_d = 'LateralD' + '_' + strftime("%Y%m%d") + '_' + strftime("%H%M%S")
+
+    resultados_anterior = 0
+    resultados_posterior = 0
+    resultados_lateral_d = 0
+
+    # Pruaba de cargado de imagenes en caso de imagenes erroneas
+
+    if examen_anterior:
+        load_image("\"Anterior\"")
+        resultados_anterior = evaluacion_anterior(foto, images_directory + nombre_imagen_anterior, angulo_tolerancia,
+                                                  distancia_tolerancia, tamanio_cuadricula)
+
+        while resultados_anterior == 0:
+
+            recargar_imagen = bool(int(input("Imagen Anterior con Error. ¿Desea cargar otra imagen? 1/0: ")))
+
+            if recargar_imagen:
+                load_image("\"Anterior\"")
+                resultados_anterior = evaluacion_anterior(foto, images_directory + nombre_imagen_anterior,
+                                                          angulo_tolerancia, distancia_tolerancia, tamanio_cuadricula)
+                # https://i.imgur.com/qRb4dv6.jpg
+
+            else:
+                examen_anterior = False
+                break
+
+    if examen_posterior:
+        load_image("\"Posterior\"")
+        resultados_posterior = evaluacion_posterior(foto, images_directory + nombre_imagen_posterior, angulo_tolerancia,
+                                                    distancia_tolerancia, tamanio_cuadricula)
+        # https://i.imgur.com/xIYYjkc.jpg
+
+        while resultados_posterior == 0:
+
+            recargar_imagen = bool(int(input("Imagen Posterior con Error. ¿Desea cargar otra imagen? 1/0: ")))
+
+            if recargar_imagen:
+                load_image("\"Posterior\"")
+                resultados_posterior = evaluacion_posterior(foto, images_directory + nombre_imagen_posterior,
+                                                            angulo_tolerancia, distancia_tolerancia, tamanio_cuadricula)
+                # https://i.imgur.com/xIYYjkc.jpg
+
+            else:
+                examen_posterior = False
+                break
+
+    if examen_lateral_d:
+        load_image("\"Lareral derecha\"")
+        resultados_lateral_d = evaluacion_lateral_d(foto, images_directory + nombre_imagen_lateral_d, angulo_tolerancia,
+                                                    distancia_tolerancia, tamanio_cuadricula)
+        # https://i.imgur.com/2fvjwk1.jpg
+
+        while resultados_lateral_d == 0:
+
+            recargar_imagen = bool(
+                int(input("Imagen Lateral Derecha con Error. ¿Desea cargar otra imagen? 1/0: ")))
+
+            if recargar_imagen:
+                load_image("\"Lareral derecha\"")
+                resultados_lateral_d = evaluacion_lateral_d(foto, images_directory + nombre_imagen_lateral_d,
+                                                            angulo_tolerancia, distancia_tolerancia, tamanio_cuadricula)
+                # https://i.imgur.com/2fvjwk1.jpg
+
+            else:
+                examen_lateral_d = False
+                break
+
+    ###############################
+    '''
+    encabezado_anterior = []
+    encabezado_posterior = []
+    encabezado_lateral_d = []
+
+    data_tabla_anterior = []
+    data_tabla_posterior = []
+    data_tabla_lateral_d = []
+
+    direccion_imagen_anterior = []
+    direccion_imagen_posterior = []
+    direccion_imagen_lateral_d = []
+
+    if examen_anterior:
+        data_tabla_anterior = DataFrame(resultados_anterior)
+        # print(dataTablaAnterior.T)
+
+        direccion_imagen_anterior = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(images_directory,
+                                                                                nombre_imagen_anterior,
+                                                                                nombre_imagen_anterior)
+        encabezado_anterior = DataFrame((), ('Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
+                                             'Ocupación',
+                                             'Ángulo de tolerancia', 'Distancia de tolerancia',
+                                             'Hombro Descendido', 'Ángulo del hombro',
+                                             'Pelvis Descendida', 'Ángulo de la Pelvis',
+                                             'Rodilla Descendida', 'Ángulo de Rodilla',
+                                             'Dirección de la Frente', 'Distancia de la Frente',
+                                             'Dirección de los Hombros', 'Distancia de los Hombros',
+                                             'Dirección del Ombligo', 'Distancia del Ombligo',
+                                             'Dirección de la Pelvis', 'Distancia de la Pelvis',
+                                             'Dirección de las Rodillas', 'Distancia de las Rodillas',
+                                             'Dirección de los Pies', 'Distancia de los Pies',
+                                             'Rotación Pie Izquierdo', 'Ángulo Pie Izquierdo',
+                                             'Rotación Pie Derecho', 'Ángulo Pie Derecho',
+                                             'Dirección Imagen',
+                                             'Dirección del Reporte'))
+
+    if examen_posterior:
+        data_tabla_posterior = DataFrame(resultados_posterior)
+        # print(dataTablaPosterior.T)
+
+        direccion_imagen_posterior = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(images_directory,
+                                                                                 nombre_imagen_posterior,
+                                                                                 nombre_imagen_posterior)
+
+        encabezado_posterior = DataFrame((), ('Ángulo de tolerancia', 'Distancia de tolerancia',
+                                              'Hombro Descendido', 'Ángulo del hombro',
+                                              'Pelvis Descendida', 'Ángulo de la Pelvis',
+                                              'Rodilla Descendida', 'Ángulo de Rodilla',
+                                              'Dirección de la Hombros', 'Distancia de la Hombros',
+                                              'Dirección de los 7ma Cervical',
+                                              'Distancia de los 7ma Cervical',
+                                              'Dirección del 5ta Torácica', 'Distancia del 5ta Torácica',
+                                              'Dirección de la Pelvis', 'Distancia de la Pelvis',
+                                              'Dirección de las Rodillas', 'Distancia de las Rodillas',
+                                              'Dirección de los Tobillos', 'Distancia de los Tobillos',
+                                              'Dirección Pie Izquierdo', 'Ángulo Pie Izquierdo',
+                                              'Dirección Pie Derecho', 'Ángulo Pie Derecho',
+                                              'Dirección Imagen',
+                                              'Dirección del Reporte'))
+
+    if examen_lateral_d:
+        data_tabla_lateral_d = DataFrame(resultados_lateral_d)
+        # print(dataTablaLateralD.T)
+
+        direccion_imagen_lateral_d = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(images_directory,
+                                                                                 nombre_imagen_lateral_d,
+                                                                                 nombre_imagen_lateral_d)
+
+        encabezado_lateral_d = DataFrame((), ('Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
+                                              'Ocupación',
+                                              'Ángulo de tolerancia', 'Distancia de tolerancia',
+                                              'Dirección Cabeza-Hombro', 'Ángulo Cabeza-Hombro',
+                                              'Dirección Hombro-Pelvis', 'Ángulo Hombro-Pelvis',
+                                              'Dirección Caderas-Rodillas', 'Ángulo Caderas-Rodillas',
+                                              'Dirección Rodillas-Pies', 'Ángulo Rodillas-Pies',
+                                              'Dirección Pelvis', 'Ángulo Pelvis',
+                                              'Dirección de la Cabeza', 'Distancia de la Cabeza',
+                                              'Dirección del Hombro', 'Distancia del Hombro',
+                                              'Dirección de la Pelvis', 'Distancia de la Pelvis',
+                                              'Dirección de la Cadera', 'Distancia de la Cadera',
+                                              'Dirección de la Rodilla', 'Distancia de la Rodilla',
+                                              'Dirección Imagen',
+                                              'Dirección del Reporte'))
+                                              
+    '''
+
+
+
+    dict_data = {'Anterior': resultados_anterior,
+                 'Posterior': resultados_posterior,
+                 'Lateral_d': resultados_lateral_d}
+
+    dict_img = {'Anterior': images_directory + nombre_imagen_anterior,
+                'Posterior': images_directory + nombre_imagen_posterior,
+                'Lateral_d': images_directory + nombre_imagen_lateral_d}
+
+    nombre_pdf = generar_reporte(patient, patient_directory, dict_data, dict_img)
+
+    '''
+
+    direccion_reporte = '=HYPERLINK(\"{0}{1}.pdf\",\"{2}\")'.format(patient_directory, nombre_pdf, nombre_pdf)
+
+    date_assessment = strftime("%d/%m/%Y")
+
+    encabezado_datos = DataFrame([date_assessment, patient_name, patient_age, patient_gender, weight_kg,
+                                  height_cm, occupation])
+
+    if not path.exists(dir_db_xlsx):
+        book = ExcelWriter(dir_db_xlsx)
+        DataFrame().to_excel(book, 'Anterior')
+        DataFrame().to_excel(book, 'Posterior')
+        DataFrame().to_excel(book, 'LateralD')
+        book.save()
+
+    book = load_workbook(dir_db_xlsx)
+    sleep(0.2)
+
+    num_celdas_anterior = len(read_excel(dir_db_xlsx, sheet_name=0))
+    num_celdas_posterior = len(read_excel(dir_db_xlsx, sheet_name=1))
+    num_celdas_lateral_d = len(read_excel(dir_db_xlsx, sheet_name=2))
+
+    with ExcelWriter(dir_db_xlsx, engine='openpyxl') as writer:
+        writer.book = book
+        writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+
+        if examen_anterior:
+            encabezado_anterior.T.to_excel(writer, 'Anterior',
+                                           header=True, index=False, startrow=0, startcol=0)
+            encabezado_datos.T.to_excel(writer, 'Anterior',
+                                        header=False, index=False, startrow=num_celdas_anterior + 1, startcol=0)
+            data_tabla_anterior.T.to_excel(writer, 'Anterior',
+                                           header=False, index=False, startrow=num_celdas_anterior + 1,
+                                           startcol=7)
+            DataFrame({'link': [direccion_imagen_anterior]}).T.to_excel(writer, 'Anterior',
+                                                                        header=False, index=False,
+                                                                        startrow=num_celdas_anterior + 1,
+                                                                        startcol=31)
+            DataFrame({'link': [direccion_reporte]}).T.to_excel(writer, 'Anterior',
+                                                                header=False, index=False,
+                                                                startrow=num_celdas_anterior + 1,
+                                                                startcol=32)
+            sleep(0.2)
+
+        if examen_posterior:
+            encabezado_posterior.T.to_excel(writer, 'Posterior',
+                                            header=True, index=False, startrow=0, startcol=0)
+            encabezado_datos.T.to_excel(writer, 'Posterior',
+                                        header=False, index=False, startrow=num_celdas_posterior + 1,
+                                        startcol=0)
+            data_tabla_posterior.T.to_excel(writer, 'Posterior',
+                                            header=False, index=False, startrow=num_celdas_posterior + 1,
+                                            startcol=7)
+            DataFrame({'link': [direccion_imagen_posterior]}).T.to_excel(writer, 'Posterior',
+                                                                         header=False, index=False,
+                                                                         startrow=num_celdas_posterior + 1,
+                                                                         startcol=31)
+            DataFrame({'link': [direccion_reporte]}).T.to_excel(writer, 'Posterior',
+                                                                header=False, index=False,
+                                                                startrow=num_celdas_posterior + 1,
+                                                                startcol=32)
+            sleep(0.2)
+
+        if examen_lateral_d:
+            encabezado_lateral_d.T.to_excel(writer, 'LateralD',
+                                            header=True, index=False, startrow=0, startcol=0)
+            encabezado_datos.T.to_excel(writer, 'LateralD',
+                                        header=False, index=False, startrow=num_celdas_lateral_d + 1,
+                                        startcol=0)
+            data_tabla_lateral_d.T.to_excel(writer, 'LateralD',
+                                            header=False, index=False, startrow=num_celdas_lateral_d + 1,
+                                            startcol=7)
+            DataFrame({'link': [direccion_imagen_lateral_d]}).T.to_excel(writer, 'LateralD',
+                                                                         header=False, index=False,
+                                                                         startrow=num_celdas_lateral_d + 1,
+                                                                         startcol=29)
+            DataFrame({'link': [direccion_reporte]}).T.to_excel(writer, 'LateralD',
+                                                                header=False, index=False,
+                                                                startrow=num_celdas_lateral_d + 1,
+                                                                startcol=30)
+
+            sleep(0.2)
+
+        writer.save()
+        print('Datos agregados con éxito\n')
+    
+    '''
+
+    open_new(patient_directory + nombre_pdf + '.pdf')
+    system("cls")
+
+
+# OTHER FUNCTIONS
+
+class Patient:
 
     def __init__(self):
 
@@ -1396,308 +1783,6 @@ def load_image(name_imagen):
     root.mainloop()
 
 
-def postural_assessment(angulo_tolerancia, distancia_tolerancia):
-    global foto
-    global examen_anterior, examen_posterior, examen_lateral_d
-    global images_directory, lam_directory
-
-    # print("\nIngrese las tolerancias: \n")
-    # try:
-    #     tolerance_angle = float(input("Tolerancia en grados para los ángulos: "))
-    #     while tolerance_angle < 0:
-    #         print('Ingrese un valor válido > 0')
-    #         tolerance_angle = float(input("Tolerancia en grados para los ángulos: "))
-    # except ValueError:
-    #     print('Tolerancia de grados inválida, se asigna el valor de 0')
-    #     tolerance_angle = 0
-    #
-    # try:
-    #     tolerance_distance = float(input("Tolerancia en cm para las distancias: "))
-    #     while tolerance_distance < 0:
-    #         print('Ingrese un valor válido > 0')
-    #         tolerance_distance = float(input("Tolerancia en cm para las distancias: "))
-    # except ValueError:
-    #     print('Tolerancia de distancias inválida, se asigna el valor de 0')
-    #     tolerance_distance = 0
-
-    # Datos Personales
-
-    print("\nDATOS PERSONALES\n")
-
-    global patient_name
-
-    patient = PatientData()
-
-    patient_name = patient.get_name()
-    patient_age = patient.get_age()
-    patient_gender = patient.get_gender()
-    weight_kg = patient.get_weight_kg()
-    height_cm = patient.get_height_cm()
-    occupation = patient.get_occupation()
-
-    lam_directory, patient_directory, images_directory, dir_db_xlsx = create_directories()
-    print(patient_directory)
-
-    # Condicion para saber que analisis realizar:
-
-    print("\nEvaluaciones a realizar => 1: Si | 0: NO\n")
-
-    # Datos para la ejecución
-
-    examen_anterior = input("Vista Anterior 1/0: ").strip() == '1'
-    examen_posterior = input("Vista Posterior 1/0: ").strip() == '1'
-    examen_lateral_d = input("Vista Lateral Derecha 1/0: ").strip() == '1'
-
-    nombre_imagen_anterior = 'Anterior' + '_' + strftime("%Y%m%d") + '_' + strftime("%H%M%S")
-    nombre_imagen_posterior = 'Posterior' + '_' + strftime("%Y%m%d") + '_' + strftime("%H%M%S")
-    nombre_imagen_lateral_d = 'LateralD' + '_' + strftime("%Y%m%d") + '_' + strftime("%H%M%S")
-
-    resultados_anterior = 0
-    resultados_posterior = 0
-    resultados_lateral_d = 0
-
-    # Pruaba de cargado de imagenes en caso de imagenes erroneas
-
-    if examen_anterior:
-        load_image("\"Anterior\"")
-        resultados_anterior = evaluacion_anterior(foto, nombre_imagen_anterior, angulo_tolerancia, distancia_tolerancia)
-
-        while resultados_anterior == 0:
-
-            recargar_imagen = bool(int(input("Imagen Anterior con Error. ¿Desea cargar otra imagen? 1/0: ")))
-
-            if recargar_imagen:
-                load_image("\"Anterior\"")
-                resultados_anterior = evaluacion_anterior(foto, nombre_imagen_anterior, angulo_tolerancia,
-                                                          distancia_tolerancia)  # https://i.imgur.com/qRb4dv6.jpg
-
-            else:
-                examen_anterior = False
-                break
-
-    if examen_posterior:
-        load_image("\"Posterior\"")
-        resultados_posterior = evaluacion_posterior(foto, nombre_imagen_posterior, angulo_tolerancia,
-                                                    distancia_tolerancia)  # https://i.imgur.com/xIYYjkc.jpg
-
-        while resultados_posterior == 0:
-
-            recargar_imagen = bool(int(input("Imagen Posterior con Error. ¿Desea cargar otra imagen? 1/0: ")))
-
-            if recargar_imagen:
-                load_image("\"Posterior\"")
-                resultados_posterior = evaluacion_posterior(foto, nombre_imagen_posterior, angulo_tolerancia,
-                                                            distancia_tolerancia)  # https://i.imgur.com/xIYYjkc.jpg
-
-            else:
-                examen_posterior = False
-                break
-
-    if examen_lateral_d:
-        load_image("\"Lareral derecha\"")
-        resultados_lateral_d = evaluacion_lateral_d(foto, nombre_imagen_lateral_d, angulo_tolerancia,
-                                                    distancia_tolerancia)  # https://i.imgur.com/2fvjwk1.jpg
-
-        while resultados_lateral_d == 0:
-
-            recargar_imagen = bool(
-                int(input("Imagen Lateral Derecha con Error. ¿Desea cargar otra imagen? 1/0: ")))
-
-            if recargar_imagen:
-                load_image("\"Lareral derecha\"")
-                resultados_lateral_d = evaluacion_lateral_d(foto, nombre_imagen_lateral_d, angulo_tolerancia,
-                                                            distancia_tolerancia)  # https://i.imgur.com/2fvjwk1.jpg
-
-            else:
-                examen_lateral_d = False
-                break
-
-    ###############################
-    encabezado_anterior = []
-    encabezado_posterior = []
-    encabezado_lateral_d = []
-
-    data_tabla_anterior = []
-    data_tabla_posterior = []
-    data_tabla_lateral_d = []
-
-    direccion_imagen_anterior = []
-    direccion_imagen_posterior = []
-    direccion_imagen_lateral_d = []
-
-    if examen_anterior:
-        data_tabla_anterior = DataFrame(resultados_anterior)
-        # print(dataTablaAnterior.T)
-
-        direccion_imagen_anterior = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(images_directory,
-                                                                                nombre_imagen_anterior,
-                                                                                nombre_imagen_anterior)
-        encabezado_anterior = DataFrame((), ('Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
-                                             'Ocupación',
-                                             'Ángulo de tolerancia', 'Distancia de tolerancia',
-                                             'Hombro Descendido', 'Ángulo del hombro',
-                                             'Pelvis Descendida', 'Ángulo de la Pelvis',
-                                             'Rodilla Descendida', 'Ángulo de Rodilla',
-                                             'Dirección de la Frente', 'Distancia de la Frente',
-                                             'Dirección de los Hombros', 'Distancia de los Hombros',
-                                             'Dirección del Ombligo', 'Distancia del Ombligo',
-                                             'Dirección de la Pelvis', 'Distancia de la Pelvis',
-                                             'Dirección de las Rodillas', 'Distancia de las Rodillas',
-                                             'Dirección de los Pies', 'Distancia de los Pies',
-                                             'Rotación Pie Izquierdo', 'Ángulo Pie Izquierdo',
-                                             'Rotación Pie Derecho', 'Ángulo Pie Derecho',
-                                             'Dirección Imagen',
-                                             'Dirección del Reporte'))
-
-    if examen_posterior:
-        data_tabla_posterior = DataFrame(resultados_posterior)
-        # print(dataTablaPosterior.T)
-
-        direccion_imagen_posterior = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(images_directory,
-                                                                                 nombre_imagen_posterior,
-                                                                                 nombre_imagen_posterior)
-
-        encabezado_posterior = DataFrame((), ('Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
-                                              'Ocupación',
-                                              'Ángulo de tolerancia', 'Distancia de tolerancia',
-                                              'Hombro Descendido', 'Ángulo del hombro',
-                                              'Pelvis Descendida', 'Ángulo de la Pelvis',
-                                              'Rodilla Descendida', 'Ángulo de Rodilla',
-                                              'Dirección de la Hombros', 'Distancia de la Hombros',
-                                              'Dirección de los 7ma Cervical',
-                                              'Distancia de los 7ma Cervical',
-                                              'Dirección del 5ta Torácica', 'Distancia del 5ta Torácica',
-                                              'Dirección de la Pelvis', 'Distancia de la Pelvis',
-                                              'Dirección de las Rodillas', 'Distancia de las Rodillas',
-                                              'Dirección de los Tobillos', 'Distancia de los Tobillos',
-                                              'Dirección Pie Izquierdo', 'Ángulo Pie Izquierdo',
-                                              'Dirección Pie Derecho', 'Ángulo Pie Derecho',
-                                              'Dirección Imagen',
-                                              'Dirección del Reporte'))
-
-    if examen_lateral_d:
-        data_tabla_lateral_d = DataFrame(resultados_lateral_d)
-        # print(dataTablaLateralD.T)
-
-        direccion_imagen_lateral_d = '=HYPERLINK(\"{0}{1}.jpg\",\"{2}\")'.format(images_directory,
-                                                                                 nombre_imagen_lateral_d,
-                                                                                 nombre_imagen_lateral_d)
-
-        encabezado_lateral_d = DataFrame((), ('Fecha', 'Nombre', 'Edad', 'Género', 'Peso[kg]', 'Talla[cm]',
-                                              'Ocupación',
-                                              'Ángulo de tolerancia', 'Distancia de tolerancia',
-                                              'Dirección Cabeza-Hombro', 'Ángulo Cabeza-Hombro',
-                                              'Dirección Hombro-Pelvis', 'Ángulo Hombro-Pelvis',
-                                              'Dirección Caderas-Rodillas', 'Ángulo Caderas-Rodillas',
-                                              'Dirección Rodillas-Pies', 'Ángulo Rodillas-Pies',
-                                              'Dirección Pelvis', 'Ángulo Pelvis',
-                                              'Dirección de la Cabeza', 'Distancia de la Cabeza',
-                                              'Dirección del Hombro', 'Distancia del Hombro',
-                                              'Dirección de la Pelvis', 'Distancia de la Pelvis',
-                                              'Dirección de la Cadera', 'Distancia de la Cadera',
-                                              'Dirección de la Rodilla', 'Distancia de la Rodilla',
-                                              'Dirección Imagen',
-                                              'Dirección del Reporte'))
-
-    dict_data = {'Anterior': resultados_anterior,
-                 'Posterior': resultados_posterior,
-                 'Lateral_d': resultados_lateral_d}
-
-    dict_img = {'Anterior': nombre_imagen_anterior,
-                'Posterior': nombre_imagen_posterior,
-                'Lateral_d': nombre_imagen_lateral_d}
-
-    nombre_pdf = generar_reporte(patient, patient_directory, dict_data, dict_img)
-
-    direccion_reporte = '=HYPERLINK(\"{0}{1}.pdf\",\"{2}\")'.format(patient_directory, nombre_pdf, nombre_pdf)
-
-    date_assessment = strftime("%d/%m/%Y")
-
-    encabezado_datos = DataFrame([date_assessment, patient_name, patient_age, patient_gender, weight_kg,
-                                  height_cm, occupation])
-
-    if not path.exists(dir_db_xlsx):
-        book = ExcelWriter(dir_db_xlsx)
-        DataFrame().to_excel(book, 'Anterior')
-        DataFrame().to_excel(book, 'Posterior')
-        DataFrame().to_excel(book, 'LateralD')
-        book.save()
-
-    book = load_workbook(dir_db_xlsx)
-    sleep(0.2)
-
-    num_celdas_anterior = len(read_excel(dir_db_xlsx, sheet_name=0))
-    num_celdas_posterior = len(read_excel(dir_db_xlsx, sheet_name=1))
-    num_celdas_lateral_d = len(read_excel(dir_db_xlsx, sheet_name=2))
-
-    with ExcelWriter(dir_db_xlsx, engine='openpyxl') as writer:
-        writer.book = book
-        writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
-
-        if examen_anterior:
-            encabezado_anterior.T.to_excel(writer, 'Anterior',
-                                           header=True, index=False, startrow=0, startcol=0)
-            encabezado_datos.T.to_excel(writer, 'Anterior',
-                                        header=False, index=False, startrow=num_celdas_anterior + 1, startcol=0)
-            data_tabla_anterior.T.to_excel(writer, 'Anterior',
-                                           header=False, index=False, startrow=num_celdas_anterior + 1,
-                                           startcol=7)
-            DataFrame({'link': [direccion_imagen_anterior]}).T.to_excel(writer, 'Anterior',
-                                                                        header=False, index=False,
-                                                                        startrow=num_celdas_anterior + 1,
-                                                                        startcol=31)
-            DataFrame({'link': [direccion_reporte]}).T.to_excel(writer, 'Anterior',
-                                                                header=False, index=False,
-                                                                startrow=num_celdas_anterior + 1,
-                                                                startcol=32)
-            sleep(0.2)
-
-        if examen_posterior:
-            encabezado_posterior.T.to_excel(writer, 'Posterior',
-                                            header=True, index=False, startrow=0, startcol=0)
-            encabezado_datos.T.to_excel(writer, 'Posterior',
-                                        header=False, index=False, startrow=num_celdas_posterior + 1,
-                                        startcol=0)
-            data_tabla_posterior.T.to_excel(writer, 'Posterior',
-                                            header=False, index=False, startrow=num_celdas_posterior + 1,
-                                            startcol=7)
-            DataFrame({'link': [direccion_imagen_posterior]}).T.to_excel(writer, 'Posterior',
-                                                                         header=False, index=False,
-                                                                         startrow=num_celdas_posterior + 1,
-                                                                         startcol=31)
-            DataFrame({'link': [direccion_reporte]}).T.to_excel(writer, 'Posterior',
-                                                                header=False, index=False,
-                                                                startrow=num_celdas_posterior + 1,
-                                                                startcol=32)
-            sleep(0.2)
-
-        if examen_lateral_d:
-            encabezado_lateral_d.T.to_excel(writer, 'LateralD',
-                                            header=True, index=False, startrow=0, startcol=0)
-            encabezado_datos.T.to_excel(writer, 'LateralD',
-                                        header=False, index=False, startrow=num_celdas_lateral_d + 1,
-                                        startcol=0)
-            data_tabla_lateral_d.T.to_excel(writer, 'LateralD',
-                                            header=False, index=False, startrow=num_celdas_lateral_d + 1,
-                                            startcol=7)
-            DataFrame({'link': [direccion_imagen_lateral_d]}).T.to_excel(writer, 'LateralD',
-                                                                         header=False, index=False,
-                                                                         startrow=num_celdas_lateral_d + 1,
-                                                                         startcol=29)
-            DataFrame({'link': [direccion_reporte]}).T.to_excel(writer, 'LateralD',
-                                                                header=False, index=False,
-                                                                startrow=num_celdas_lateral_d + 1,
-                                                                startcol=30)
-
-            sleep(0.2)
-
-        writer.save()
-        print('Datos agregados con éxito\n')
-
-    open_new(patient_directory + nombre_pdf + '.pdf')
-    system("cls")
-
-
 def menu():
     while True:
         print(f'{"*" * 5} MENU {"*" * 5}')
@@ -1710,10 +1795,12 @@ def menu():
 
         if option == "1":
             system("cls")
+
             angulo_tolerancia = 0.0
             distancia_tolerancia = 0.0
-            tamanio_cuadricula = 5
-            postural_assessment(angulo_tolerancia, distancia_tolerancia)
+            tamanio_cuadricula = 10
+
+            postural_assessment(angulo_tolerancia, distancia_tolerancia, tamanio_cuadricula)
         elif option == "2":
             system("cls")
             pass
@@ -1758,9 +1845,6 @@ if __name__ == '__main__':
         examen_anterior = False
         examen_posterior = False
         examen_lateral_d = False
-
-        images_directory = ""
-        lam_directory = ""
 
         menu()
 
