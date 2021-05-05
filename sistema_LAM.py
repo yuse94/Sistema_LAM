@@ -9,7 +9,7 @@ from json import load, dump
 from matplotlib.pyplot import show, figure, title, plot, savefig, close
 from os import path, mkdir, system, getcwd
 from shutil import copyfile
-from time import strftime, sleep
+from time import strftime
 from datetime import datetime, date
 from pandas import DataFrame, ExcelWriter
 from numpy import max, min, arctan, pi, arange, meshgrid, hstack, angle, array, sqrt, mean
