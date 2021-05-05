@@ -508,10 +508,16 @@ class ReportPdf(object):
                             (assessment_date, self.patient_name, patient_age, patient_gender, height_cm, weight_kg,
                              occupation)), colWidths=(self.width - 100) / 7, hAlign='CENTER', style=data_table_style)
 
-        data_table.argW[1] = 38 * mm  # Modify the cell width
+        data_table.argW[1] = 38 * mm  # Modify the cell widt
+
+        lam_img_pdf = None
+        try:
+            lam_img_pdf = get_image_for_pdf('logo.png', height=100 * mm)
+        except OSError:
+            print('\nSin archivo "logo.png"')
 
         record = [Paragraph('Evaluación Postural', title_alignment), Spacer(1, 4 * mm), data_table,
-                  get_image_for_pdf('logo.png', height=100 * mm)]  # https://i.imgur.com/KRPTibG.png
+                  lam_img_pdf]  # https://i.imgur.com/KRPTibG.png
 
         # CONFIGURATION
 
@@ -1689,11 +1695,11 @@ def add_data_db_xlsx(db_xlsx_dir, patient, data_dict, img_dict, report_pdf_dir):
                 data.to_excel(writer, name_sheets[2], header=False, index=False, startrow=max_row, startcol=0)
 
         wb.close()
-        print('Datos agregados con éxito')
+        print('\nDatos agregados con éxito')
 
     except PermissionError:
         wb.close()
-        print('Error de escritura')
+        print('\nError de escritura')
         print('Revise que el archivo no se encuentre abierto o los permisos del antivirus\n')
         reload_data = bool(int(input("¿Desea cargar nuevamente? 1/0: ")))
 
@@ -1725,16 +1731,13 @@ def postural_assessment(tolerance_angle, tolerance_distance, grid_size, my_thres
 
     print("\nEvaluaciones a realizar => 1: Si | 0: NO\n")
 
-    run_anterior_assessment = input("Vista Anterior 1/0: ").strip() == '1'
-    run_posterior_assessment = input("Vista Posterior 1/0: ").strip() == '1'
-    run_lateral_r_assessment = input("Vista Lateral Derecha 1/0: ").strip() == '1'
+    run_anterior_assessment = input('Vista Anterior 1/0: ').strip() == '1'
+    run_posterior_assessment = input('Vista Posterior 1/0: ').strip() == '1'
+    run_lateral_r_assessment = input('Vista Lateral Derecha 1/0: ').strip() == '1'
 
     anterior_results = 0
     posterior_results = 0
     lateral_r_results = 0
-
-    reload_img = 0
-
 
     # Image upload test in case of wrong images
 
@@ -1746,7 +1749,7 @@ def postural_assessment(tolerance_angle, tolerance_distance, grid_size, my_thres
                 anterior_results = anterior_assessment(photo, tolerance_angle, tolerance_distance, grid_size,
                                                        my_threshold)
             except ValueError:
-                reload_img = bool(int(input('Imagen Anterior con Error. ¿Desea cargar otra image? 1/0: ')))
+                reload_img = input('Imagen Anterior con Error. ¿Desea cargar otra image? 1/0: ').strip() == '1'
                 if not reload_img:
                     run_anterior_assessment = False
                     break
@@ -1759,7 +1762,7 @@ def postural_assessment(tolerance_angle, tolerance_distance, grid_size, my_thres
                 posterior_results = posterior_assessment(photo, tolerance_angle, tolerance_distance, grid_size,
                                                          my_threshold)
             except ValueError:
-                reload_img = bool(int(input('Imagen Posterior con Error. ¿Desea cargar otra image? 1/0: ')))
+                reload_img = input('Imagen Posterior con Error. ¿Desea cargar otra image? 1/0: ').strip() == '1'
                 if not reload_img:
                     run_posterior_assessment = False
                     break
@@ -1772,7 +1775,7 @@ def postural_assessment(tolerance_angle, tolerance_distance, grid_size, my_thres
                 lateral_r_results = lateral_r_assessment(photo, tolerance_angle, tolerance_distance, grid_size,
                                                          my_threshold)
             except ValueError:
-                reload_img = bool(int(input("Imagen Lateral Derecha con Error. ¿Desea cargar otra image? 1/0: ")))
+                reload_img = input("Imagen Lateral Derecha con Error. ¿Desea cargar otra image? 1/0: ").strip() == '1'
                 if not reload_img:
                     run_lateral_r_assessment = False
                     break
@@ -1920,23 +1923,24 @@ def load_image(name_img):
     def load_button():
 
         global photo
-        photo_dir = path.abspath(path.join(photo, '..'))
 
-        photo = filedialog.askopenfilename(title='Abrir', initialdir=photo_dir,
+        configuration = read_configuration()
+
+        photo = filedialog.askopenfilename(title='Abrir', initialdir=configuration['last_dir'],
                                            filetypes=(('Imagenes', '*.jpg'),
                                                       ('Imagenes', '*.png'),
                                                       ('Todos los ficheros', '*.*')))
 
-        configuration = read_configuration()
-        configuration['last_dir'] = photo_dir
+        configuration['last_dir'] = path.abspath(path.join(photo, '..'))
         with open('configuration.json', 'w') as file:
             dump(configuration, file, indent=4)
+
         root.destroy()
 
     try:
         root.iconbitmap('icon.ico')
     except TclError:
-        print('No ico file found')
+        print('\nNo ico file found')
 
     root.title('Análisis Postural LAM')
 
@@ -1972,8 +1976,9 @@ def change_configuration():
         parameter_names = ('Ángulo de tolerancia', 'Distancia de tolerance', 'Tamaño de cuadrícula',
                            'Valor umbral del filtro')
         for value in configuration.values():
-            print(f'{i + 1}. {parameter_names[i]} = {value}')
-            i += 1
+            if i < 4:
+                print(f'{i + 1}. {parameter_names[i]} = {value}')
+                i += 1
 
         print(f'5. Restablecer configuración')
         print(f'6. Salir de configuracion')
@@ -2121,7 +2126,7 @@ if __name__ == '__main__':
 
     else:
         print(f'Finalizó el: {due_date}')
-        input()
+        input('Presione cualquier tecla para continuar... ')
 
 # To create executable: pyinstaller --onefile --icon=icon.ico sistema_LAM.py
 # Note: First the missing hook must be added (hook-skimage.filters.py) at the library \PyInstaller\hooks
