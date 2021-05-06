@@ -201,7 +201,7 @@ def add_data_db_xlsx(db_xlsx_dir, patient, data_dict, img_dict, report_pdf_dir, 
                 sheet = wb[name_sheets[2]]
                 max_row = sheet.max_row
 
-                dg = db_posterior['diagnostic']
+                dg = db_lateral_r['diagnostic']
                 dg = [dg[0], dg[1]]
 
                 data = transform_information_xlsx(lateral_r_img_dir, report_pdf_dir, patient_data, dg, db_lateral_r)
