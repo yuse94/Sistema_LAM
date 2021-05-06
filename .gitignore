@@ -10,6 +10,7 @@ DB_USUARIOS.db
 tipos_de_postura/*.*
 Pruebas_adultos/*.*
 venv
+venv_kivy
 # Ignorar carpetas de creacion de ejecutable .exe
 __pycache__
 build
