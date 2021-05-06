@@ -357,7 +357,7 @@ def anterior_assessment(image_dir, tolerance_angle, tolerance_distance, grid_siz
 
         anterior_img_dir = '.\\final_anterior.jpg'
 
-        savefig(anterior_img_dir, dpi=500)
+        savefig(anterior_img_dir, dpi=300)
         # time.sleep(1)
         close()  # To show the image change "close" to "show"
 
@@ -615,7 +615,7 @@ def posterior_assessment(image_dir, tolerance_angle, tolerance_distance, grid_si
 
         posterior_img_dir = '.\\final_posterior.jpg'
 
-        savefig(posterior_img_dir, dpi=500)
+        savefig(posterior_img_dir, dpi=300)
         # time.sleep(1)
         close()  # To show the image change "close" to "show"
 
@@ -801,7 +801,7 @@ def lateral_r_assessment(image_directory, tolerance_angle, tolerance_distance, g
 
         lateral_r_img_dir = '.\\final_lateral.jpg'
 
-        savefig(lateral_r_img_dir, dpi=500)
+        savefig(lateral_r_img_dir, dpi=300)
         # time.sleep(1)
         close()  # To show the image change "close" to "show"
 
@@ -1111,5 +1111,5 @@ if __name__ == '__main__':
         print(f'Finalizó el: {due_date}')
         input('Presione cualquier tecla para continuar... ')
 
-# To create executable: pyinstaller --onefile --icon=icon.ico sistema_LAM.py
+# To create executable: pyinstaller --onefile --icon=icon.ico main.py
 # Note: First the missing hook must be added (hook-skimage.filters.py) at the library \PyInstaller\hooks
