@@ -1,0 +1,153 @@
+#:import utils kivy.utils
+
+<Label>
+    font_size:16
+    # Everything here also modifies the button text unless it is modified later
+
+<Button>
+
+    font_size:16
+    background_normal: ''
+
+<TextInput>
+    multiline:False
+    background_color: '#D5EBFF'
+
+<GridLayout>
+    padding:1
+    spacing:1
+
+<BoxLayout>
+    padding: 10
+    spacing: 10
+
+<DataBox>
+    name:name
+    age:age
+    gender:gender
+    height_cm:height_cm
+    weight_kg:weight_kg
+    occupation:occupation
+
+    orientation: "vertical"
+    size: root.width, root.height
+
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#FF00FF')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    GridLayout:
+        cols:2
+
+
+        Label:
+            text: "Nombre"
+
+        TextInput:
+            id: name
+
+        Label:
+            text: "Edad"
+        TextInput:
+            id: age
+
+        Label:
+            text: "Género"
+        TextInput:
+            id: gender
+
+        Label:
+            text: "Altura"
+        TextInput:
+            id: height_cm
+
+        Label:
+            text: "Peso"
+        TextInput:
+            id: weight_kg
+
+        Label:
+            text: "Ocupación"
+        TextInput:
+            id: occupation
+    GridLayout:
+        cols:1
+
+        Button:
+            text: "Cargar datos"
+            on_press: root.press_load()
+            background_color: '#0076E1'
+
+        Button:
+            text: "Limpiar"
+            on_press: root.press_clean()
+            background_color: '#FF0000'
+
+<ImagesBox>
+    orientation: "horizontal"
+    size: root.width, root.height
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#0F00FF')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    #padding:50
+    #spacing:20
+
+    Image:
+        source: 'anterior.jpg'
+        allow_stretch: True
+        keep_ratio: True
+
+    Image:
+        source: 'posterior.jpg'
+        allow_stretch: True
+        keep_ratio: True
+
+    Image:
+        source: 'lateralD.jpg'
+        allow_stretch: True
+        keep_ratio: True
+
+<DiagnosticBox>
+    orientation: "horizontal"
+    size: root.width, root.height
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#0F000F')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    Label:
+        id: diagnostic
+        text: "Diagnostic"
+        font_size: 16
+
+<AppScreen>
+    size: root.width, root.height
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#00A6D6')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    padding: 10
+    spacing: 10
+    BoxLayout:
+        orientation: "horizontal"
+        size: root.width, root.height
+        GridLayout:
+            size: root.width, root.height
+            cols:1
+
+            DataBox:
+            ImagesBox:
+
+        DiagnosticBox:
