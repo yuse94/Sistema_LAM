@@ -1,16 +1,11 @@
 from kivy.app import App
 from kivy.properties import ObjectProperty
 from kivy.uix.widget import Widget
-from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.image import Image
 
 
 class AppScreen(Widget):
-    pass
-
-
-class DataBox(BoxLayout):
     # Initialize infinite keywords
-
     name = ObjectProperty(None)  # Or name = self.ids.name.text
     age = ObjectProperty(None)
     gender = ObjectProperty(None)
@@ -59,6 +54,9 @@ class DataBox(BoxLayout):
         else:
             occupation = self.occupation.text.strip().title()
 
+        self.ids.diagnostic.text = (f'Hola mi nombre es {name} y tengo {age} de edad\n'
+                                    f'Me identifico como {gender}, mido {height_cm} cm\n'
+                                    f'Peso {weight_kg} kg, y trabajo como {occupation}\n')
 
         print(f'Hola mi nombre es {name} y tengo {age} de edad')
         print(f'Me identifico como {gender}, mido {height_cm} cm')
@@ -71,13 +69,15 @@ class DataBox(BoxLayout):
         self.height_cm.text = ''
         self.weight_kg.text = ''
         self.occupation.text = ''
+        self.ids.diagnostic.text = ''
+        self.ids.img_anterior.source = ''
+        self.ids.img_posterior.source = ''
+        self.ids.img_lateral_r.source = ''
 
-class ImagesBox(BoxLayout):
-    None
-
-
-class DiagnosticBox(BoxLayout):
-    None
+    def press_show(self):
+        self.ids.img_anterior.source = 'anterior.jpg'
+        self.ids.img_posterior.source = 'posterior.jpg'
+        self.ids.img_lateral_r.source = 'lateralD.jpg'
 
 
 class LAM(App):

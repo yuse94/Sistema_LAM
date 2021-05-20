@@ -5,7 +5,6 @@
     # Everything here also modifies the button text unless it is modified later
 
 <Button>
-
     font_size:16
     background_normal: ''
 
@@ -21,7 +20,8 @@
     padding: 10
     spacing: 10
 
-<DataBox>
+<AppScreen>
+
     name:name
     age:age
     gender:gender
@@ -29,107 +29,10 @@
     weight_kg:weight_kg
     occupation:occupation
 
-    orientation: "vertical"
-    size: root.width, root.height
+    img_anterior:img_anterior
+    img_posterior:img_posterior
+    img_lateral_r:img_lateral_r
 
-    canvas.before:
-        Color:
-            rgba: utils.get_color_from_hex('#FF00FF')
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-    GridLayout:
-        cols:2
-
-
-        Label:
-            text: "Nombre"
-
-        TextInput:
-            id: name
-
-        Label:
-            text: "Edad"
-        TextInput:
-            id: age
-
-        Label:
-            text: "Género"
-        TextInput:
-            id: gender
-
-        Label:
-            text: "Altura"
-        TextInput:
-            id: height_cm
-
-        Label:
-            text: "Peso"
-        TextInput:
-            id: weight_kg
-
-        Label:
-            text: "Ocupación"
-        TextInput:
-            id: occupation
-    GridLayout:
-        cols:1
-
-        Button:
-            text: "Cargar datos"
-            on_press: root.press_load()
-            background_color: '#0076E1'
-
-        Button:
-            text: "Limpiar"
-            on_press: root.press_clean()
-            background_color: '#FF0000'
-
-<ImagesBox>
-    orientation: "horizontal"
-    size: root.width, root.height
-    canvas.before:
-        Color:
-            rgba: utils.get_color_from_hex('#0F00FF')
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-    #padding:50
-    #spacing:20
-
-    Image:
-        source: 'anterior.jpg'
-        allow_stretch: True
-        keep_ratio: True
-
-    Image:
-        source: 'posterior.jpg'
-        allow_stretch: True
-        keep_ratio: True
-
-    Image:
-        source: 'lateralD.jpg'
-        allow_stretch: True
-        keep_ratio: True
-
-<DiagnosticBox>
-    orientation: "horizontal"
-    size: root.width, root.height
-    canvas.before:
-        Color:
-            rgba: utils.get_color_from_hex('#0F000F')
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-    Label:
-        id: diagnostic
-        text: "Diagnostic"
-        font_size: 16
-
-<AppScreen>
     size: root.width, root.height
     canvas.before:
         Color:
@@ -147,7 +50,109 @@
             size: root.width, root.height
             cols:1
 
-            DataBox:
-            ImagesBox:
+            BoxLayout:
 
-        DiagnosticBox:
+                orientation: "vertical"
+                size: root.width, root.height
+
+                canvas.before:
+                    Color:
+                        rgba: utils.get_color_from_hex('#FF00FF')
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+                GridLayout:
+                    cols:2
+
+
+                    Label:
+                        text: "Nombre"
+
+                    TextInput:
+                        id: name
+
+                    Label:
+                        text: "Edad"
+                    TextInput:
+                        id: age
+
+                    Label:
+                        text: "Género"
+                    TextInput:
+                        id: gender
+
+                    Label:
+                        text: "Altura"
+                    TextInput:
+                        id: height_cm
+
+                    Label:
+                        text: "Peso"
+                    TextInput:
+                        id: weight_kg
+
+                    Label:
+                        text: "Ocupación"
+                    TextInput:
+                        id: occupation
+                GridLayout:
+                    cols:1
+
+                    Button:
+                        text: "Cargar datos"
+                        on_press: root.press_load()
+                        background_color: '#0076E1'
+
+                    Button:
+                        text: "Limpiar"
+                        on_press: root.press_clean()
+                        background_color: '#FF0000'
+
+                    Button:
+                        text: "Mostrar imagenes"
+                        on_press: root.press_show()
+                        background_color: '#885804'
+
+            BoxLayout:
+                orientation: "horizontal"
+                size: root.width, root.height
+                canvas.before:
+                    Color:
+                        rgba: utils.get_color_from_hex('#0F00FF')
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+                #padding:50
+                #spacing:20
+
+                Image:
+                    id: img_anterior
+                    allow_stretch: True
+                    keep_ratio: True
+
+                Image:
+                    id: img_posterior
+                    allow_stretch: True
+                    keep_ratio: True
+
+                Image:
+                    id: img_lateral_r
+                    allow_stretch: True
+                    keep_ratio: True
+
+        BoxLayout:
+            orientation: "horizontal"
+            size: root.width, root.height
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex('#0F000F')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            Label:
+                id: diagnostic
+                text: "Diagnostic"
+                font_size: 16
