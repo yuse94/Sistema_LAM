@@ -1,4 +1,5 @@
 #:import utils kivy.utils
+#: import Factory kivy.factory.Factory
 
 <Label>
     font_size:16
@@ -20,11 +21,44 @@
     padding: 10
     spacing: 10
 
+<ImageLoad@Popup>
+    auto_dismiss: True # If is True: the previous screen is not disabled
+    size_hint: 0.7, 0.9
+    pos_hint: {'x': 0.2, 'top': 0.9}
+
+    title: 'Cargar imagen'
+    BoxLayout:
+
+        orientation: 'vertical'
+        size: root.width, root.height
+
+        padding: 50
+        spacing: 20
+
+        Image:
+            id: my_image
+            source: ''
+
+        FileChooserListView: # or FileChooserIconView
+            id: filechooser
+            on_selection: my_widget.selected(filechooser.selection)
+
+        GridLayout:
+            cols:2
+
+            Button:
+                text: 'Cargar'
+                background_color: '#0076E1'
+
+            Button:
+                text: 'Cerrar'
+                background_color: '#0076E1'
+                on_release: root.dismiss()
+
 <AppScreen>
 
     name:name
     age:age
-    gender:gender
     height_cm:height_cm
     weight_kg:weight_kg
     occupation:occupation
@@ -32,6 +66,12 @@
     img_anterior:img_anterior
     img_posterior:img_posterior
     img_lateral_r:img_lateral_r
+
+    # Configuration parameters:
+    angle_tolerance_text: angle_tolerance
+    distance_tolerance_text: distance_tolerance
+    grid_size_text: grid_size
+    filter_threshold_text: filter_threshold
 
     size: root.width, root.height
     canvas.before:
@@ -44,115 +84,265 @@
     padding: 10
     spacing: 10
     BoxLayout:
-        orientation: "horizontal"
+        orientation: 'vertical'
         size: root.width, root.height
-        GridLayout:
-            size: root.width, root.height
-            cols:1
 
-            BoxLayout:
+        Accordion:
+            orientation: 'vertical' # or horizontal
 
-                orientation: "vertical"
-                size: root.width, root.height
+            AccordionItem:
+                title: 'Ajustes'
 
-                canvas.before:
-                    Color:
-                        rgba: utils.get_color_from_hex('#FF00FF')
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
+                BoxLayout:
+                    orientation: 'vertical'
 
+                    Label:
+                        text: 'Ángulo de tolerancia 0-5 °'
+                        font_size: 16
+
+                    GridLayout:
+                        cols:2
+
+                        Slider:
+                            min: 0.0
+                            max: 5.0
+                            step: 0.1
+                            orientation: 'horizontal'
+                            on_value: root.slider_angle(*args)
+
+                        Label:
+                            id: angle_tolerance
+                            text: '0.0 °'
+                            font_size: 16
+
+                    Label:
+                        text: 'Distancia de tolerancia 0-3 cm'
+                        font_size: 16
+
+                    GridLayout:
+                        cols:2
+
+                        Slider:
+                            min: 0.0
+                            max: 3.0
+                            step: 0.1
+                            orientation: 'horizontal'
+                            on_value: root.slider_distance(*args)
+
+                        Label:
+                            id: distance_tolerance
+                            text: '0.0 cm'
+                            font_size: 16
+
+                    Label:
+                        text: 'Tamaño de cuadrícula 1-10 cm'
+                        font_size: 16
+
+                    GridLayout:
+                        cols:2
+
+                        Slider:
+                            min: 1.0
+                            max: 10.0
+                            step: 1
+                            orientation: 'horizontal'
+                            on_value: root.slider_grid_size(*args)
+
+                        Label:
+                            id: grid_size
+                            text: '1.0 cm'
+                            font_size: 16
+
+                    Label:
+                        text: 'Valor umbral del filtro 0.20-0.80 cm'
+                        font_size: 16
+
+                    GridLayout:
+                        cols:2
+
+                        Slider:
+                            min: 0.20
+                            max: 0.80
+                            step: 0.01
+                            orientation: 'horizontal'
+                            on_value: root.slider_filter_threshold(*args)
+
+                        Label:
+                            id: filter_threshold
+                            text: '1.0 cm'
+                            font_size: 16
+
+                    GridLayout:
+                        cols:2
+                        Button:
+
+                            text: "Aplicar"
+                            background_color: '#024A86'
+
+                        Button:
+                            text: "Restaurar configuración"
+                            background_color: '#024A86'
+
+
+            AccordionItem:
+                title: "LAM"
                 GridLayout:
-                    cols:2
-
-
-                    Label:
-                        text: "Nombre"
-
-                    TextInput:
-                        id: name
-
-                    Label:
-                        text: "Edad"
-                    TextInput:
-                        id: age
-
-                    Label:
-                        text: "Género"
-                    TextInput:
-                        id: gender
-
-                    Label:
-                        text: "Altura"
-                    TextInput:
-                        id: height_cm
-
-                    Label:
-                        text: "Peso"
-                    TextInput:
-                        id: weight_kg
-
-                    Label:
-                        text: "Ocupación"
-                    TextInput:
-                        id: occupation
-                GridLayout:
+                    size: root.width, root.height
                     cols:1
 
-                    Button:
-                        text: "Cargar datos"
-                        on_press: root.press_load()
-                        background_color: '#0076E1'
+                    BoxLayout:
 
-                    Button:
-                        text: "Limpiar"
-                        on_press: root.press_clean()
-                        background_color: '#FF0000'
+                        orientation: "vertical"
+                        size: root.width, root.height
 
-                    Button:
-                        text: "Mostrar imagenes"
-                        on_press: root.press_show()
-                        background_color: '#885804'
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex('#FF00FF')
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
 
-            BoxLayout:
-                orientation: "horizontal"
-                size: root.width, root.height
-                canvas.before:
-                    Color:
-                        rgba: utils.get_color_from_hex('#0F00FF')
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
+                        GridLayout:
+                            cols:2
 
-                #padding:50
-                #spacing:20
 
-                Image:
-                    id: img_anterior
-                    allow_stretch: True
-                    keep_ratio: True
+                            Label:
+                                text: "Nombre"
 
-                Image:
-                    id: img_posterior
-                    allow_stretch: True
-                    keep_ratio: True
+                            TextInput:
+                                id: name
 
-                Image:
-                    id: img_lateral_r
-                    allow_stretch: True
-                    keep_ratio: True
+                            Label:
+                                text: "Edad"
+                            TextInput:
+                                id: age
 
-        BoxLayout:
-            orientation: "horizontal"
-            size: root.width, root.height
-            canvas.before:
-                Color:
-                    rgba: utils.get_color_from_hex('#0F000F')
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
+                            Label:
+                                text: "Género"
+                            GridLayout:
+                                cols:2
 
-            Label:
-                id: diagnostic
-                text: "Diagnostic"
-                font_size: 16
+                                GridLayout:
+                                    cols:2
+                                    Label:
+                                        text: 'M'
+                                        font_size: 16
+                                    CheckBox:
+                                        group: 'gender'
+                                        id: gender_m
+
+                                GridLayout:
+                                    cols:2
+                                    Label:
+                                        text: 'F'
+                                        font_size: 16
+                                    CheckBox:
+                                        group: 'gender'
+                                        id: gender_f
+
+                            Label:
+                                text: "Altura"
+                            TextInput:
+                                id: height_cm
+
+                            Label:
+                                text: "Peso"
+                            TextInput:
+                                id: weight_kg
+
+                            Label:
+                                text: "Ocupación"
+                            TextInput:
+                                id: occupation
+
+                        BoxLayout:
+                            orientation: 'vertical'
+                            Label:
+                                text: "Examenes ha realizar:"
+
+                            GridLayout:
+                                cols:2
+
+                                Label:
+                                    text: 'Plano Anterior'
+                                    font_size: 16
+                                CheckBox:
+                                    id: anterior_assessment
+
+                                Label:
+                                    text: 'Plano Posterior'
+                                    font_size: 16
+                                CheckBox:
+                                    id: posterior_assessment
+
+                                Label:
+                                    text: 'Plano Lateral Derecho'
+                                    font_size: 16
+                                CheckBox:
+                                    id: lateral_r_assessment
+
+                        GridLayout:
+                            cols:1
+
+                            Button:
+                                text: "Cargar imagenes"
+                                on_release: Factory.ImageLoad().open()
+                                background_color: '#0076E1'
+
+                            Button:
+                                text: "Cargar datos"
+                                on_press: root.press_load()
+                                background_color: '#0076E1'
+
+                            Button:
+                                text: "Limpiar"
+                                on_press: root.press_clean()
+                                background_color: '#FF0000'
+
+                            Button:
+                                text: "Mostrar imagenes"
+                                on_press: root.press_show()
+                                background_color: '#885804'
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        size: root.width, root.height
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex('#0F00FF')
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+
+                        #padding:50
+                        #spacing:20
+
+                        Image:
+                            id: img_anterior
+                            allow_stretch: True
+                            keep_ratio: True
+
+                        Image:
+                            id: img_posterior
+                            allow_stretch: True
+                            keep_ratio: True
+
+                        Image:
+                            id: img_lateral_r
+                            allow_stretch: True
+                            keep_ratio: True
+
+                BoxLayout:
+                    orientation: "horizontal"
+                    size: root.width, root.height
+                    canvas.before:
+                        Color:
+                            rgba: utils.get_color_from_hex('#0F000F')
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+
+                    Label:
+                        id: diagnostic
+                        text: "Diagnostic"
+                        font_size: 16

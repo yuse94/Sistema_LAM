@@ -5,13 +5,34 @@ from kivy.uix.image import Image
 
 
 class AppScreen(Widget):
+
     # Initialize infinite keywords
     name = ObjectProperty(None)  # Or name = self.ids.name.text
     age = ObjectProperty(None)
-    gender = ObjectProperty(None)
     height_cm = ObjectProperty(None)
     weight_kg = ObjectProperty(None)
     occupation = ObjectProperty(None)
+    gender = ''
+
+    # Configuration
+    def slider_angle(self, *args):
+        self.angle_tolerance_text.text = f'{round(float(args[1]),2)} °'
+
+    def slider_distance(self, *args):
+        self.distance_tolerance_text.text = f'{round(float(args[1]),2)} cm'
+
+    def slider_grid_size(self, *args):
+        self.grid_size_text.text = f'{round(float(args[1]),2)} cm'
+
+    def slider_filter_threshold(self, *args):
+        self.filter_threshold_text.text = f'{round(float(args[1]),2)}'
+
+    def selected(self, filename):
+        try:
+            self.ids.my_image.source = filename[0]
+            print(filename[0])
+        except:
+            pass
 
     def press_load(self):
 
@@ -28,10 +49,12 @@ class AppScreen(Widget):
             except ValueError:
                 age = None
 
-        if not self.gender.text:
-            gender = None
+        if self.ids.gender_f.active:
+            gender = 'F'
+        elif self.ids.gender_m.active:
+            gender = 'M'
         else:
-            gender = self.gender.text
+            gender = ''
 
         if not self.height_cm.text:
             height_cm = None
@@ -65,7 +88,8 @@ class AppScreen(Widget):
     def press_clean(self):
         self.name.text = ''
         self.age.text = ''
-        self.gender.text = ''
+        self.ids.gender_f.active = False
+        self.ids.gender_m.active = False
         self.height_cm.text = ''
         self.weight_kg.text = ''
         self.occupation.text = ''
