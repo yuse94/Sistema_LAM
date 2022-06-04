@@ -1085,7 +1085,7 @@ if __name__ == '__main__':
     day = datetime.now().day
 
     current_date = date(year, month, day)
-    due_date = date(2022, 31, 12)
+    due_date = date(2047, 12, 31)
 
     trial_days = (due_date - current_date).days
 
@@ -1112,4 +1112,3 @@ if __name__ == '__main__':
         input('Presione cualquier tecla para continuar... ')
 
 # To create executable: pyinstaller --onefile --icon=icon.ico main.py
-# Note: First the missing hook must be added (hook-skimage.filters.py) at the library \PyInstaller\hooks
