@@ -1085,7 +1085,7 @@ if __name__ == '__main__':
     day = datetime.now().day
 
     current_date = date(year, month, day)
-    due_date = date(2021, 6, 12)
+    due_date = date(2022, 31, 12)
 
     trial_days = (due_date - current_date).days
 
