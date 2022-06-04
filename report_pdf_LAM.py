@@ -183,7 +183,7 @@ class ReportPdf(object):
                             (assessment_date, patient_name, patient_age, patient_gender, height_cm, weight_kg,
                              occupation)), colWidths=(self.width - 100) / 7, hAlign='CENTER', style=data_table_style)
 
-        data_table.argW[1] = 38 * mm  # Modify the cell widt
+        data_table._argW[1] = 38 * mm  # Modify the cell width (_argW or argW depends on the version of reportlab)
 
         lam_img_pdf = None
         try:
