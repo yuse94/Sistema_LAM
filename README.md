@@ -1,4 +1,4 @@
-# Lectura Automática de Marcadores (LAM) para realizar evaluaciones posturales V0.1
+# Lectura Automática de Marcadores (LAM) para realizar evaluaciones posturales V0.2
 
 ![](https://i.imgur.com/KRPTibG.png)
 
@@ -45,7 +45,7 @@ Para la captura de fotografías, los principales aspectos que se deben analizar 
 
 ![](https://i.imgur.com/6C6T9Qo.png)
 
-Se colocan los marcadores sobre la persona (etiquetas verdes circulares) junto con los dos marcadores de referencia. La cámara se posicionó de forma paralela a la persona a una distancia de 2.50 metros y colocando el lente de la cámara a una altura de 1.10 metros. Las fotografías deben ser tomadas con una iluminación mínima de 200 lux. La resolución de la cámara a utilizar tiene que ser superior o igual a los 12 megapíxeles (Mpx) y el modo de configuración estar en automático.
+Se colocan los marcadores sobre la persona (Etiquetas verdes circulares) junto con los dos marcadores de referencia. La cámara se posicionó de forma paralela a la persona a una distancia de 2.50 metros y colocando el lente de la cámara a una altura de 1.10 metros. Las fotografías deben ser tomadas con una iluminación mínima de 200 lux. La resolución de la cámara a utilizar tiene que ser superior o igual a los 12 megapíxeles (Mpx) y el modo de configuración estar en automático.
 ## Tablas de resultados
 Con los puntos anatómicos definidos se establecieron los resultados requeridos por el fisioterapeuta para que este pueda dar un diagnóstico. Los datos requeridos se muestran en tablas, los formatos de las tablas de resultados para cada una de las vistas a analizar fueron propuestos por el centro **HABILITAR Cuenca-Ecuador**.
 **Tabla de resultados para la vista anterior, plano frontal**
@@ -111,12 +111,12 @@ Nota: Para un mejor análisis cuantitativo los resultados mostrados en la tabla 
 ## Recomendaciones
 - La colocación de los marcadores se debe realizar manualmente por un evaluador experimentado, debido a que hay ciertos puntos anatómicos difíciles de ubicar para una persona inexperta en el tema, como son los puntos F7, F8, P6, P5 y L5 por mencionar algunos. Para otros puntos como F3, F4, F7 y P5 se recomienda que en vez de usar marcadores adhesivos se usen bolitas plásticas de color verde, debido a que estos puntos están presentes en más de una vista.
 - Se recomienda que el protocolo de colocación de la cámara dependa del tipo de lente que se utilice, y que para posicionar la cámara se use niveladores, de preferencia alguno que venga integrado en la cámara, o aplicaciones que permitan ajustar el nivel de la cámara en el caso de utilizar celular. Para el correcto posicionamiento de la cámara y una toma de fotografías correcta se recomienda posicionar la cámara a una distancia prudente (alrededor de los 2.50 y 3.00 metros) y el lente a una altura donde se aprecie de manera clara todos los marcadores. Los marcadores de referencia deben ubicarse a una altura media de la persona que se va a realizar la evaluación. La resolución de la cámara deberá ser mayor a los 12 Mpx y no se debe utilizar ningún tipo de lente que genere alguna distorsión, como es el caso de los lentes de las cámaras deportivas. 
-- De preferencia se recomienda usar un fondo blanco para la toma de fotografías, tomarlas en un lugar bien iluminado y de ser necesario tomar las fotos con flash o ajustar la cámara en modo automático. El ambiente en el cual se tomen las fotografías no tiene que tener ninguna tonalidad de verde.
+- De preferencia se recomienda usar un fondo blanco para la toma de fotografías, tomarlas en un lugar bien iluminado y de ser necesario tomar las fotos con flash o ajustar la cámara en modo automático. El ambiente en el cual se tomen las fotografías no deben tener ninguna tonalidad de verde.
 - Las personas que se vayan a realizar la evaluación postural mediante el sistema propuesto tienen que usar prendas ajustadas al cuerpo, en caso de ser hombres una licra negra corta, y en el caso de las mujeres un top negro y una licra negra corta, en caso de tener el cabello largo este deberá ser recogido. Los participantes no pueden tener ningún tipo de prenda u objeto con colores fluorescentes, debido a que algunos de estos pueden contener un alto contenido del canal verde, como es el caso del celeste, y pueden presentarse problemas al momento de realizar las evaluaciones. 
 - Las personas que se sometan a esta evaluación deben mantener una postura en la cual se sientan cómodos y no forzar una postura correcta. Hacer eso provocaría una distorsión de los resultados de la evaluación.
 
 # Instalación
-El sistema LAM fue realizado en Python 3.8 con el uso de las siguientes librerías:
+El sistema LAM fue realizado en Python 3.9.12 con el uso de las siguientes librerías:
                     
 Liberia   | Versión
 ------------- | -------------
@@ -129,34 +129,57 @@ pandas | 1.2.3
 reportlab | 3.5.65  
 tkinter | 8.6
 
-Y las librerías estándar de Python 3.8: **warnings, datetime, time, os.**
-Para crea un ejecutable se utilizó la librería **pyinstaller 4.2** agregando los **hooks** faltantes de la librería **scikit-image** para su correcta ejecución.
+Para crea un ejecutable se utilizó la librería **pyinstaller 5.1**
+
 # Cómo usar
 Actualmente el sistema se ejecuta en la consola usando ventanas emergentes para realizar el cargado de las fotografías, y en caso de existir algún error mostrar la fotografía para que el usuario pueda visualizar el error en la lectura de los marcadores.
-1. Una vez ejecutado el programa primeramente se debe llenar la información de la persona sometida a la evaluación.
-2. Se ingresan las evaluaciones que se van a realizar.
-3. Se Ingresa la tolerancia para etiquetar un segmento corporal o referencia como alineada:
 
-	![](https://i.imgur.com/7TkPLqH.jpg)
-	
-4. Se muestran las ventanas emergentes para cargar cada una de las fotografías a procesar. En caso de que exista algún error, el sistema nos mostrara cual es el error y si deseamos cargar otra imagen o descartar esa evaluación:
+Una vez ejecutado el programa se muestra el siguiente menú.
 
-	![](https://i.imgur.com/ZiAIvXe.jpg)
-	
-5. Una vez terminado el proceso los archivos finales son generados en: 
+![](https://imgur.com/pjKFz5q.jpg)
+1. **Hacer análisis postural:**
+   
+	Si se selecciona la primera opción se muestra siguiente menú, donde se muestra la configuración predeterminada del análisis y se debe ingresar un "1" por cada vista que se desea hacer la evaluación. 
+   
+	![](https://imgur.com/ul4GSVD.jpg)
+   
+	Se muestran las ventanas emergentes para cargar cada una de las fotografías a procesar. En caso de que exista algún error, el sistema nos mostrara cual es el error y si deseamos cargar otra imagen o descartar esa evaluación:
 
-> C:\Users\Nombre_de_Usuario\Documents\LAM
+	![](https://imgur.com/8kWWZn4.jpg)
 
-Donde se encuentra un archivo con el nombre* DB_LAM.xlsx*  que guarda toda la información y hipervínculos de las evaluaciones realizadas con éxito. Además, se generan las carpetas con los nombres de las diferentes personas que se realizaron las evaluaciones, que en su interior contienen con sus reportes en PDF y las fotografías analizadas.
+	Cada vez que se cargue una imagen sin errores se mostrara su respectiva tabla de resultados. Adicionalmente se muestra la opción de mostrar la imagen resultante.
 
-![](https://i.imgur.com/EdmMuJM.png)
+   ![](https://i.imgur.com/liA4J6k.jpg)
+   
+	Cuando se termine el análisis se muestra la opción de general reporte. Si se decide continuar con el mismo, se ingresan los datos del paciente.
 
-El reporte PDF contendrá la siguiente información:
+	![](https://i.imgur.com/GCPzlLP.jpg)
 
-![](https://i.imgur.com/nzLttwb.jpg)
-![](https://i.imgur.com/6Eh22Xk.jpg)
-![](https://i.imgur.com/5kagcT3.jpg)
-![](https://i.imgur.com/D2VTmDP.jpg)
+	Adicionalmente se puede agregar estos resultados a una base de datos de Excel.
+
+2. **Abrir base de datos:**.
+   De existir el archivo se abrirá.
+   
+	Una vez terminado el proceso los archivos finales son generados en: 
+
+	> C:\Users\Nombre_de_Usuario\Documents\LAM
+
+	Donde se encuentra un archivo con el nombre* DB_LAM.xlsx*  que guarda toda la información e hipervínculos de las evaluaciones realizadas con éxito. Además, se generan las carpetas con los nombres de las diferentes personas que se realizaron las evaluaciones, que en su interior contienen con sus reportes en PDF y las fotografías analizadas.
+
+	![](https://i.imgur.com/EdmMuJM.png)
+
+	El reporte PDF contendrá la siguiente información:
+
+	![](https://i.imgur.com/nzLttwb.jpg)
+	![](https://i.imgur.com/6Eh22Xk.jpg)
+	![](https://i.imgur.com/5kagcT3.jpg)
+	![](https://i.imgur.com/D2VTmDP.jpg)
+
+3. **Cambiar configuración:**.
+
+	En este apartado se puede cambiar la configuración y reestablecer la configuración predeterminada
+
+	![](https://imgur.com/KggclDF.jpg)	
 
 # Licencia
 
