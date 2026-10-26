@@ -38,36 +38,50 @@ class ResultTableOut(BaseModel):
 
 class ViewResultOut(BaseModel):
     view: View
-    image_width: int
-    image_height: int
+    image_width: int | None = None
+    image_height: int | None = None
     markers: dict[str, Point]
     derived_points: dict[str, Point]
-    references: tuple[Point, Point]
-    scale_ratio: float
+    references: tuple[Point, Point] | None = None
+    scale_ratio: float = Field(description="Centímetros por píxel")
     grid_origin: Point
     grid_step_px: float
     diagnostic: dict[str, str | float | None]
     tables: list[ResultTableOut]
-    overlay_image: str | None = Field(None, description="Imagen resultante como data URL (JPEG)")
+    image: str | None = Field(None, description="Imagen enderezada como data URL (JPEG), sin dibujos")
 
     @classmethod
-    def from_domain(cls, r: ViewResult, overlay_image: str | None = None) -> "ViewResultOut":
+    def from_domain(cls, r: ViewResult, image: str | None = None) -> "ViewResultOut":
         pt = lambda p: Point(x=p[0], y=p[1])  # noqa: E731
         return cls(
             view=r.view,
-            image_width=r.image.shape[1],
-            image_height=r.image.shape[0],
+            image_width=r.image.shape[1] if r.image is not None else None,
+            image_height=r.image.shape[0] if r.image is not None else None,
             markers={k: pt(v) for k, v in r.markers.items()},
             derived_points={k: pt(v) for k, v in r.derived_points.items()},
-            references=(pt(r.references[0]), pt(r.references[1])),
+            references=(pt(r.references[0]), pt(r.references[1])) if r.references else None,
             scale_ratio=r.scale_ratio,
             grid_origin=pt(r.grid_origin),
             grid_step_px=r.grid_step_px,
             diagnostic=r.diagnostic,
             tables=[ResultTableOut(key=t.key, title=t.title, columns=t.columns,
                                    rows=[ResultRowOut(**vars(row)) for row in t.rows]) for t in r.tables],
-            overlay_image=overlay_image,
+            image=image,
         )
+
+
+class EvaluateIn(BaseModel):
+    """Puntos ajustados por el evaluador (o de otro detector) para recalcular una vista."""
+
+    landmarks: dict[str, Point] = Field(description="Punto anatómico (F1, P3, L7...) -> coordenadas en píxeles")
+    scale_ratio: float = Field(gt=0, description="Centímetros por píxel")
+    config: AssessmentConfigIn = AssessmentConfigIn()
+
+
+class ViewInfo(BaseModel):
+    view: View
+    labels: dict[str, str]
+    expected_markers: int
 
 
 class MarkerCountErrorOut(BaseModel):

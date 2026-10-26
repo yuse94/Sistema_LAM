@@ -21,12 +21,12 @@ def anterior_angle_from_horizontal(right_point, left_point, tolerance):
 def posterior_angle_from_horizontal(left_point, right_point, tolerance):
     d = right_point - left_point
     a = round(-angle(complex(d[1], d[0]), deg=True), 2)
-    # FIXME(HALLAZGO-2): condiciones conservadas del original. Con estas
-    # comparaciones "Alin." nunca se alcanza; probablemente debería ser
-    # `a < -tolerance -> Der.` y `a > tolerance -> Izq.`. Ver docs/MIGRACION.md.
-    if a < tolerance:
+    # HALLAZGO-2 (corregido): en la versión de consola las condiciones eran
+    # `a < tol` y `a > -tol`, por lo que "Alin." nunca se alcanzaba.
+    # En la foto posterior un ángulo negativo indica el lado derecho descendido.
+    if a < -tolerance:
         return "Der.", a
-    if a > -tolerance:
+    if a > tolerance:
         return "Izq.", a
     return "Alin.", a
 

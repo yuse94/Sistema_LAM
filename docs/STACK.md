@@ -13,7 +13,8 @@ conservando el algoritmo de lectura automática de marcadores validado en la tes
 
 | Capa | Tecnología | Por qué |
 |---|---|---|
-| Núcleo de análisis | Python 3.12 · NumPy 2 · scikit-image · SciPy | Es el código existente; se reutiliza como librería pura (`backend/app/lam`). |
+| Núcleo de análisis | Python 3.12 · NumPy 2 · scikit-image · SciPy | Es el código existente; se reutiliza como librería pura (`backend/app/lam`), con detección y evaluación separadas. |
+| Detección sin marcadores (fase 2) | MediaPipe Pose Landmarker (`@mediapipe/tasks-vision`, en el navegador) | Apache 2.0, sin servidor con GPU; ver `ESTADO_DEL_ARTE.md`. |
 | API | FastAPI · Pydantic v2 | Mismo lenguaje que el núcleo, validación de entradas, documentación OpenAPI automática en `/docs`. |
 | Persistencia | SQLAlchemy 2 + Alembic · SQLite (desarrollo) / PostgreSQL (producción) | Reemplaza `DB_LAM.xlsx` como fuente de verdad; el Excel pasa a ser una exportación. |
 | Archivos | Disco local (`data/storage`), luego S3/MinIO | Fotografías originales, imágenes resultantes y PDFs. |
@@ -37,7 +38,9 @@ Navegador (React)
    ▼
 FastAPI (backend/app)
    ├── api/routes      → HTTP, validación, errores
-   ├── lam/            → núcleo puro: imagen → ViewResult (sin I/O ni UI)
+   ├── lam/            → núcleo puro (sin I/O ni UI):
+   │                      detección: imagen → puntos con nombre
+   │                      evaluación: puntos + escala → tablas y diagnóstico
    ├── services/       → PDF, Excel, almacenamiento
    └── db/             → Patient · Evaluation · ViewAnalysis
    ▼
@@ -49,6 +52,9 @@ Decisiones clave:
 - **El núcleo `lam` no conoce la web.** Recibe un `ndarray` y un `AssessmentConfig` y
   devuelve un `ViewResult` (marcadores, puntos derivados, tablas, diagnóstico, imagen
   enderezada). Se puede probar con imágenes sintéticas y reutilizar en otra interfaz.
+- **El profesional valida y ajusta los puntos.** La interfaz muestra cada punto con su
+  nombre sobre la foto; al arrastrarlo, `POST /api/analysis/{vista}/evaluate` recalcula
+  las tablas sin volver a procesar la imagen.
 - **Los errores de conteo de marcadores son datos, no ventanas.** `MarkerCountError`
   llega a la UI con HTTP 422, los puntos detectados y una vista previa, para que el
   evaluador vea qué falló y cargue otra foto (antes: ventana de matplotlib + `input()`).
@@ -64,7 +70,7 @@ backend/
   app/
     lam/                 núcleo de análisis (portado de main.py e *_LAM.py)
       image_processing.py, geometry.py, types.py, overlay.py
-      views/anterior.py, posterior.py, lateral.py, base.py
+      views/anterior.py, posterior.py, lateral.py (derecha e izquierda), base.py
     api/routes/          analysis, patients, evaluations, config
     schemas/             modelos Pydantic de entrada/salida
     db/                  SQLAlchemy (modelos y sesión)
@@ -73,8 +79,9 @@ backend/
   tests/                 pruebas con imágenes sintéticas
 frontend/
   src/pages/             NuevaEvaluacion, Pacientes, Configuracion
+  src/components/        LandmarkEditor (puntos arrastrables), ResultTables
   src/lib/               cliente de la API, tipos, configuración
-docs/                    este documento y la guía de migración
+docs/                    stack, guía de migración y estado del arte
 ```
 
 Los scripts de consola (`main.py`, `*_LAM.py`, `patient.py`) se mantienen en la raíz

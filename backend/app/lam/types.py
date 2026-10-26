@@ -11,6 +11,7 @@ class View(str, Enum):
     ANTERIOR = "anterior"
     POSTERIOR = "posterior"
     LATERAL_DERECHA = "lateral_derecha"
+    LATERAL_IZQUIERDA = "lateral_izquierda"
 
 
 @dataclass(frozen=True)
@@ -20,7 +21,7 @@ class AssessmentConfig:
     tolerance_angle: float = 0.0  # grados, rango 0-5
     tolerance_distance: float = 0.0  # cm, rango 0-3
     grid_size: float = 5.0  # cm, rango 1-10
-    filter_threshold: float = 0.32  # rango 0.20-0.80
+    filter_threshold: float = 0.32  # rango 0.20-0.80 (solo detector de marcadores verdes)
 
 
 @dataclass
@@ -39,17 +40,27 @@ class ResultTable:
 
 
 @dataclass
+class Evaluation:
+    """Resultado de evaluar un conjunto de puntos anatómicos (sin imagen)."""
+
+    derived_points: dict[str, np.ndarray]  # centros calculados, (y, x)
+    grid_origin: np.ndarray  # (y, x) del cruce de la cuadrícula
+    diagnostic: dict[str, str | float | None]
+    tables: list[ResultTable]
+
+
+@dataclass
 class ViewResult:
     view: View
     markers: dict[str, tuple[float, float]]  # id anatómico (F1, P3, L7...) -> (x, y) en px
     derived_points: dict[str, tuple[float, float]]  # centros calculados -> (x, y)
-    references: tuple[tuple[float, float], tuple[float, float]]  # R1, R2 -> (x, y)
+    references: tuple[tuple[float, float], tuple[float, float]] | None  # R1, R2 -> (x, y)
     scale_ratio: float  # cm por píxel
     grid_origin: tuple[float, float]  # (x, y) del cruce de la cuadrícula
     grid_step_px: float
     diagnostic: dict[str, str | float | None]
     tables: list[ResultTable]
-    image: np.ndarray = field(repr=False)  # imagen enderezada y recortada (uint8 RGB)
+    image: np.ndarray | None = field(default=None, repr=False)  # imagen enderezada (uint8 RGB)
 
 
 class MarkerCountError(ValueError):

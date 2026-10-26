@@ -1,9 +1,11 @@
-"""Vista posterior del plano frontal (12 marcadores, P1-P12)."""
+"""Vista posterior del plano frontal (12 puntos, P1-P12)."""
 from __future__ import annotations
 
+import numpy as np
+
 from .. import geometry as g
-from ..types import AssessmentConfig, View, ViewResult
-from .base import center, prepare, sort_by_x, table, xy
+from ..types import AssessmentConfig, Evaluation
+from .base import center, require, sort_by_x, table
 
 EXPECTED_MARKERS = 12
 LABELS = {
@@ -14,18 +16,20 @@ LABELS = {
 }
 
 
-def analyze(image, config: AssessmentConfig) -> ViewResult:
-    prep = prepare(View.POSTERIOR, image, config, EXPECTED_MARKERS)
-    p = prep.points
-    ta, td, s = config.tolerance_angle, config.tolerance_distance, prep.scale_ratio
-
-    # En la foto posterior el lado izquierdo del paciente queda a la izquierda de la imagen.
+def assign(p: list[np.ndarray]) -> dict[str, np.ndarray]:
+    """En la foto posterior el lado izquierdo del paciente queda a la izquierda de la imagen."""
     p4, p1, p3 = sort_by_x(p[0:3])
-    p2 = p[3]
     p6, p5 = sort_by_x(p[4:6])
     p8, p7 = sort_by_x(p[6:8])
     p10, p9 = sort_by_x(p[8:10])
     p12, p11 = sort_by_x(p[10:12])
+    return dict(zip(LABELS, (p1, p[3], p3, p4, p5, p6, p7, p8, p9, p10, p11, p12)))
+
+
+def evaluate(pts: dict[str, np.ndarray], scale: float, config: AssessmentConfig) -> Evaluation:
+    require(pts, LABELS)
+    p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12 = (pts[k] for k in LABELS)
+    ta, td = config.tolerance_angle, config.tolerance_distance
 
     c_shoulders = center(p4, p3)
     c_pelvis = center(p6, p5)  # centro Y de la cuadrícula
@@ -41,7 +45,7 @@ def analyze(image, config: AssessmentConfig) -> ViewResult:
     # Etiquetas corregidas según el README (el script de consola reutilizaba las de la vista anterior).
     t2 = table("table_2", "Distancia con respecto a la vertical", ("Referencia", "Dirección", "Distancia"),
                ("Hombros", "7ma Cervical", "5ta Torácica", "Pelvis", "Rodillas", "Tobillos"),
-               [g.posterior_distance_from_vertical(c_soles, ref, s, td)
+               [g.posterior_distance_from_vertical(c_soles, ref, scale, td)
                 for ref in (c_shoulders, p1, p2, c_pelvis, c_knees, c_ankles)])
     t3 = table("table_3", "Pie varo o valgo", ("Segmento Corporal", "Dirección", "Ángulo"),
                ("Pie Izquierdo", "Pie Derecho"),
@@ -56,18 +60,10 @@ def analyze(image, config: AssessmentConfig) -> ViewResult:
         "pie_derecho": t3.rows[1].direction,
     }
 
-    named = dict(zip(LABELS, (p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12)))
-    return ViewResult(
-        view=View.POSTERIOR,
-        markers={k: xy(v) for k, v in named.items()},
-        derived_points={"centro_hombros": xy(c_shoulders), "centro_pelvis": xy(c_pelvis),
-                        "centro_rodillas": xy(c_knees), "centro_tobillos": xy(c_ankles),
-                        "centro_calcaneos": xy(c_soles)},
-        references=(xy(prep.reference_1), xy(prep.reference_2)),
-        scale_ratio=s,
-        grid_origin=(float(c_soles[1]), float(c_pelvis[0])),
-        grid_step_px=prep.grid_step_px,
+    return Evaluation(
+        derived_points={"centro_hombros": c_shoulders, "centro_pelvis": c_pelvis, "centro_rodillas": c_knees,
+                        "centro_tobillos": c_ankles, "centro_calcaneos": c_soles},
+        grid_origin=np.array([c_pelvis[0], c_soles[1]]),
         diagnostic=diagnostic,
         tables=[t1, t2, t3],
-        image=prep.image,
     )

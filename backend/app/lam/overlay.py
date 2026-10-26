@@ -15,11 +15,14 @@ import matplotlib.pyplot as plt  # noqa: E402
 from .image_processing import img_grid  # noqa: E402
 from .types import ViewResult  # noqa: E402
 
-TITLES = {"anterior": "VISTA ANTERIOR", "posterior": "VISTA POSTERIOR", "lateral_derecha": "VISTA LATERAL DERECHA"}
+TITLES = {"anterior": "VISTA ANTERIOR", "posterior": "VISTA POSTERIOR", "lateral_derecha": "VISTA LATERAL DERECHA",
+          "lateral_izquierda": "VISTA LATERAL IZQUIERDA"}
 
 
 def render_overlay(result: ViewResult, fmt: str = "jpg", dpi: int = 200) -> bytes:
     img = result.image
+    if img is None:
+        raise ValueError("El resultado no incluye la imagen")
     h, w = img.shape[:2]
     gx, gy = result.grid_origin
     xs, ys = img_grid(gx, gy, w, h, result.grid_step_px)

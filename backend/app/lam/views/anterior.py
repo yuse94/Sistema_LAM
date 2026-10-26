@@ -1,9 +1,11 @@
-"""Vista anterior del plano frontal (14 marcadores, F1-F14)."""
+"""Vista anterior del plano frontal (14 puntos, F1-F14)."""
 from __future__ import annotations
 
+import numpy as np
+
 from .. import geometry as g
-from ..types import AssessmentConfig, View, ViewResult
-from .base import center, prepare, sort_by_x, table, xy
+from ..types import AssessmentConfig, Evaluation
+from .base import center, require, sort_by_x, table
 
 EXPECTED_MARKERS = 14
 LABELS = {
@@ -15,18 +17,23 @@ LABELS = {
 }
 
 
-def analyze(image, config: AssessmentConfig) -> ViewResult:
-    prep = prepare(View.ANTERIOR, image, config, EXPECTED_MARKERS)
-    p = prep.points
-    ta, td, s = config.tolerance_angle, config.tolerance_distance, prep.scale_ratio
+def assign(p: list[np.ndarray]) -> dict[str, np.ndarray]:
+    """Asigna los marcadores verdes (orden de arriba hacia abajo) a cada punto anatómico.
 
-    # En la foto anterior el lado derecho del paciente queda a la izquierda de la imagen.
-    f1, f2 = p[0], p[1]
+    En la foto anterior el lado derecho del paciente queda a la izquierda de la imagen.
+    """
     f3, f5, f4 = sort_by_x(p[2:5])
     f7, f6, f8 = sort_by_x(p[5:8])
     f9, f10 = sort_by_x(p[8:10])
     f11, f12 = sort_by_x(p[10:12])
     f13, f14 = sort_by_x(p[12:14])
+    return dict(zip(LABELS, (p[0], p[1], f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14)))
+
+
+def evaluate(pts: dict[str, np.ndarray], scale: float, config: AssessmentConfig) -> Evaluation:
+    require(pts, LABELS)
+    f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14 = (pts[k] for k in LABELS)
+    ta, td = config.tolerance_angle, config.tolerance_distance
 
     c_shoulders = center(f3, f4)
     c_pelvis = center(f7, f8)  # centro Y de la cuadrícula
@@ -41,7 +48,7 @@ def analyze(image, config: AssessmentConfig) -> ViewResult:
                 g.anterior_angle_from_horizontal(f9, f10, ta)])
     t2 = table("table_2", "Distancia con respecto a la vertical", ("Referencia", "Dirección", "Distancia"),
                ("Frente", "Hombros", "Ombligo", "Pelvis", "Rodillas", "Pies"),
-               [g.anterior_distance_from_vertical(c_ankles, ref, s, td)
+               [g.anterior_distance_from_vertical(c_ankles, ref, scale, td)
                 for ref in (f1, c_shoulders, f6, c_pelvis, c_knees, c_feet)])
     t3 = table("table_3", "Grados de rotación de los pies", ("Segmento Corporal", "Dirección", "Ángulo"),
                ("Pie Izquierdo", "Pie Derecho"),
@@ -56,26 +63,18 @@ def analyze(image, config: AssessmentConfig) -> ViewResult:
         "linea_escapular_descendida": t1.rows[0].direction,
         "linea_pelvica_descendida": t1.rows[1].direction,
         "cabeza_inclinada": "N/A" if head_tilt == "Alin." else head_tilt,
-        "cabeza_inclinada_angulo": head_angle,
+        "cabeza_inclinada_angulo": float(head_angle),
         "cabeza_rotada": "N/A" if head_rot == "Alin." else head_rot,
         "rodilla_derecha": right_knee_dir,
-        "rodilla_derecha_angulo": right_knee_angle,
+        "rodilla_derecha_angulo": float(right_knee_angle),
         "rodilla_izquierda": left_knee_dir,
-        "rodilla_izquierda_angulo": left_knee_angle,
+        "rodilla_izquierda_angulo": float(left_knee_angle),
     }
 
-    named = dict(zip(LABELS, (f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14)))
-    return ViewResult(
-        view=View.ANTERIOR,
-        markers={k: xy(v) for k, v in named.items()},
-        derived_points={"centro_hombros": xy(c_shoulders), "centro_pelvis": xy(c_pelvis),
-                        "centro_rodillas": xy(c_knees), "centro_tobillos": xy(c_ankles),
-                        "centro_pies": xy(c_feet)},
-        references=(xy(prep.reference_1), xy(prep.reference_2)),
-        scale_ratio=s,
-        grid_origin=(float(c_ankles[1]), float(c_pelvis[0])),
-        grid_step_px=prep.grid_step_px,
+    return Evaluation(
+        derived_points={"centro_hombros": c_shoulders, "centro_pelvis": c_pelvis, "centro_rodillas": c_knees,
+                        "centro_tobillos": c_ankles, "centro_pies": c_feet},
+        grid_origin=np.array([c_pelvis[0], c_ankles[1]]),
         diagnostic=diagnostic,
         tables=[t1, t2, t3],
-        image=prep.image,
     )

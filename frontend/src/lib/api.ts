@@ -1,9 +1,17 @@
-import type { AssessmentConfig, MarkerCountError, Patient, View, ViewResult } from "./types";
+import type { AssessmentConfig, MarkerCountError, Patient, Point, View, ViewInfo, ViewResult } from "./types";
 
 export class ApiError<T = unknown> extends Error {
   constructor(public status: number, public body: T) {
-    super(typeof body === "object" && body && "message" in body ? String(body.message) : `Error ${status}`);
+    super(apiMessage(status, body));
   }
+}
+
+function apiMessage(status: number, body: unknown): string {
+  if (body && typeof body === "object") {
+    if ("message" in body) return String(body.message);
+    if ("detail" in body && typeof body.detail === "string") return body.detail;
+  }
+  return `Error ${status}`;
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
@@ -13,8 +21,16 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
+const json = (data: unknown): RequestInit => ({
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(data),
+});
+
 export const api = {
   defaults: () => request<AssessmentConfig>("/api/config/defaults"),
+
+  views: () => request<ViewInfo[]>("/api/analysis/views"),
 
   analyze: (view: View, file: File, config: AssessmentConfig) => {
     const form = new FormData();
@@ -23,14 +39,13 @@ export const api = {
     return request<ViewResult>(`/api/analysis/${view}?${params}`, { method: "POST", body: form });
   },
 
+  /** Recalcula una vista con puntos ajustados por el evaluador. */
+  evaluate: (view: View, landmarks: Record<string, Point>, scale_ratio: number, config: AssessmentConfig) =>
+    request<ViewResult>(`/api/analysis/${view}/evaluate`, json({ landmarks, scale_ratio, config })),
+
   patients: (q = "") => request<Patient[]>(`/api/patients?q=${encodeURIComponent(q)}`),
 
-  createPatient: (data: Omit<Patient, "id" | "created_at">) =>
-    request<Patient>("/api/patients", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    }),
+  createPatient: (data: Omit<Patient, "id" | "created_at">) => request<Patient>("/api/patients", json(data)),
 };
 
 export function isMarkerError(e: unknown): e is ApiError<MarkerCountError> {

@@ -66,11 +66,10 @@ def markers(binary_image: np.ndarray):
     i = int(np.argmax(centers_x))
     reference_2 = np.array([centers_y.pop(i), centers_x.pop(i)])
 
-    # FIXME(HALLAZGO-1): se conserva la fórmula original para no alterar los
-    # resultados clínicos. La distancia entre referencias debería ser
-    # np.linalg.norm(reference_2 - reference_1); la fórmula actual usa solo las
-    # coordenadas x de cada referencia (≈10 % de error). Ver docs/MIGRACION.md.
-    scale_ratio = 100.0 / np.sqrt(reference_1[1] ** 2 + reference_2[1] ** 2)
+    # HALLAZGO-1 (corregido): la versión de consola usaba
+    # 100 / sqrt(x_R1² + x_R2²), que subestimaba las distancias (~7 %).
+    # R1 y R2 están separados 100 cm, así que la escala es 100 / |R2 - R1|.
+    scale_ratio = 100.0 / float(np.linalg.norm(reference_2 - reference_1))
 
     return reference_1, reference_2, np.array(centers_y), np.array(centers_x), scale_ratio
 

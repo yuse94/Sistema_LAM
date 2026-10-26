@@ -26,7 +26,23 @@ def test_analysis_endpoint_ok():
         assert r.status_code == 200, r.text
         body = r.json()
         assert len(body["tables"]) == 3
-        assert body["overlay_image"].startswith("data:image/jpeg;base64,")
+        assert body["image"].startswith("data:image/jpeg;base64,")
+
+        # El evaluador baja el hombro izquierdo (F4) y recalcula sin volver a subir la foto
+        landmarks = body["markers"]
+        landmarks["F4"]["y"] += 30
+        r2 = c.post("/api/analysis/anterior/evaluate",
+                    json={"landmarks": landmarks, "scale_ratio": body["scale_ratio"],
+                          "config": {"tolerance_angle": 1, "tolerance_distance": 1}})
+        assert r2.status_code == 200, r2.text
+        assert r2.json()["tables"][0]["rows"][0]["direction"] == "Izq."
+
+
+def test_views_catalog_includes_left_lateral():
+    with TestClient(app) as c:
+        views = {v["view"]: v for v in c.get("/api/analysis/views").json()}
+        assert set(views) == {"anterior", "posterior", "lateral_derecha", "lateral_izquierda"}
+        assert views["anterior"]["labels"]["F1"] == "Entrecejo"
 
 
 def test_analysis_endpoint_marker_error():

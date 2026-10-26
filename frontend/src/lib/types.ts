@@ -1,10 +1,11 @@
 // Espejo de backend/app/schemas (mantener sincronizado o generar con openapi-typescript).
-export type View = "anterior" | "posterior" | "lateral_derecha";
+export type View = "anterior" | "posterior" | "lateral_derecha" | "lateral_izquierda";
 
 export const VIEW_LABELS: Record<View, string> = {
   anterior: "Vista anterior",
   posterior: "Vista posterior",
   lateral_derecha: "Vista lateral derecha",
+  lateral_izquierda: "Vista lateral izquierda",
 };
 
 export interface AssessmentConfig {
@@ -25,12 +26,22 @@ export interface ResultTable {
 
 export interface ViewResult {
   view: View;
-  image_width: number;
-  image_height: number;
+  image_width: number | null;
+  image_height: number | null;
   markers: Record<string, Point>;
+  derived_points: Record<string, Point>;
+  scale_ratio: number;
+  grid_origin: Point;
+  grid_step_px: number;
   diagnostic: Record<string, string | number | null>;
   tables: ResultTable[];
-  overlay_image: string | null;
+  image: string | null;
+}
+
+export interface ViewInfo {
+  view: View;
+  labels: Record<string, string>;
+  expected_markers: number;
 }
 
 export interface MarkerCountError {

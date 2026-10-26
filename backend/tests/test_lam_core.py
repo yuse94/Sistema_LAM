@@ -44,6 +44,24 @@ def test_tilted_shoulders_detected():
     assert r.tables[0].rows[0].direction == "Izq."
 
 
+def test_scale_uses_distance_between_references():
+    # R1 y R2 están a 880 px en la imagen sintética = 100 cm
+    r = analyze(View.ANTERIOR, make_image(ANTERIOR), CFG)
+    assert r.scale_ratio == pytest.approx(100 / 880, rel=1e-3)
+
+
+def test_posterior_level_shoulders_are_aligned():
+    r = analyze(View.POSTERIOR, make_image(POSTERIOR), CFG)
+    assert [row.direction for row in r.tables[0].rows] == ["Alin.", "Alin.", "Alin."]
+
+
+def test_posterior_lowered_side():
+    left, right = np.array([100.0, 0.0]), np.array([110.0, 100.0])  # derecho más bajo (y mayor)
+    assert g.posterior_angle_from_horizontal(left, right, 1.0)[0] == "Der."
+    left, right = np.array([110.0, 0.0]), np.array([100.0, 100.0])  # izquierdo más bajo
+    assert g.posterior_angle_from_horizontal(left, right, 1.0)[0] == "Izq."
+
+
 def test_geometry_matches_legacy_sign_convention():
     right, left = np.array([100.0, 0.0]), np.array([90.0, 100.0])
     direction, value = g.anterior_angle_from_horizontal(right, left, 0.0)
