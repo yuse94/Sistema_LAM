@@ -17,3 +17,14 @@ build
 dist
 *.spec
 *.json
+# --- App web (rama app_web) ---
+!package.json
+!package-lock.json
+!tsconfig*.json
+node_modules/
+frontend/dist/
+.venv/
+.env
+backend/data/
+.pytest_cache/
+.ruff_cache/

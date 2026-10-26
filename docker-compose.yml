@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: lam
+      POSTGRES_PASSWORD: lam
+      POSTGRES_DB: lam
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  api:
+    build: ./backend
+    environment:
+      LAM_DATABASE_URL: postgresql+psycopg://lam:lam@db:5432/lam
+      LAM_STORAGE_DIR: /data/storage
+    volumes:
+      - storage:/data/storage
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
+  storage:

@@ -1,0 +1,32 @@
+[project]
+name = "sistema-lam-api"
+version = "0.3.0"
+description = "API web del Sistema LAM (Lectura Automática de Marcadores) para evaluaciones posturales"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.115",
+    "pydantic-settings>=2.6",
+    "sqlalchemy>=2.0",
+    "alembic>=1.14",
+    "numpy>=2.0",
+    "scikit-image>=0.24",
+    "matplotlib>=3.9",
+    "pillow>=11.0",
+    "reportlab>=4.2",
+    "openpyxl>=3.1",
+    "pandas>=2.2",
+]
+
+[project.optional-dependencies]
+postgres = ["psycopg[binary]>=3.2"]
+
+[dependency-groups]
+dev = ["pytest>=8.3", "httpx>=0.28", "ruff>=0.8"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
