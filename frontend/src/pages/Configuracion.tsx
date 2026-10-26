@@ -1,13 +1,23 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
 import { DEFAULT_CONFIG, loadConfig, saveConfig } from "@/lib/config";
 import type { AssessmentConfig } from "@/lib/types";
 
 // Mismos rangos que el menú "3. Cambiar configuración" de la consola.
-const FIELDS: { key: keyof AssessmentConfig; label: string; min: number; max: number; step: number; unit: string }[] = [
-  { key: "tolerance_angle", label: "Ángulo de tolerancia", min: 0, max: 5, step: 0.1, unit: "°" },
-  { key: "tolerance_distance", label: "Distancia de tolerancia", min: 0, max: 3, step: 0.1, unit: "cm" },
-  { key: "grid_size", label: "Tamaño de cuadrícula", min: 1, max: 10, step: 0.5, unit: "cm" },
-  { key: "filter_threshold", label: "Valor umbral del filtro", min: 0.2, max: 0.8, step: 0.01, unit: "" },
+const FIELDS: {
+  key: keyof AssessmentConfig; label: string; help: string; min: number; max: number; step: number; unit: string;
+}[] = [
+  { key: "tolerance_angle", label: "Ángulo de tolerancia", min: 0, max: 5, step: 0.1, unit: "°",
+    help: "Desviaciones angulares menores a este valor se reportan como alineadas." },
+  { key: "tolerance_distance", label: "Distancia de tolerancia", min: 0, max: 3, step: 0.1, unit: " cm",
+    help: "Desplazamientos menores a este valor respecto a la vertical se reportan como alineados." },
+  { key: "grid_size", label: "Tamaño de la cuadrícula", min: 1, max: 10, step: 0.5, unit: " cm",
+    help: "Separación entre las líneas de la cuadrícula sobre la fotografía." },
+  { key: "filter_threshold", label: "Umbral del filtro verde", min: 0.2, max: 0.8, step: 0.01, unit: "",
+    help: "Solo para el modo con marcadores verdes. Súbalo si aparecen puntos de más; bájelo si faltan." },
 ];
 
 export default function Configuracion() {
@@ -15,20 +25,26 @@ export default function Configuracion() {
   const update = (next: AssessmentConfig) => { setConfig(next); saveConfig(next); };
 
   return (
-    <div className="max-w-lg space-y-6">
-      <h1 className="text-2xl font-semibold">Configuración del análisis</h1>
-      {FIELDS.map((f) => (
-        <label key={f.key} className="block">
-          <span className="flex justify-between text-sm">
-            {f.label} <span className="tabular-nums">{config[f.key]} {f.unit}</span>
-          </span>
-          <input type="range" min={f.min} max={f.max} step={f.step} value={config[f.key]} className="w-full"
-            onChange={(e) => update({ ...config, [f.key]: Number(e.target.value) })} />
-        </label>
-      ))}
-      <button onClick={() => update(DEFAULT_CONFIG)} className="rounded border px-3 py-1.5 text-sm">
-        Restablecer configuración
-      </button>
+    <div className="max-w-xl space-y-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Configuración del análisis</h1>
+        <p className="text-muted-foreground">Los cambios se guardan en este navegador y se aplican a la próxima fotografía o recálculo.</p>
+      </div>
+      <div className="space-y-6 rounded-lg border bg-card p-5">
+        {FIELDS.map((f, i) => (
+          <div key={f.key} className="space-y-3">
+            {i > 0 && <Separator className="mb-6" />}
+            <div className="flex items-baseline justify-between gap-4">
+              <Label htmlFor={f.key}>{f.label}</Label>
+              <span className="text-sm font-medium tabular-nums">{config[f.key]}{f.unit}</span>
+            </div>
+            <Slider id={f.key} min={f.min} max={f.max} step={f.step} value={[config[f.key]]}
+              onValueChange={([v]) => update({ ...config, [f.key]: v })} aria-label={f.label} />
+            <p className="text-sm text-muted-foreground">{f.help}</p>
+          </div>
+        ))}
+      </div>
+      <Button variant="outline" onClick={() => update(DEFAULT_CONFIG)}>Restablecer valores</Button>
     </div>
   );
 }

@@ -1,96 +1,372 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import LandmarkEditor from "@/components/LandmarkEditor";
-import ResultTables from "@/components/ResultTables";
-import { api, isMarkerError } from "@/lib/api";
+import { AlertCircle, RefreshCw, Ruler, Upload } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import LandmarkEditor, { type EditorState } from "@/components/LandmarkEditor";
+import PointLegend from "@/components/PointLegend";
+import ResultTables, { Direction } from "@/components/ResultTables";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Toggle } from "@/components/ui/toggle";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { api, isMarkerError, type EvaluateRequest } from "@/lib/api";
 import { loadConfig } from "@/lib/config";
-import { VIEW_LABELS, type Point, type View, type ViewResult } from "@/lib/types";
+import { detectPose } from "@/lib/pose";
+import { cn } from "@/lib/utils";
+import { VIEW_LABELS, type DetectionMode, type View, type ViewResult } from "@/lib/types";
 
 const VIEWS = Object.keys(VIEW_LABELS) as View[];
 
+const SHORT_LABELS: Record<View, string> = {
+  anterior: "Anterior",
+  posterior: "Posterior",
+  lateral_derecha: "Lateral derecha",
+  lateral_izquierda: "Lateral izquierda",
+};
+
+const PHOTO_HINTS: Record<View, string> = {
+  anterior: "Paciente de frente, brazos relajados y pies separados a la anchura de la cadera.",
+  posterior: "Paciente de espaldas, con el cabello recogido.",
+  lateral_derecha: "Lado derecho hacia la cámara: el paciente mira hacia la derecha de la foto.",
+  lateral_izquierda: "Lado izquierdo hacia la cámara: el paciente mira hacia la izquierda de la foto.",
+};
+
+const DIAGNOSTIC_LABELS: Record<string, string> = {
+  linea_escapular_descendida: "Línea escapular descendida",
+  linea_pelvica_descendida: "Línea pélvica descendida",
+  cabeza_inclinada: "Cabeza inclinada",
+  cabeza_inclinada_angulo: "Inclinación de la cabeza",
+  cabeza_rotada: "Cabeza rotada",
+  rodilla_derecha: "Rodilla derecha",
+  rodilla_derecha_angulo: "Ángulo rodilla derecha",
+  rodilla_izquierda: "Rodilla izquierda",
+  rodilla_izquierda_angulo: "Ángulo rodilla izquierda",
+  rotacion_dorsal: "Rotación dorsal",
+  rotacion_pelvica: "Rotación pélvica",
+  pie_izquierdo: "Pie izquierdo",
+  pie_derecho: "Pie derecho",
+  postura: "Postura",
+  proyeccion_postural: "Proyección postural",
+};
+
+const validHeight = (h: number) => h >= 50 && h <= 250;
+
+type PanelStatus = { kind: "empty" } | { kind: "review"; pending: number } | { kind: "done" };
+
 /**
- * Flujo que reemplaza el menú "1. Hacer análisis postural" de la consola:
- * cargar una foto por vista → revisar y ajustar los puntos → tablas recalculadas.
- * TODO fase 2: datos del paciente, guardar la evaluación y descargar el PDF.
+ * Evaluación postural: estatura del paciente → una foto por vista → revisar y ajustar
+ * los puntos → tablas recalculadas. Reemplaza el menú "1. Hacer análisis postural".
+ * TODO: datos del paciente, guardar la evaluación y descargar el PDF.
  */
 export default function NuevaEvaluacion() {
   const { data: views = [] } = useQuery({ queryKey: ["views"], queryFn: api.views, staleTime: Infinity });
   const labels = Object.fromEntries(views.map((v) => [v.view, v.labels])) as Partial<Record<View, Record<string, string>>>;
+  const [mode, setMode] = useState<DetectionMode>("pose");
+  const [heightCm, setHeightCm] = useState<number>(NaN);
+  const [status, setStatus] = useState<Partial<Record<View, PanelStatus>>>({});
+  const reportStatus = useCallback((view: View, s: PanelStatus) => setStatus((prev) => ({ ...prev, [view]: s })), []);
+
+  const heightInvalid = mode === "pose" && !Number.isNaN(heightCm) && !validHeight(heightCm);
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold">Nueva evaluación postural</h1>
-        <p className="text-sm text-slate-600">
-          Carga una fotografía por vista. Revisa cada punto detectado y arrástralo si no coincide con el punto anatómico;
-          las tablas se recalculan al soltarlo.
+    <div className="space-y-6">
+      <div className="max-w-3xl space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Evaluación postural</h1>
+        <p className="text-muted-foreground">
+          Cargue una fotografía por vista, revise cada punto sobre la imagen y arrástrelo si no coincide con el
+          punto anatómico. Las tablas se recalculan al soltarlo.
         </p>
       </div>
-      {VIEWS.map((view) => <ViewPanel key={view} view={view} labels={labels[view] ?? {}} />)}
+
+      <section aria-label="Datos de la sesión"
+        className="flex flex-wrap items-end gap-x-8 gap-y-4 rounded-lg border bg-card px-4 py-4 sm:px-5">
+        <div className="space-y-2">
+          <Label>Detección</Label>
+          <ToggleGroup type="single" variant="outline" value={mode}
+            onValueChange={(v) => v && setMode(v as DetectionMode)} aria-label="Modo de detección">
+            <ToggleGroupItem value="pose">Sin marcadores</ToggleGroupItem>
+            <ToggleGroupItem value="markers">Marcadores verdes</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+        {mode === "pose" && (
+          <div className="space-y-2">
+            <Label htmlFor="estatura">Estatura del paciente</Label>
+            <div className="flex items-center gap-2">
+              <Input id="estatura" type="number" inputMode="decimal" min={50} max={250} step={0.1}
+                value={Number.isNaN(heightCm) ? "" : heightCm} onChange={(e) => setHeightCm(e.target.valueAsNumber)}
+                aria-invalid={heightInvalid} aria-describedby="estatura-ayuda" className="w-28 tabular-nums"
+                placeholder="168" />
+              <span className="text-sm text-muted-foreground">cm</span>
+            </div>
+          </div>
+        )}
+        <p id="estatura-ayuda" className={cn("max-w-md text-sm", heightInvalid ? "text-destructive" : "text-muted-foreground")}>
+          {mode === "markers"
+            ? "Requiere los marcadores verdes en el cuerpo y las referencias R1 y R2 separadas 100 cm."
+            : heightInvalid
+              ? "La estatura debe estar entre 50 y 250 cm."
+              : "La estatura define la escala en centímetros junto con el vértice y el suelo marcados en la foto."}
+        </p>
+      </section>
+
+      <Tabs defaultValue="anterior">
+        <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b pb-1 group-data-[orientation=horizontal]/tabs:h-11">
+          {VIEWS.map((view) => (
+            <TabsTrigger key={view} value={view} className="flex-none gap-2 px-3 py-2">
+              {SHORT_LABELS[view]}
+              <StatusMark status={status[view]} />
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {VIEWS.map((view) => (
+          // forceMount: cada vista conserva su foto y sus puntos al cambiar de pestaña
+          <TabsContent key={`${view}-${mode}`} value={view} forceMount className="pt-4 data-[state=inactive]:hidden">
+            <ViewPanel view={view} mode={mode} heightCm={heightCm} labels={labels[view] ?? {}}
+              onStatus={reportStatus} />
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 }
 
-function ViewPanel({ view, labels }: { view: View; labels: Record<string, string> }) {
-  const [result, setResult] = useState<ViewResult | null>(null);
+function StatusMark({ status }: { status?: PanelStatus }) {
+  if (!status || status.kind === "empty")
+    return (
+      <>
+        <span className="size-2 rounded-full border border-muted-foreground/50" aria-hidden="true" />
+        <span className="sr-only">(sin fotografía)</span>
+      </>
+    );
+  if (status.kind === "review")
+    return (
+      <span className="rounded-full bg-point-estimated/20 px-1.5 text-xs font-medium text-amber-800 tabular-nums">
+        {status.pending}
+        <span className="sr-only"> puntos por revisar</span>
+      </span>
+    );
+  return (
+    <>
+      <span className="size-2 rounded-full bg-primary" aria-hidden="true" />
+      <span className="sr-only">(revisada)</span>
+    </>
+  );
+}
+
+interface PanelData {
+  image: string;
+  width: number;
+  height: number;
+  result: ViewResult;
+  editor: EditorState;
+  estimated: string[];
+}
+
+async function loadImage(file: File) {
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  return { url, img };
+}
+
+function ViewPanel({ view, mode, heightCm, labels, onStatus }: {
+  view: View;
+  mode: DetectionMode;
+  heightCm: number;
+  labels: Record<string, string>;
+  onStatus: (view: View, status: PanelStatus) => void;
+}) {
+  const [data, setData] = useState<PanelData | null>(null);
   const [edited, setEdited] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    onStatus(view, !data ? { kind: "empty" } : data.estimated.length ? { kind: "review", pending: data.estimated.length } : { kind: "done" });
+  }, [view, data, onStatus]);
+
+  // Liberar la URL local de la foto al cambiarla o al salir.
+  useEffect(() => () => {
+    if (data?.image.startsWith("blob:")) URL.revokeObjectURL(data.image);
+  }, [data?.image]);
 
   const detect = useMutation({
-    mutationFn: (file: File) => api.analyze(view, file, loadConfig()),
-    onSuccess: (r) => { setResult(r); setEdited(false); },
-  });
-  const recalc = useMutation({
-    mutationFn: (markers: Record<string, Point>) => api.evaluate(view, markers, result!.scale_ratio, loadConfig()),
-    // La imagen no viaja en el recálculo: se conserva la de la detección.
-    onSuccess: (r) => { setResult((prev) => ({ ...r, image: prev?.image ?? null, image_width: prev?.image_width ?? null, image_height: prev?.image_height ?? null })); setEdited(true); },
+    mutationFn: async (file: File): Promise<PanelData> => {
+      const config = loadConfig();
+      if (mode === "markers") {
+        const result = await api.analyze(view, file, config);
+        return {
+          image: result.image ?? "", width: result.image_width ?? 0, height: result.image_height ?? 0, result,
+          editor: { markers: result.markers, calibration: null, verticalLine: null }, estimated: [],
+        };
+      }
+      const { url, img } = await loadImage(file);
+      try {
+        const detection = await detectPose(img);
+        const result = await api.pose(view, { pose: detection.pose, height_cm: heightCm, calibration: detection.calibration, config });
+        return {
+          image: url, width: img.naturalWidth, height: img.naturalHeight, result,
+          editor: { markers: result.markers, calibration: result.calibration, verticalLine: null },
+          estimated: result.estimated_points,
+        };
+      } catch (e) {
+        URL.revokeObjectURL(url);
+        throw e;
+      }
+    },
+    onSuccess: (d) => { setData(d); setEdited(false); },
   });
 
+  const recalc = useMutation({
+    mutationFn: (editor: EditorState) => {
+      const req: EvaluateRequest = { landmarks: editor.markers, vertical_line: editor.verticalLine, config: loadConfig() };
+      if (mode === "pose") Object.assign(req, { height_cm: heightCm, calibration: editor.calibration });
+      else req.scale_ratio = data!.result.scale_ratio;
+      return api.evaluate(view, req).then((result) => ({ result, editor }));
+    },
+    onSuccess: ({ result, editor }) => {
+      setData((d) => (d ? { ...d, result, editor } : d));
+      setEdited(true);
+    },
+  });
+
+  const update = (editor: EditorState, movedId?: string) => {
+    if (!data) return;
+    if (movedId) setData({ ...data, editor, estimated: data.estimated.filter((id) => id !== movedId) });
+    recalc.mutate(editor);
+  };
+
+  const setVerticalLine = (on: boolean) => {
+    if (!data) return;
+    const { width: w, height: h } = data;
+    const line = on ? ([{ x: w * 0.06, y: h * 0.1 }, { x: w * 0.06, y: h * 0.9 }] as EditorState["verticalLine"]) : null;
+    update({ ...data.editor, verticalLine: line });
+  };
+
+  const needsHeight = mode === "pose" && !validHeight(heightCm);
   const err = detect.error ?? recalc.error;
+  const r = data?.result;
+  const pickFile = () => fileRef.current?.click();
 
   return (
-    <section className="rounded-lg border bg-white p-4">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-lg font-medium">{VIEW_LABELS[view]}</h2>
-        <label className="cursor-pointer rounded bg-emerald-600 px-3 py-1.5 text-sm text-white">
-          {detect.isPending ? "Procesando…" : result ? "Cambiar fotografía" : "Cargar fotografía"}
-          <input type="file" accept="image/*" className="hidden" disabled={detect.isPending}
-            onChange={(e) => e.target.files?.[0] && detect.mutate(e.target.files[0])} />
-        </label>
-      </div>
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <input ref={fileRef} type="file" accept="image/*" className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = ""; // permite volver a elegir la misma foto
+          if (file) detect.mutate(file);
+        }} />
 
-      {err && (
-        <div className="mt-3 rounded bg-amber-50 p-3 text-sm text-amber-900">
-          {err.message}
-          {isMarkerError(err) && err.body.preview_image && (
-            <img src={err.body.preview_image} alt="Marcadores detectados" className="mt-2 max-h-96" />
+      <div className="space-y-3">
+        <div className="overflow-hidden rounded-xl bg-stage">
+          {data ? (
+            <LandmarkEditor image={data.image} width={data.width} height={data.height} labels={labels}
+              state={data.editor} estimated={data.estimated} derived={r!.derived_points}
+              gridOrigin={r!.grid_origin} gridStep={r!.grid_step_px} rollDeg={r!.roll_deg}
+              onChange={(editor, movedId) => update(editor, movedId)} />
+          ) : (
+            <div className="flex aspect-[3/4] max-h-[70vh] w-full flex-col items-center justify-center gap-4 px-6 text-center sm:aspect-[4/3]">
+              <svg viewBox="0 0 20 32" className="h-12 w-auto text-white/25" aria-hidden="true">
+                <line x1="10" y1="1" x2="10" y2="19" stroke="currentColor" strokeWidth="1.2" />
+                <path d="M10 18 C6 22 5.5 25 7 27.5 C8 29.5 12 29.5 13 27.5 C14.5 25 14 22 10 18 Z" fill="currentColor" />
+              </svg>
+              <div className="max-w-xs space-y-1">
+                <p className="font-medium text-white">{VIEW_LABELS[view]}</p>
+                <p className="text-sm text-white/65">{PHOTO_HINTS[view]}</p>
+              </div>
+              <Button onClick={pickFile} disabled={detect.isPending || needsHeight}>
+                <Upload /> {detect.isPending ? "Analizando…" : "Cargar fotografía"}
+              </Button>
+              {needsHeight && <p className="text-sm text-white/65">Ingrese primero la estatura del paciente.</p>}
+            </div>
           )}
         </div>
-      )}
 
-      {result?.image && result.image_width && result.image_height && (
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div>
-            <LandmarkEditor image={result.image} width={result.image_width} height={result.image_height}
-              markers={result.markers} labels={labels} derived={result.derived_points}
-              gridOrigin={result.grid_origin} gridStep={result.grid_step_px}
-              onChange={(m) => recalc.mutate(m)} />
-            <p className="mt-1 text-xs text-slate-500">
-              {recalc.isPending ? "Recalculando…" : edited ? "Puntos ajustados manualmente." : "Puntos detectados automáticamente."}
-            </p>
+        {data && (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <PointLegend mode={mode} />
+            <div className="flex flex-wrap gap-2">
+              {mode === "pose" && (
+                <Toggle variant="outline" size="sm" pressed={!!data.editor.verticalLine} onPressedChange={setVerticalLine}
+                  aria-label="Línea vertical de referencia">
+                  <Ruler /> Línea vertical
+                </Toggle>
+              )}
+              <Button variant="outline" size="sm" onClick={() => update(data.editor)} disabled={recalc.isPending || needsHeight}>
+                <RefreshCw className={cn(recalc.isPending && "animate-spin")} /> Recalcular
+              </Button>
+              <Button variant="outline" size="sm" onClick={pickFile} disabled={detect.isPending || needsHeight}>
+                <Upload /> {detect.isPending ? "Analizando…" : "Cambiar fotografía"}
+              </Button>
+            </div>
           </div>
-          <div className="space-y-4">
-            <dl className="grid grid-cols-2 gap-x-4 text-sm">
-              {Object.entries(result.diagnostic).map(([k, v]) => (
+        )}
+
+        {err && (
+          <Alert variant="destructive">
+            <AlertCircle />
+            <AlertTitle>No se pudo analizar la fotografía</AlertTitle>
+            <AlertDescription>
+              <p>{err.message}</p>
+              {isMarkerError(err) && err.body.preview_image && (
+                <img src={err.body.preview_image} alt="Marcadores detectados en la fotografía" className="mt-2 max-h-80 rounded" />
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+
+      <section aria-label="Resultados" className="space-y-5">
+        {!r ? (
+          <p className="text-sm text-muted-foreground">
+            Los resultados de la {VIEW_LABELS[view].toLowerCase()} aparecerán aquí al cargar la fotografía.
+          </p>
+        ) : (
+          <>
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold tracking-tight">Resultados</h3>
+              <div className="flex flex-wrap gap-2 text-xs">
+                {data!.estimated.length > 0 ? (
+                  <Badge variant="outline" className="border-point-estimated/60 bg-point-estimated/10 text-amber-900">
+                    Por revisar: {data!.estimated.join(", ")}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-muted-foreground">
+                    {edited ? "Puntos ajustados manualmente" : "Puntos detectados automáticamente"}
+                  </Badge>
+                )}
+                <Badge variant="outline" className="text-muted-foreground tabular-nums">
+                  Escala {r.scale_ratio.toFixed(4)} cm/px
+                </Badge>
+                {r.roll_deg !== 0 && (
+                  <Badge variant="outline" className="border-vertical-line/60 text-muted-foreground tabular-nums">
+                    Nivelada {r.roll_deg.toFixed(1)}°
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            <dl className="grid grid-cols-[auto_1fr] items-center gap-x-6 gap-y-2 text-sm">
+              {Object.entries(r.diagnostic).map(([k, v]) => (
                 <div key={k} className="contents">
-                  <dt className="text-slate-500">{k.replaceAll("_", " ")}</dt>
-                  <dd>{String(v)}</dd>
+                  <dt className="text-muted-foreground">{DIAGNOSTIC_LABELS[k] ?? k.replaceAll("_", " ")}</dt>
+                  <dd>
+                    {typeof v === "number" ? <span className="tabular-nums">{v.toFixed(2)}°</span>
+                      : v && v.length <= 9 ? <Direction value={v} /> : <span className="font-medium">{v}</span>}
+                  </dd>
                 </div>
               ))}
             </dl>
-            <ResultTables tables={result.tables} />
-          </div>
-        </div>
-      )}
-    </section>
+
+            <Separator />
+            <ResultTables tables={r.tables} />
+          </>
+        )}
+      </section>
+    </div>
   );
 }

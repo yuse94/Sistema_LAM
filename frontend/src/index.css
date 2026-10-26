@@ -1,1 +1,88 @@
 @import "tailwindcss";
+
+/*
+ * Tema del Sistema LAM. Cada color tiene un significado fijo en toda la app:
+ * - primary (verde azulado): acciones y estado "listo".
+ * - point-detected / point-estimated / point-calibration / vertical-line: tipos de
+ *   punto en el editor; la leyenda y las pestañas usan los mismos colores.
+ * - plumb (rojo): líneas de referencia de la cuadrícula, como una plomada.
+ */
+:root {
+  --radius: 0.5rem;
+
+  --background: #f4f6f5;
+  --foreground: #1c2321;
+  --card: #ffffff;
+  --card-foreground: #1c2321;
+  --popover: #ffffff;
+  --popover-foreground: #1c2321;
+  --primary: #0e7c74;
+  --primary-foreground: #ffffff;
+  --secondary: #e3e9e7;
+  --secondary-foreground: #1c2321;
+  --muted: #e9eeec;
+  --muted-foreground: #56625e;
+  --accent: #dcefec;
+  --accent-foreground: #0b5550;
+  --destructive: #b4362a;
+  --border: #d5ddda;
+  --input: #c3cecb;
+  --ring: #0e7c74;
+
+  --stage: #1c2321; /* fondo del visor de fotos */
+  --point-detected: #14b8a6;
+  --point-estimated: #f59e0b;
+  --point-calibration: #8b5cf6;
+  --vertical-line: #22c55e;
+  --plumb: #e5484d;
+}
+
+@theme inline {
+  --font-sans: "Atkinson Hyperlegible Next", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-stage: var(--stage);
+  --color-point-detected: var(--point-detected);
+  --color-point-estimated: var(--point-estimated);
+  --color-point-calibration: var(--point-calibration);
+  --color-vertical-line: var(--vertical-line);
+  --color-plumb: var(--plumb);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}

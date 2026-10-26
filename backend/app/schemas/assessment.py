@@ -1,9 +1,9 @@
 """Esquemas de entrada/salida del análisis postural."""
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
-from app.lam import AssessmentConfig, View, ViewResult
+from app.lam import AssessmentConfig, Calibration, PosePoint, View, ViewResult
 
 
 class AssessmentConfigIn(BaseModel):
@@ -21,6 +21,26 @@ class AssessmentConfigIn(BaseModel):
 class Point(BaseModel):
     x: float
     y: float
+
+    def as_tuple(self) -> tuple[float, float]:
+        return self.x, self.y
+
+
+class CalibrationIn(BaseModel):
+    """Puntos para la escala por estatura, en píxeles de la imagen."""
+
+    vertex: Point = Field(description="Parte superior de la cabeza")
+    floor: Point = Field(description="Apoyo de los talones en el suelo")
+
+    def to_domain(self) -> Calibration:
+        return Calibration(self.vertex.as_tuple(), self.floor.as_tuple())
+
+
+VerticalLine = tuple[Point, Point]
+
+
+def vertical_line_tuple(line: VerticalLine | None):
+    return (line[0].as_tuple(), line[1].as_tuple()) if line else None
 
 
 class ResultRowOut(BaseModel):
@@ -49,6 +69,10 @@ class ViewResultOut(BaseModel):
     diagnostic: dict[str, str | float | None]
     tables: list[ResultTableOut]
     image: str | None = Field(None, description="Imagen enderezada como data URL (JPEG), sin dibujos")
+    roll_deg: float = Field(0.0, description="Inclinación de la vertical real; la cuadrícula se dibuja rotada -roll_deg")
+    estimated_points: list[str] = Field(default_factory=list,
+                                        description="Puntos estimados por proporciones: revisar y ajustar")
+    calibration: CalibrationIn | None = None
 
     @classmethod
     def from_domain(cls, r: ViewResult, image: str | None = None) -> "ViewResultOut":
@@ -67,15 +91,48 @@ class ViewResultOut(BaseModel):
             tables=[ResultTableOut(key=t.key, title=t.title, columns=t.columns,
                                    rows=[ResultRowOut(**vars(row)) for row in t.rows]) for t in r.tables],
             image=image,
+            roll_deg=r.roll_deg,
         )
 
 
 class EvaluateIn(BaseModel):
-    """Puntos ajustados por el evaluador (o de otro detector) para recalcular una vista."""
+    """Puntos ajustados por el evaluador para recalcular una vista.
+
+    La escala se da directamente (scale_ratio, modo con marcadores) o con la
+    estatura del paciente y los puntos de calibración (modo sin marcadores).
+    """
 
     landmarks: dict[str, Point] = Field(description="Punto anatómico (F1, P3, L7...) -> coordenadas en píxeles")
-    scale_ratio: float = Field(gt=0, description="Centímetros por píxel")
+    scale_ratio: float | None = Field(None, gt=0, description="Centímetros por píxel")
+    height_cm: float | None = Field(None, ge=50, le=250, description="Estatura del paciente")
+    calibration: CalibrationIn | None = None
+    vertical_line: VerticalLine | None = Field(None, description="Dos puntos sobre algo vertical en la escena")
     config: AssessmentConfigIn = AssessmentConfigIn()
+
+    @model_validator(mode="after")
+    def check_scale(self):
+        if self.scale_ratio is None and (self.height_cm is None or self.calibration is None):
+            raise ValueError("Indique scale_ratio, o height_cm junto con calibration")
+        return self
+
+
+class PosePointIn(BaseModel):
+    x: float
+    y: float
+    visibility: float = 1.0
+
+
+class PoseIn(BaseModel):
+    """Resultado de MediaPipe Pose Landmarker (33 puntos) convertido a píxeles de la imagen."""
+
+    pose: list[PosePointIn] = Field(min_length=33, max_length=33)
+    height_cm: float = Field(ge=50, le=250, description="Estatura del paciente")
+    calibration: CalibrationIn | None = Field(None, description="Vértice y suelo; si falta, se estiman")
+    vertical_line: VerticalLine | None = None
+    config: AssessmentConfigIn = AssessmentConfigIn()
+
+    def pose_points(self) -> list[PosePoint]:
+        return [PosePoint(p.x, p.y, p.visibility) for p in self.pose]
 
 
 class ViewInfo(BaseModel):

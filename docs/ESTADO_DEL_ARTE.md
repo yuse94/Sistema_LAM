@@ -101,19 +101,23 @@ existen en ningún modelo genérico. Por eso un enfoque 100 % automático sin ma
    - *Con marcadores verdes:* el algoritmo actual, que es el validado; se mantiene para
      quien quiera máxima precisión y, sobre todo, para validar el modo sin marcadores.
    - *Manual:* el profesional ubica todos los puntos.
-2. **Escala sin marcadores en el cuerpo.** Mantener una referencia física en la escena (los
-   dos puntos R1/R2 a 100 cm en la pared o una tarjeta de calibración tipo ArUco) y, como
-   alternativa, calcular la escala con la estatura del paciente. Sin escala solo se pueden
-   reportar ángulos, no distancias en cm.
-3. **Cuatro vistas** (anterior, posterior, lateral derecha e izquierda), como el estándar.
-4. **Validación antes de usarlo clínicamente:** fotografiar pacientes *con* marcadores y
+2. **Escala sin marcadores en el cuerpo.** Opciones: una referencia física en la escena
+   (R1/R2 a 100 cm o una tarjeta de calibración tipo ArUco) o la estatura del paciente.
+   *Decisión del proyecto: estatura del paciente.* Sin escala solo se pueden reportar
+   ángulos, no distancias en cm.
+3. **Nivelación sin R1/R2.** Opciones: sensor del celular al tomar la foto, línea vertical
+   marcada por el evaluador sobre la escena, detección automática de una plomada, o
+   trípode con nivel. *Decisión del proyecto: línea vertical de referencia*, porque sirve
+   para cualquier foto. La plomada automática queda como mejora futura.
+4. **Cuatro vistas** (anterior, posterior, lateral derecha e izquierda), como el estándar.
+5. **Validación antes de usarlo clínicamente:** fotografiar pacientes *con* marcadores y
    comparar el modo sin marcadores contra el detector de marcadores en las mismas fotos
    (error en grados y cm, ICC, Bland-Altman). El sistema actual sirve como referencia.
-5. **Modelo propio a mediano plazo:** cada corrección que hacen los fisioterapeutas es un
+6. **Modelo propio a mediano plazo:** cada corrección que hacen los fisioterapeutas es un
    punto anatómico etiquetado por un experto. Con consentimiento de los pacientes, esas
    fotos permiten reentrenar un modelo (por ejemplo RTMPose) que detecte directamente
    EIAS, EIPS, C7 y T5. Es justamente la carencia que señala la literatura.
-6. **Producto:** reportes PDF para paciente y profesional, historial y comparación entre
+7. **Producto:** reportes PDF para paciente y profesional, historial y comparación entre
    evaluaciones, y aviso explícito de que el resultado debe ser validado por el
    profesional. Al ser datos de salud, aplicar la Ley Orgánica de Protección de Datos
    Personales del Ecuador (consentimiento, cifrado, acceso por roles).

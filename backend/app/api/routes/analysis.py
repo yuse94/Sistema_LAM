@@ -1,8 +1,12 @@
 """Análisis por vista. Reemplaza load_image() + *_assessment() del script de consola.
 
 Flujo en la interfaz:
-1. POST /analysis/{vista} con la foto -> puntos detectados, tablas e imagen enderezada.
-2. El evaluador revisa y arrastra los puntos que hagan falta.
+1. Detección:
+   - sin marcadores: MediaPipe corre en el navegador y envía sus 33 puntos a
+     POST /analysis/{vista}/pose junto con la estatura del paciente;
+   - con marcadores verdes: POST /analysis/{vista} con la foto.
+2. El evaluador revisa y arrastra los puntos (los estimados aparecen resaltados),
+   ajusta el vértice y el suelo, y marca la línea vertical de referencia.
 3. POST /analysis/{vista}/evaluate con los puntos corregidos -> tablas recalculadas.
 """
 from __future__ import annotations
@@ -17,14 +21,17 @@ from fastapi.responses import JSONResponse
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from app.core.config import get_settings
-from app.lam import SPECS, MarkerCountError, View, analyze, evaluate_landmarks
+from app.lam import SPECS, MarkerCountError, View, analyze, analyze_pose, evaluate_landmarks, height_scale
 from app.schemas.assessment import (
     AssessmentConfigIn,
+    CalibrationIn,
     EvaluateIn,
     MarkerCountErrorOut,
     Point,
+    PoseIn,
     ViewInfo,
     ViewResultOut,
+    vertical_line_tuple,
 )
 
 router = APIRouter(prefix="/analysis", tags=["análisis"])
@@ -81,12 +88,40 @@ async def analyze_view(view: View, file: UploadFile = File(...),
         raise HTTPException(422, str(err)) from err
 
 
+@router.post("/{view}/pose", response_model=ViewResultOut)
+def analyze_view_from_pose(view: View, data: PoseIn):
+    """Modo sin marcadores: puntos de MediaPipe + estatura -> puntos LAM, tablas y diagnóstico.
+
+    Los puntos sin equivalente en MediaPipe se estiman y se listan en estimated_points.
+    """
+    try:
+        analysis = analyze_pose(view, data.pose_points(), data.height_cm, data.config.to_domain(),
+                                data.calibration.to_domain() if data.calibration else None,
+                                vertical_line_tuple(data.vertical_line))
+    except ValueError as err:
+        raise HTTPException(422, str(err)) from err
+    out = ViewResultOut.from_domain(analysis.result)
+    out.estimated_points = analysis.estimated
+    cal = analysis.calibration
+    out.calibration = CalibrationIn(vertex=Point(x=cal.vertex[0], y=cal.vertex[1]),
+                                    floor=Point(x=cal.floor[0], y=cal.floor[1]))
+    return out
+
+
 @router.post("/{view}/evaluate", response_model=ViewResultOut)
 def evaluate_view(view: View, data: EvaluateIn):
     """Recalcula tablas y diagnóstico con puntos ajustados manualmente (sin volver a subir la foto)."""
-    landmarks = {k: (p.x, p.y) for k, p in data.landmarks.items()}
+    landmarks = {k: p.as_tuple() for k, p in data.landmarks.items()}
+    line = vertical_line_tuple(data.vertical_line)
     try:
-        result = evaluate_landmarks(view, landmarks, data.scale_ratio, data.config.to_domain())
+        if data.height_cm is not None and data.calibration is not None:
+            cal = data.calibration.to_domain()
+            scale = height_scale(data.height_cm, cal.vertex, cal.floor, line)
+        else:
+            scale = data.scale_ratio
+        result = evaluate_landmarks(view, landmarks, scale, data.config.to_domain(), vertical_line=line)
     except ValueError as err:
         raise HTTPException(422, str(err)) from err
-    return ViewResultOut.from_domain(result)
+    out = ViewResultOut.from_domain(result)
+    out.calibration = data.calibration
+    return out

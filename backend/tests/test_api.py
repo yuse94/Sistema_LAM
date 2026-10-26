@@ -58,3 +58,29 @@ def test_patients_crud():
         assert r.status_code == 201
         assert r.json()["name"] == "Juan Perez"
         assert any(p["name"] == "Juan Perez" for p in c.get("/api/patients").json())
+
+
+def test_markerless_pose_and_manual_adjustment():
+    from tests.synthetic_pose import frontal_pose
+
+    pose = [{"x": q.x, "y": q.y, "visibility": q.visibility} for q in frontal_pose()]
+    cal = {"vertex": {"x": 500, "y": 100}, "floor": {"x": 500, "y": 1800}}
+    line = [{"x": 900, "y": 200}, {"x": 900, "y": 1700}]
+    with TestClient(app) as c:
+        r = c.post("/api/analysis/anterior/pose",
+                   json={"pose": pose, "height_cm": 170, "calibration": cal, "vertical_line": line})
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert abs(body["scale_ratio"] - 0.1) < 1e-9
+        assert "F7" in body["estimated_points"]
+
+        landmarks = body["markers"]
+        landmarks["F4"]["y"] += 30
+        r2 = c.post("/api/analysis/anterior/evaluate",
+                    json={"landmarks": landmarks, "height_cm": 170, "calibration": cal, "vertical_line": line,
+                          "config": {"tolerance_angle": 1}})
+        assert r2.status_code == 200, r2.text
+        assert r2.json()["tables"][0]["rows"][0]["direction"] == "Izq."
+
+        r3 = c.post("/api/analysis/anterior/evaluate", json={"landmarks": landmarks})
+        assert r3.status_code == 422  # falta la escala

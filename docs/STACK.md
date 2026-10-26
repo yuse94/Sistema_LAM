@@ -21,7 +21,7 @@ conservando el algoritmo de lectura automática de marcadores validado en la tes
 | Reportes | ReportLab (PDF) · openpyxl (Excel) | Se reutiliza `report_pdf_LAM.py` y `add_db_LAM.py`. |
 | Imagen resultante | Matplotlib (backend `Agg`) en servidor; SVG en el navegador | Sin ventanas emergentes; la UI dibuja marcadores y cuadrícula. |
 | Frontend | React 19 · TypeScript · Vite · Tailwind CSS 4 · TanStack Query · React Router | Ecosistema estándar; tipado de las respuestas de la API. |
-| Componentes UI | shadcn/ui (a incorporar con `npx shadcn@latest init`) | Componentes accesibles y editables. |
+| Componentes UI | shadcn/ui (`src/components/ui/`, `components.json`) sobre `radix-ui`, con lucide-react para íconos | Componentes accesibles y editables. Tema propio en `src/index.css`: cada color tiene un significado fijo (acción, punto detectado, estimado, calibración, línea vertical). Tipografía Atkinson Hyperlegible Next. |
 | Herramientas | uv (Python), npm, Ruff, pytest, Docker Compose, GitHub Actions | Instalación reproducible y CI. |
 
 Alternativas descartadas: **Django** (más pesado de lo necesario para una API con pocas
@@ -106,5 +106,10 @@ cd frontend
 npm install
 npm run dev                         # http://localhost:5173 (redirige /api al backend)
 ```
+
+`npm run dev` y `npm run build` copian antes los archivos WebAssembly de MediaPipe a
+`public/mediapipe/` (`scripts/copy-mediapipe.mjs`). El modelo de pose se descarga de los
+servidores de Google la primera vez que se analiza una foto, así que se necesita
+internet en ese momento; la foto en sí se procesa en el navegador.
 
 Con Docker (backend + PostgreSQL): `docker compose up --build`.

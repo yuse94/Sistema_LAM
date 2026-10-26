@@ -61,6 +61,9 @@ class ViewResult:
     diagnostic: dict[str, str | float | None]
     tables: list[ResultTable]
     image: np.ndarray | None = field(default=None, repr=False)  # imagen enderezada (uint8 RGB)
+    # Inclinación de la vertical real en la imagen (línea de referencia). Positivo: la
+    # vertical baja hacia la derecha. La cuadrícula se dibuja rotada -roll_deg.
+    roll_deg: float = 0.0
 
 
 class MarkerCountError(ValueError):

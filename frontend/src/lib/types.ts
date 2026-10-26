@@ -24,6 +24,18 @@ export interface ResultTable {
   rows: { item: string; direction: string; value: number }[];
 }
 
+export interface Calibration {
+  vertex: Point; // parte superior de la cabeza
+  floor: Point; // apoyo de los talones
+}
+
+export type VerticalLine = [Point, Point];
+
+/** Punto de MediaPipe en píxeles de la imagen. */
+export interface PosePoint extends Point {
+  visibility: number;
+}
+
 export interface ViewResult {
   view: View;
   image_width: number | null;
@@ -36,7 +48,13 @@ export interface ViewResult {
   diagnostic: Record<string, string | number | null>;
   tables: ResultTable[];
   image: string | null;
+  roll_deg: number;
+  estimated_points: string[];
+  calibration: Calibration | null;
 }
+
+/** Modo de detección: sin marcadores (MediaPipe + estatura) o con marcadores verdes (tesis). */
+export type DetectionMode = "pose" | "markers";
 
 export interface ViewInfo {
   view: View;

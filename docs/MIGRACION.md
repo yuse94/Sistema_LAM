@@ -65,9 +65,23 @@ El núcleo `backend/app/lam` ya no está atado a los marcadores:
 **Fase 1 (hecho):** núcleo portado y probado, errores corregidos, cuatro vistas, API de
 análisis y recálculo, editor de puntos arrastrables, pacientes básicos.
 
-**Fase 2 — sin marcadores:** detector MediaPipe en el navegador para los puntos que cubre,
-preposicionamiento de los demás por proporciones, escala por referencia en la escena o
-estatura, y modo manual.
+**Fase 2 — sin marcadores (implementada, pendiente de validar con fotos reales):**
+- MediaPipe Pose Landmarker corre en el navegador y envía sus 33 puntos a
+  `POST /api/analysis/{vista}/pose`. `backend/app/lam/pose.py` los convierte en puntos
+  LAM; los que el modelo no detecta (EIAS, EIPS, C7, T5, ombligo, manubrio, mentón,
+  entrecejo, tuberosidad tibial, tarso) se estiman por proporciones y la interfaz los
+  muestra en naranja hasta que el evaluador los mueve.
+- Los pares izquierdo/derecho se asignan por su posición en la imagen (MediaPipe a veces
+  los invierte cuando el paciente está de espaldas).
+- **Escala por estatura** (decisión: sin referencias R1/R2): cm/píxel = estatura /
+  distancia vertical entre el vértice de la cabeza y el suelo. Ambos puntos salen de la
+  silueta que detecta MediaPipe y se pueden arrastrar.
+- **Línea vertical de referencia** (decisión, en lugar del sensor del celular): el
+  evaluador coloca dos puntos sobre algo vertical de la escena (puerta, esquina,
+  plomada) y los puntos se nivelan antes de evaluar (`backend/app/lam/level.py`). Sin
+  ella, una cámara girada θ° suma θ° de error a los ángulos (lo comprueba
+  `test_tilted_camera_without_vertical_line_biases_angles`).
+- El modo con marcadores verdes sigue disponible; servirá como referencia en la fase 3.
 
 **Fase 3 — validación:** fotos de la tesis y nuevas fotos con marcadores; comparar el modo
 sin marcadores contra el detector de marcadores (error, ICC, Bland-Altman). Pruebas de
