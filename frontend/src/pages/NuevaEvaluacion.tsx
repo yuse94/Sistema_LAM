@@ -1,7 +1,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AlertCircle, RefreshCw, Ruler, Upload } from "lucide-react";
+import { AlertCircle, RefreshCw, Ruler, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import LandmarkEditor, { type EditorState } from "@/components/LandmarkEditor";
+import PointCard from "@/components/PointCard";
 import PointLegend from "@/components/PointLegend";
 import ResultTables, { Direction } from "@/components/ResultTables";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -15,42 +16,18 @@ import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { api, isMarkerError, type EvaluateRequest } from "@/lib/api";
 import { loadConfig } from "@/lib/config";
+import { diagnosticLabel, VIEW_SHORT } from "@/lib/labels";
 import { detectPose } from "@/lib/pose";
 import { cn } from "@/lib/utils";
-import { VIEW_LABELS, type DetectionMode, type View, type ViewResult } from "@/lib/types";
+import { VIEW_LABELS, type DetectionMode, type PointInfo, type View, type ViewResult } from "@/lib/types";
 
 const VIEWS = Object.keys(VIEW_LABELS) as View[];
-
-const SHORT_LABELS: Record<View, string> = {
-  anterior: "Anterior",
-  posterior: "Posterior",
-  lateral_derecha: "Lateral derecha",
-  lateral_izquierda: "Lateral izquierda",
-};
 
 const PHOTO_HINTS: Record<View, string> = {
   anterior: "Paciente de frente, brazos relajados y pies separados a la anchura de la cadera.",
   posterior: "Paciente de espaldas, con el cabello recogido.",
   lateral_derecha: "Lado derecho hacia la cámara: el paciente mira hacia la derecha de la foto.",
   lateral_izquierda: "Lado izquierdo hacia la cámara: el paciente mira hacia la izquierda de la foto.",
-};
-
-const DIAGNOSTIC_LABELS: Record<string, string> = {
-  linea_escapular_descendida: "Línea escapular descendida",
-  linea_pelvica_descendida: "Línea pélvica descendida",
-  cabeza_inclinada: "Cabeza inclinada",
-  cabeza_inclinada_angulo: "Inclinación de la cabeza",
-  cabeza_rotada: "Cabeza rotada",
-  rodilla_derecha: "Rodilla derecha",
-  rodilla_derecha_angulo: "Ángulo rodilla derecha",
-  rodilla_izquierda: "Rodilla izquierda",
-  rodilla_izquierda_angulo: "Ángulo rodilla izquierda",
-  rotacion_dorsal: "Rotación dorsal",
-  rotacion_pelvica: "Rotación pélvica",
-  pie_izquierdo: "Pie izquierdo",
-  pie_derecho: "Pie derecho",
-  postura: "Postura",
-  proyeccion_postural: "Proyección postural",
 };
 
 const validHeight = (h: number) => h >= 50 && h <= 250;
@@ -64,6 +41,8 @@ type PanelStatus = { kind: "empty" } | { kind: "review"; pending: number } | { k
  */
 export default function NuevaEvaluacion() {
   const { data: views = [] } = useQuery({ queryKey: ["views"], queryFn: api.views, staleTime: Infinity });
+  const { data: dictionary = [] } = useQuery({ queryKey: ["points"], queryFn: api.points, staleTime: Infinity });
+  const pointsById = Object.fromEntries(dictionary.map((p) => [p.id, p]));
   const labels = Object.fromEntries(views.map((v) => [v.view, v.labels])) as Partial<Record<View, Record<string, string>>>;
   const [mode, setMode] = useState<DetectionMode>("pose");
   const [heightCm, setHeightCm] = useState<number>(NaN);
@@ -117,7 +96,7 @@ export default function NuevaEvaluacion() {
         <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b pb-1 group-data-[orientation=horizontal]/tabs:h-11">
           {VIEWS.map((view) => (
             <TabsTrigger key={view} value={view} className="flex-none gap-2 px-3 py-2">
-              {SHORT_LABELS[view]}
+              {VIEW_SHORT[view]}
               <StatusMark status={status[view]} />
             </TabsTrigger>
           ))}
@@ -126,7 +105,7 @@ export default function NuevaEvaluacion() {
           // forceMount: cada vista conserva su foto y sus puntos al cambiar de pestaña
           <TabsContent key={`${view}-${mode}`} value={view} forceMount className="pt-4 data-[state=inactive]:hidden">
             <ViewPanel view={view} mode={mode} heightCm={heightCm} labels={labels[view] ?? {}}
-              onStatus={reportStatus} />
+              pointsById={pointsById} onStatus={reportStatus} />
           </TabsContent>
         ))}
       </Tabs>
@@ -174,14 +153,17 @@ async function loadImage(file: File) {
   return { url, img };
 }
 
-function ViewPanel({ view, mode, heightCm, labels, onStatus }: {
+function ViewPanel({ view, mode, heightCm, labels, pointsById, onStatus }: {
   view: View;
   mode: DetectionMode;
   heightCm: number;
   labels: Record<string, string>;
+  pointsById: Record<string, PointInfo>;
   onStatus: (view: View, status: PanelStatus) => void;
 }) {
   const [data, setData] = useState<PanelData | null>(null);
+  const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
+  const selectedInfo = selectedPoint ? pointsById[selectedPoint] : undefined;
   const [edited, setEdited] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -267,7 +249,8 @@ function ViewPanel({ view, mode, heightCm, labels, onStatus }: {
             <LandmarkEditor image={data.image} width={data.width} height={data.height} labels={labels}
               state={data.editor} estimated={data.estimated} derived={r!.derived_points}
               gridOrigin={r!.grid_origin} gridStep={r!.grid_step_px} rollDeg={r!.roll_deg}
-              onChange={(editor, movedId) => update(editor, movedId)} />
+              onChange={(editor, movedId) => update(editor, movedId)}
+              selected={selectedPoint} onSelect={setSelectedPoint} />
           ) : (
             <div className="flex aspect-[3/4] max-h-[70vh] w-full flex-col items-center justify-center gap-4 px-6 text-center sm:aspect-[4/3]">
               <svg viewBox="0 0 20 32" className="h-12 w-auto text-white/25" aria-hidden="true">
@@ -321,6 +304,15 @@ function ViewPanel({ view, mode, heightCm, labels, onStatus }: {
       </div>
 
       <section aria-label="Resultados" className="space-y-5">
+        {selectedInfo && (
+          <div className="relative rounded-lg border bg-card p-4">
+            <Button variant="ghost" size="icon-sm" className="absolute top-2 right-2" aria-label="Cerrar ficha del punto"
+              onClick={() => setSelectedPoint(null)}>
+              <X />
+            </Button>
+            <PointCard point={selectedInfo} compact />
+          </div>
+        )}
         {!r ? (
           <p className="text-sm text-muted-foreground">
             Los resultados de la {VIEW_LABELS[view].toLowerCase()} aparecerán aquí al cargar la fotografía.
@@ -353,7 +345,7 @@ function ViewPanel({ view, mode, heightCm, labels, onStatus }: {
             <dl className="grid grid-cols-[auto_1fr] items-center gap-x-6 gap-y-2 text-sm">
               {Object.entries(r.diagnostic).map(([k, v]) => (
                 <div key={k} className="contents">
-                  <dt className="text-muted-foreground">{DIAGNOSTIC_LABELS[k] ?? k.replaceAll("_", " ")}</dt>
+                  <dt className="text-muted-foreground">{diagnosticLabel(k)}</dt>
                   <dd>
                     {typeof v === "number" ? <span className="tabular-nums">{v.toFixed(2)}°</span>
                       : v && v.length <= 9 ? <Direction value={v} /> : <span className="font-medium">{v}</span>}

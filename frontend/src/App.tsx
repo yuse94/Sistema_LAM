@@ -3,9 +3,11 @@ import { cn } from "@/lib/utils";
 import Configuracion from "@/pages/Configuracion";
 import NuevaEvaluacion from "@/pages/NuevaEvaluacion";
 import Pacientes from "@/pages/Pacientes";
+import Puntos from "@/pages/Puntos";
 
 const links = [
   { to: "/", label: "Evaluación" },
+  { to: "/puntos", label: "Puntos" },
   { to: "/pacientes", label: "Pacientes" },
   { to: "/configuracion", label: "Configuración" },
 ];
@@ -48,6 +50,7 @@ export default function App() {
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
         <Routes>
           <Route path="/" element={<NuevaEvaluacion />} />
+          <Route path="/puntos" element={<Puntos />} />
           <Route path="/pacientes" element={<Pacientes />} />
           <Route path="/configuracion" element={<Configuracion />} />
         </Routes>

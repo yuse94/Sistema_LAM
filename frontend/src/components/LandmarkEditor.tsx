@@ -22,6 +22,8 @@ interface Props {
   rollDeg: number;
   /** Se llama al soltar un elemento, con el estado completo y el id de lo que se movió. */
   onChange: (state: EditorState, movedId: string) => void;
+  selected?: string | null; // punto anatómico resaltado (su ficha se muestra al lado)
+  onSelect?: (id: string) => void;
 }
 
 const CAL_LABELS: Record<string, string> = { "cal:vertex": "Vértice", "cal:floor": "Suelo" };
@@ -43,7 +45,7 @@ function setHandle(state: EditorState, id: string, p: Point): EditorState {
  * línea vertical. Todo en coordenadas de la imagen (píxeles), igual que en la API.
  */
 export default function LandmarkEditor({
-  image, width, height, labels, state, estimated, derived, gridOrigin, gridStep, rollDeg, onChange,
+  image, width, height, labels, state, estimated, derived, gridOrigin, gridStep, rollDeg, onChange, selected, onSelect,
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const clipId = useId(); // único por panel: hay varias vistas en la misma página
@@ -85,14 +87,17 @@ export default function LandmarkEditor({
   const handle = (id: string, p: Point, fillClass: string, label: string, title: string, square = false) => {
     const active = dragging === id;
     const shape = cn("stroke-white", active ? "fill-white stroke-primary" : fillClass);
+    const isAnatomical = id in local.markers;
     return (
       <g key={id} className={active ? "cursor-grabbing" : "cursor-grab"}
         onPointerDown={(e) => {
           (e.target as Element).setPointerCapture?.(e.pointerId);
           setDragging(id);
+          if (isAnatomical) onSelect?.(id);
         }}>
         <title>{title}</title>
         <circle cx={p.x} cy={p.y} r={r * 2.4} fill="transparent" />
+        {selected === id && <circle cx={p.x} cy={p.y} r={r * 2} fill="none" stroke="white" strokeWidth={r / 2.5} />}
         {square ? (
           <rect x={p.x - r} y={p.y - r} width={r * 2} height={r * 2} className={shape} strokeWidth={r / 3} />
         ) : (

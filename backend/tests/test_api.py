@@ -84,3 +84,13 @@ def test_markerless_pose_and_manual_adjustment():
 
         r3 = c.post("/api/analysis/anterior/evaluate", json={"landmarks": landmarks})
         assert r3.status_code == 422  # falta la escala
+
+
+def test_points_dictionary():
+    with TestClient(app) as c:
+        points = c.get("/api/points").json()
+        assert len(points) == 33
+        f7 = c.get("/api/points/f7").json()
+        assert f7["name"].startswith("Espina ilíaca anterosuperior")
+        assert any(m["item"] == "Pelvis" for m in f7["measurements"])
+        assert c.get("/api/points/X1").status_code == 404

@@ -83,6 +83,19 @@ análisis y recálculo, editor de puntos arrastrables, pacientes básicos.
   `test_tilted_camera_without_vertical_line_biases_angles`).
 - El modo con marcadores verdes sigue disponible; servirá como referencia en la fase 3.
 
+**Diccionario de puntos:**
+- `backend/app/lam/catalog.py` describe los 33 puntos (F1–F14, P1–P12, L1–L7): definición
+  anatómica, cómo localizarlo, región y posición en una silueta de referencia.
+  `GET /api/points` lo expone.
+- Las mediciones de cada punto no se escriben a mano: se calculan moviendo el punto
+  sobre la postura de referencia y viendo qué filas de las tablas y del diagnóstico
+  cambian. Si cambia una fórmula, el diccionario se actualiza solo.
+- En la interfaz: página "Puntos" (silueta navegable, buscador sin tildes y ficha) y,
+  en el editor, la ficha del punto que se toca en la foto.
+- **Pendiente:** las definiciones y las indicaciones de palpación se redactaron a partir
+  de la Tabla 2.1 de la tesis, que solo nombra los puntos. Deben ser revisadas por el
+  fisioterapeuta responsable (por ejemplo, la ubicación exacta de "Tobillo" F11/F12).
+
 **Fase 3 — validación:** fotos de la tesis y nuevas fotos con marcadores; comparar el modo
 sin marcadores contra el detector de marcadores (error, ICC, Bland-Altman). Pruebas de
 regresión con esas fotos en `backend/tests/fotos/` (fuera del repositorio si contienen

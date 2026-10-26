@@ -4,6 +4,7 @@ import type {
   MarkerCountError,
   Patient,
   Point,
+  PointInfo,
   PosePoint,
   VerticalLine,
   View,
@@ -80,6 +81,9 @@ export const api = {
   /** Recalcula una vista con puntos ajustados por el evaluador. */
   evaluate: (view: View, data: EvaluateRequest) =>
     request<ViewResult>(`/api/analysis/${view}/evaluate`, json(data)),
+
+  /** Diccionario de puntos anatómicos. */
+  points: () => request<PointInfo[]>("/api/points"),
 
   patients: (q = "") => request<Patient[]>(`/api/patients?q=${encodeURIComponent(q)}`),
 

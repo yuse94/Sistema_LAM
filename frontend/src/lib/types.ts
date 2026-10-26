@@ -80,3 +80,18 @@ export interface Patient {
   occupation: string | null;
   created_at: string;
 }
+
+/** Entrada del diccionario de puntos (GET /api/points). */
+export interface PointInfo {
+  id: string;
+  name: string;
+  side: string | null;
+  region: string;
+  definition: string;
+  location: string;
+  views: View[];
+  figure: "anterior" | "posterior" | "lateral";
+  position: [number, number]; // en la silueta de 100 x 200
+  measurements: { table: string; item: string }[];
+  diagnostics: string[];
+}
