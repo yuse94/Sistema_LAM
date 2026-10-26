@@ -28,3 +28,4 @@ frontend/dist/
 backend/data/
 .pytest_cache/
 .ruff_cache/
+*.tsbuildinfo
