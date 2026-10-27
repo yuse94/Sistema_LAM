@@ -62,6 +62,19 @@ def test_posterior_lowered_side():
     assert g.posterior_angle_from_horizontal(left, right, 1.0)[0] == "Izq."
 
 
+def test_lateral_pelvis_tilt_keeps_its_sign():
+    eips = np.array([500.0, 400.0])
+    assert g.lateral_angle_from_horizontal(eips, eips + np.array([17.6, 100.0])) == ("Normal", 9.98)
+    direction, value = g.lateral_angle_from_horizontal(eips, eips + np.array([-36.4, 100.0]))
+    assert direction == "Pos." and value < -19  # retroversión de 20°: antes salía "Ant." 20°
+
+
+def test_lateral_labels_follow_the_thesis():
+    r = analyze(View.LATERAL_DERECHA, make_image(LATERAL), CFG)
+    # Lateral derecha: el paciente mira a la derecha; L3 (EIAS) adelante, L4 (EIPS) atrás
+    assert r.markers["L3"][0] > r.markers["L4"][0]
+
+
 def test_geometry_matches_legacy_sign_convention():
     right, left = np.array([100.0, 0.0]), np.array([90.0, 100.0])
     direction, value = g.anterior_angle_from_horizontal(right, left, 0.0)

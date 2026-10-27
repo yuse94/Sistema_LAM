@@ -100,10 +100,12 @@ análisis y recálculo, editor de puntos arrastrables, pacientes básicos.
     del tarso"). En el modo sin marcadores ahora corresponde al tobillo de MediaPipe y
     ya no es un punto estimado.
 
-**Fase 3 — validación:** fotos de la tesis y nuevas fotos con marcadores; comparar el modo
-sin marcadores contra el detector de marcadores (error, ICC, Bland-Altman). Pruebas de
-regresión con esas fotos en `backend/tests/fotos/` (fuera del repositorio si contienen
-pacientes identificables).
+**Fase 3 — validación (en curso, ver `docs/VALIDACION.md`):**
+- Hecho: detector de marcadores con umbral automático (40 de 40 fotos), pruebas con las
+  fotos reales (`uv run pytest -m fotos`), corrección del ángulo pélvico lateral
+  (HALLAZGO-7), nombres L3/L4 según la tesis y tolerancias por defecto de 1° y 0.5 cm.
+- Pendiente: ejecutar `backend/validation/markerless.py` (MediaPipe contra marcadores),
+  completar las estaturas reales y fotografiar laterales izquierdas reales.
 
 **Fase 4 — producto:** guardar evaluaciones, reporte PDF y exportación Excel, historial y
 comparación entre evaluaciones, usuarios y roles por centro, despliegue y protección de

@@ -334,6 +334,11 @@ function ViewPanel({ view, mode, heightCm, labels, pointsById, onStatus }: {
                 <Badge variant="outline" className="text-muted-foreground tabular-nums">
                   Escala {r.scale_ratio.toFixed(4)} cm/px
                 </Badge>
+                {r.threshold_used != null && (
+                  <Badge variant="outline" className="text-muted-foreground tabular-nums">
+                    Umbral del filtro {r.threshold_used.toFixed(2)}
+                  </Badge>
+                )}
                 {r.roll_deg !== 0 && (
                   <Badge variant="outline" className="border-vertical-line/60 text-muted-foreground tabular-nums">
                     Nivelada {r.roll_deg.toFixed(1)}°

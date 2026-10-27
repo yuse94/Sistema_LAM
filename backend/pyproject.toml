@@ -30,3 +30,5 @@ target-version = "py312"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = ["fotos: pruebas con las fotografías reales de validación (lentas; ejecutar con -m fotos)"]
+addopts = "-m 'not fotos'"

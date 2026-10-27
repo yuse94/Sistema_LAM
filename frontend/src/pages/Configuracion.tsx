@@ -3,12 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { DEFAULT_CONFIG, loadConfig, saveConfig } from "@/lib/config";
 import type { AssessmentConfig } from "@/lib/types";
 
 // Mismos rangos que el menú "3. Cambiar configuración" de la consola.
+type NumericKey = Exclude<keyof AssessmentConfig, "auto_threshold">;
+
 const FIELDS: {
-  key: keyof AssessmentConfig; label: string; help: string; min: number; max: number; step: number; unit: string;
+  key: NumericKey; label: string; help: string; min: number; max: number; step: number; unit: string;
 }[] = [
   { key: "tolerance_angle", label: "Ángulo de tolerancia", min: 0, max: 5, step: 0.1, unit: "°",
     help: "Desviaciones angulares menores a este valor se reportan como alineadas." },
@@ -43,6 +46,18 @@ export default function Configuracion() {
             <p className="text-sm text-muted-foreground">{f.help}</p>
           </div>
         ))}
+        <Separator />
+        <div className="flex items-start justify-between gap-6">
+          <div className="space-y-1">
+            <Label htmlFor="auto_threshold">Umbral automático</Label>
+            <p className="text-sm text-muted-foreground">
+              Si con el umbral configurado no aparecen todos los marcadores, el sistema prueba otros valores. En las
+              fotos de validación ningún umbral fijo sirvió para todas, porque dependen de la iluminación.
+            </p>
+          </div>
+          <Switch id="auto_threshold" checked={config.auto_threshold}
+            onCheckedChange={(v) => update({ ...config, auto_threshold: v })} />
+        </div>
       </div>
       <Button variant="outline" onClick={() => update(DEFAULT_CONFIG)}>Restablecer valores</Button>
     </div>

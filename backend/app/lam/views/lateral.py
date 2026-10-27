@@ -14,20 +14,23 @@ from .base import center, require, sort_by_x, table
 
 EXPECTED_MARKERS = 7
 LABELS = {
-    "L1": "Oído", "L2": "Acromioclavicular", "L3": "EIPS", "L4": "EIAS",
+    "L1": "Oído", "L2": "Acromioclavicular", "L3": "EIAS", "L4": "EIPS",
     "L5": "Trocánter mayor", "L6": "Tuberosidad tibial", "L7": "Maléolo externo",
 }
 
 
 def assign_right(p: list[np.ndarray]) -> dict[str, np.ndarray]:
-    """Lateral derecha: la espalda (EIPS) queda a la izquierda de la imagen."""
-    l3, l4 = sort_by_x(p[2:4])
+    """Lateral derecha: el paciente mira a la derecha; la EIPS (L4) queda a la izquierda de la imagen.
+
+    L3 = EIAS y L4 = EIPS según la Tabla 2.1 de la tesis (la versión de consola los nombraba al revés).
+    """
+    l4, l3 = sort_by_x(p[2:4])
     return dict(zip(LABELS, (p[0], p[1], l3, l4, p[4], p[5], p[6])))
 
 
 def assign_left(p: list[np.ndarray]) -> dict[str, np.ndarray]:
-    """Lateral izquierda: la espalda (EIPS) queda a la derecha de la imagen."""
-    l4, l3 = sort_by_x(p[2:4])
+    """Lateral izquierda: el paciente mira a la izquierda; la EIPS (L4) queda a la derecha de la imagen."""
+    l3, l4 = sort_by_x(p[2:4])
     return dict(zip(LABELS, (p[0], p[1], l3, l4, p[4], p[5], p[6])))
 
 
@@ -78,7 +81,7 @@ def evaluate_right(pts: dict[str, np.ndarray], scale: float, config: AssessmentC
                 g.lateral_angle_from_vertical(l2, c_pelvis, ta),
                 g.lateral_angle_from_vertical(l5, l6, ta),
                 g.lateral_angle_from_vertical(l6, l7, ta)])
-    pelvis_dir, pelvis_angle = g.lateral_angle_from_horizontal(l3, l4)
+    pelvis_dir, pelvis_angle = g.lateral_angle_from_horizontal(posterior_point=l4, anterior_point=l3)
     t2 = table("table_2", "Grados con respecto a la horizontal (normal 10° ± 5°)",
                ("Segmento Corporal", "Dirección", "Ángulo"), ("Pelvis",), [(pelvis_dir, pelvis_angle)])
     t3 = table("table_3", "Distancia con respecto a la vertical", ("Referencia", "Dirección", "Distancia"),

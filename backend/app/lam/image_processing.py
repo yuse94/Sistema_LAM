@@ -34,16 +34,66 @@ def scale_image(img: np.ndarray) -> np.ndarray:
     return img_as_ubyte(img)
 
 
-def green_filter(img: np.ndarray, threshold: float) -> np.ndarray:
-    """Imagen binaria con las zonas donde el canal verde domina."""
+def green_response(img: np.ndarray) -> np.ndarray:
+    """Cuánto domina el canal verde en cada píxel (filtrado con mediana)."""
     channel_green = img[:, :, 1].astype(float)
     gray_img = rgb2gray(img) * 255
     green_img = channel_green - gray_img
     green_img[green_img < 0] = 0
-    green_img = filters.median(green_img)
+    return filters.median(green_img)
+
+
+def binarize(green_img: np.ndarray, threshold: float) -> np.ndarray:
     filter_threshold = round(np.max(green_img) * threshold)
-    green_binary_img = green_img > filter_threshold
-    return morphology.remove_small_holes(green_binary_img)
+    return morphology.remove_small_holes(green_img > filter_threshold)
+
+
+def green_filter(img: np.ndarray, threshold: float) -> np.ndarray:
+    """Imagen binaria con las zonas donde el canal verde domina."""
+    return binarize(green_response(img), threshold)
+
+
+# Umbrales que prueba la búsqueda automática (mismo rango que permite la configuración).
+AUTO_THRESHOLDS = tuple(round(0.16 + 0.02 * i, 2) for i in range(33))  # 0.16 … 0.80
+
+
+def candidate_thresholds(img: np.ndarray, expected_markers: int) -> list[float]:
+    """Umbrales ordenados de más a menos prometedor para obtener expected_markers.
+
+    Estimación rápida sobre la imagen sin enderezar: cuenta las regiones verdes que
+    quedarían dentro del recorte entre las referencias. Los umbrales que dan la
+    cantidad correcta se ordenan empezando por el centro del rango más largo
+    (el valor más estable frente a cambios de iluminación). El resultado se confirma
+    luego con el algoritmo completo.
+    """
+    response = green_response(img)
+    matches = []
+    for th in AUTO_THRESHOLDS:
+        regions = regionprops(label(binarize(response, th)))
+        if len(regions) < 2:
+            continue
+        xs = np.array([r.centroid[1] for r in regions])
+        margin = (xs.max() - xs.min()) / 10
+        inside = np.count_nonzero((xs >= xs.min() - margin) & (xs <= xs.max() + margin))
+        if inside - 2 == expected_markers:
+            matches.append(th)
+    if not matches:
+        return []
+    # Rangos contiguos de umbrales que funcionan; el más largo primero.
+    runs, current = [], [matches[0]]
+    for th in matches[1:]:
+        if round(th - current[-1], 2) <= 0.02:
+            current.append(th)
+        else:
+            runs.append(current)
+            current = [th]
+    runs.append(current)
+    runs.sort(key=len, reverse=True)
+    ordered = []
+    for run in runs:
+        mid = run[len(run) // 2]
+        ordered += sorted(run, key=lambda t: abs(t - mid))
+    return ordered
 
 
 def markers(binary_image: np.ndarray):

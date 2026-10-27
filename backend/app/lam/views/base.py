@@ -16,7 +16,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ..image_processing import ensure_rgb, green_filter, markers, scale_image, straighten_img
+from ..image_processing import candidate_thresholds, ensure_rgb, green_filter, markers, scale_image, straighten_img
 from ..types import AssessmentConfig, MarkerCountError, ResultRow, ResultTable, View
 
 
@@ -27,19 +27,51 @@ class MarkerDetection:
     reference_1: np.ndarray
     reference_2: np.ndarray
     scale_ratio: float  # cm por píxel
+    threshold: float  # umbral del filtro verde con el que se detectaron los marcadores
+
+
+def _detect_at(img: np.ndarray, threshold: float):
+    straight = straighten_img(img, threshold)
+    return straight, markers(green_filter(straight, threshold))
 
 
 def detect_markers(view: View, image: np.ndarray, config: AssessmentConfig, expected: int) -> MarkerDetection:
-    """Detector de marcadores verdes (algoritmo de la tesis)."""
-    img = scale_image(ensure_rgb(image))
-    straight = straighten_img(img, config.filter_threshold)
-    ref_1, ref_2, ys, xs, scale = markers(green_filter(straight, config.filter_threshold))
+    """Detector de marcadores verdes (algoritmo de la tesis).
 
-    if len(xs) != expected:
-        raise MarkerCountError(view, expected, [(float(x), float(y)) for y, x in zip(ys, xs)], straight)
+    Primero usa el umbral configurado. Si no aparece la cantidad esperada de marcadores
+    y config.auto_threshold está activo, busca otro umbral: con las fotos de validación
+    ningún valor fijo sirvió para todas (dependen de la iluminación de cada foto).
+    """
+    img = scale_image(ensure_rgb(image))
+    tried = {config.filter_threshold}
+    try:
+        straight, (ref_1, ref_2, ys, xs, scale) = _detect_at(img, config.filter_threshold)
+        first_error = None if len(xs) == expected else MarkerCountError(
+            view, expected, [(float(x), float(y)) for y, x in zip(ys, xs)], straight)
+    except (ValueError, IndexError, ZeroDivisionError) as err:  # sin referencias con este umbral
+        first_error = err
+    threshold = config.filter_threshold
+
+    if first_error is not None and config.auto_threshold:
+        for th in candidate_thresholds(img, expected):
+            if th in tried:
+                continue
+            tried.add(th)
+            try:
+                straight, (ref_1, ref_2, ys, xs, scale) = _detect_at(img, th)
+            except (ValueError, IndexError, ZeroDivisionError):
+                continue
+            if len(xs) == expected:
+                first_error, threshold = None, th
+                break
+
+    if first_error is not None:
+        if isinstance(first_error, MarkerCountError):
+            raise first_error
+        raise ValueError(str(first_error) or "No se encontraron los marcadores de referencia") from first_error
 
     points = [np.array([y, x]) for y, x in zip(ys, xs)]
-    return MarkerDetection(straight, points, ref_1, ref_2, float(scale))
+    return MarkerDetection(straight, points, ref_1, ref_2, float(scale), threshold)
 
 
 def sort_by_x(points: list[np.ndarray]) -> list[np.ndarray]:

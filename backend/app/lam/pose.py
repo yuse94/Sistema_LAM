@@ -167,8 +167,8 @@ def _lateral(pose: list[PosePoint], forward: int, default_side: str) -> PoseLand
         "L1": ear,
         "L2": shoulder,
         # Con ±0.17 y -0.06 la pelvis queda con ~10° de inclinación (valor normal)
-        "L3": _add(pelvis, dx=-forward * 0.17 * thigh, dy=-0.06 * thigh),  # EIPS
-        "L4": _add(pelvis, dx=forward * 0.17 * thigh),  # EIAS
+        "L3": _add(pelvis, dx=forward * 0.17 * thigh),  # EIAS
+        "L4": _add(pelvis, dx=-forward * 0.17 * thigh, dy=-0.06 * thigh),  # EIPS
         "L5": hip,  # trocánter mayor (aprox. centro de la cadera del modelo)
         "L6": _add(_lerp(knee, ankle, 0.12), dx=forward * 0.04 * thigh),  # tuberosidad tibial
         "L7": ankle,  # maléolo externo: el tobillo de MediaPipe está a su altura

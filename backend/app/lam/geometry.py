@@ -5,6 +5,7 @@ Los puntos son arrays numpy (y, x) en píxeles.
 """
 from __future__ import annotations
 
+import numpy as np
 from numpy import angle
 
 
@@ -52,8 +53,14 @@ def lateral_angle_from_vertical(top_point, bottom_point, tolerance):
 
 
 def lateral_angle_from_horizontal(posterior_point, anterior_point):
-    d = posterior_point - anterior_point
-    a = round(180 - abs(angle(complex(d[1], d[0]), deg=True)), 2)
+    """Inclinación pélvica sagital: positiva cuando la EIAS está más baja que la EIPS.
+
+    HALLAZGO-7 (corregido): la versión de consola usaba 180 - |ángulo|, que pierde el
+    signo; una retroversión de 20° (EIAS más alta) se informaba como anteversión de 20°.
+    """
+    drop = anterior_point[0] - posterior_point[0]  # y hacia abajo: positivo si la EIAS está más baja
+    run = abs(anterior_point[1] - posterior_point[1])
+    a = round(float(np.degrees(np.arctan2(drop, run))), 2)
     if a > 15:
         return "Ant.", a
     if a < 5:

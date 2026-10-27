@@ -46,5 +46,5 @@ def test_left_lateral_mirrors_right_lateral():
             assert a.value == pytest.approx(b.value, abs=0.05)  # diferencias de redondeo de píxeles
     assert left.diagnostic == right.diagnostic
     assert right.tables[2].rows[0].direction == "Ant."
-    # La EIPS (L3) queda del lado de la espalda: derecha de la imagen en la vista izquierda
-    assert left.markers["L3"][0] > left.markers["L4"][0]
+    # La EIPS (L4) queda del lado de la espalda: derecha de la imagen en la vista izquierda
+    assert left.markers["L4"][0] > left.markers["L3"][0]

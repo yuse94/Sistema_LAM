@@ -30,3 +30,5 @@ backend/data/
 .ruff_cache/
 *.tsbuildinfo
 frontend/public/mediapipe/
+backend/validation/resultados/
+backend/validation/modelos/

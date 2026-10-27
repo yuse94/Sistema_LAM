@@ -9,10 +9,11 @@ from app.lam import AssessmentConfig, Calibration, PosePoint, View, ViewResult
 class AssessmentConfigIn(BaseModel):
     """Mismos rangos que validaba el menú de configuración de consola."""
 
-    tolerance_angle: float = Field(0.0, ge=0.0, le=5.0, description="Ángulo de tolerancia (°)")
-    tolerance_distance: float = Field(0.0, ge=0.0, le=3.0, description="Distancia de tolerancia (cm)")
+    tolerance_angle: float = Field(1.0, ge=0.0, le=5.0, description="Ángulo de tolerancia (°)")
+    tolerance_distance: float = Field(0.5, ge=0.0, le=3.0, description="Distancia de tolerancia (cm)")
     grid_size: float = Field(5.0, ge=1.0, le=10.0, description="Tamaño de cuadrícula (cm)")
     filter_threshold: float = Field(0.32, ge=0.20, le=0.80, description="Umbral del filtro verde")
+    auto_threshold: bool = Field(True, description="Si el umbral falla, buscar automáticamente uno que funcione")
 
     def to_domain(self) -> AssessmentConfig:
         return AssessmentConfig(**self.model_dump())
@@ -70,6 +71,7 @@ class ViewResultOut(BaseModel):
     tables: list[ResultTableOut]
     image: str | None = Field(None, description="Imagen enderezada como data URL (JPEG), sin dibujos")
     roll_deg: float = Field(0.0, description="Inclinación de la vertical real; la cuadrícula se dibuja rotada -roll_deg")
+    threshold_used: float | None = Field(None, description="Umbral del filtro verde usado (modo con marcadores)")
     estimated_points: list[str] = Field(default_factory=list,
                                         description="Puntos estimados por proporciones: revisar y ajustar")
     calibration: CalibrationIn | None = None
@@ -92,6 +94,7 @@ class ViewResultOut(BaseModel):
                                    rows=[ResultRowOut(**vars(row)) for row in t.rows]) for t in r.tables],
             image=image,
             roll_deg=r.roll_deg,
+            threshold_used=r.threshold_used,
         )
 
 

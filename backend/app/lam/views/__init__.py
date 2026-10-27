@@ -63,8 +63,10 @@ def analyze(view: View, image: np.ndarray, config: AssessmentConfig) -> ViewResu
     view = View(view)
     spec = SPECS[view]
     det = detect_markers(view, image, config, spec.expected_markers)
-    return _result(view, spec.assign(det.points), det.scale_ratio, config, det.image,
-                   (xy(det.reference_1), xy(det.reference_2)))
+    result = _result(view, spec.assign(det.points), det.scale_ratio, config, det.image,
+                     (xy(det.reference_1), xy(det.reference_2)))
+    result.threshold_used = det.threshold
+    return result
 
 
 def evaluate_landmarks(view: View, landmarks: Mapping[str, Point], scale_ratio: float,

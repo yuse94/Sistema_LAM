@@ -13,6 +13,7 @@ export interface AssessmentConfig {
   tolerance_distance: number;
   grid_size: number;
   filter_threshold: number;
+  auto_threshold: boolean;
 }
 
 export interface Point { x: number; y: number }
@@ -49,6 +50,7 @@ export interface ViewResult {
   tables: ResultTable[];
   image: string | null;
   roll_deg: number;
+  threshold_used: number | null;
   estimated_points: string[];
   calibration: Calibration | null;
 }

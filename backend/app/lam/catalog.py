@@ -36,7 +36,7 @@ FIGURE_POSITIONS: dict[str, dict[str, tuple[float, float]]] = {
         "P7": (57, 130), "P8": (43, 130), "P9": (56, 174), "P10": (44, 174), "P11": (56, 190), "P12": (44, 190),
     },
     "lateral": {
-        "L1": (48, 18), "L2": (50, 38), "L3": (41, 83), "L4": (59, 86), "L5": (50, 92), "L6": (54, 134),
+        "L1": (48, 18), "L2": (50, 38), "L3": (59, 86), "L4": (41, 83), "L5": (50, 92), "L6": (54, 134),
         "L7": (53, 179),
     },
 }
@@ -44,8 +44,8 @@ FIGURE_POSITIONS: dict[str, dict[str, tuple[float, float]]] = {
 # Postura lateral "ideal": todo sobre la plomada (vertical de L7). Sirve como segunda
 # referencia para detectar de qué puntos depende la clasificación de la postura, que en
 # la silueta de referencia queda enmascarada por la cabeza adelantada.
-_ALIGNED_LATERAL = {**FIGURE_POSITIONS["lateral"], "L1": (53, 18), "L2": (53, 38), "L3": (44, 83),
-                    "L4": (62, 86), "L5": (53, 92), "L6": (53, 134)}
+_ALIGNED_LATERAL = {**FIGURE_POSITIONS["lateral"], "L1": (53, 18), "L2": (53, 38), "L3": (62, 86),
+                    "L4": (44, 83), "L5": (53, 92), "L6": (53, 134)}
 
 FIGURE_OF_VIEW = {
     View.ANTERIOR: "anterior",
@@ -154,8 +154,8 @@ _TEXTS: dict[str, _Text] = {
                 "Trago de la oreja, delante del conducto auditivo externo.",
                 "Centro del trago del lado que mira a la cámara."),
     "L2": _AC,
-    "L3": _EIPS,
-    "L4": _EIAS,
+    "L3": _EIAS,
+    "L4": _EIPS,
     "L5": _Text("Trocánter mayor del fémur", "Pelvis",
                 "Prominencia ósea lateral del extremo superior del fémur.",
                 "Cara lateral de la cadera; se siente moverse bajo los dedos al rotar la cadera."),

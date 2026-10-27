@@ -18,10 +18,13 @@ class View(str, Enum):
 class AssessmentConfig:
     """Parámetros del análisis (antes configuration.json)."""
 
-    tolerance_angle: float = 0.0  # grados, rango 0-5
-    tolerance_distance: float = 0.0  # cm, rango 0-3
+    # Con 0°/0 cm una desviación de un píxel cuenta; con 1°/0.5 cm las 6 posturas de
+    # referencia (tipos_de_postura) se clasifican correctamente. Ver docs/VALIDACION.md.
+    tolerance_angle: float = 1.0  # grados, rango 0-5
+    tolerance_distance: float = 0.5  # cm, rango 0-3
     grid_size: float = 5.0  # cm, rango 1-10
     filter_threshold: float = 0.32  # rango 0.20-0.80 (solo detector de marcadores verdes)
+    auto_threshold: bool = True  # si el umbral configurado falla, buscar uno que funcione
 
 
 @dataclass
@@ -64,6 +67,7 @@ class ViewResult:
     # Inclinación de la vertical real en la imagen (línea de referencia). Positivo: la
     # vertical baja hacia la derecha. La cuadrícula se dibuja rotada -roll_deg.
     roll_deg: float = 0.0
+    threshold_used: float | None = None  # umbral del filtro verde (modo con marcadores)
 
 
 class MarkerCountError(ValueError):
