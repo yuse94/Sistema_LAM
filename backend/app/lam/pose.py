@@ -8,8 +8,9 @@ como "estimados" para que el fisioterapeuta los revise y arrastre.
 Decisiones:
 - Los pares izquierdo/derecho se asignan por su posición en la imagen, no por la
   etiqueta de MediaPipe, que a veces se invierte cuando el paciente está de espaldas.
-- Las proporciones son aproximaciones iniciales, no mediciones: el objetivo es que el
-  punto aparezca cerca del lugar correcto para que el ajuste manual sea corto.
+- Los desplazamientos se ajustaron con fotos de validación con marcadores (error medio
+  1.9 cm en validación cruzada); siguen siendo estimaciones y el evaluador debe revisar
+  los puntos marcados como estimados.
 
 Coordenadas en píxeles de la imagen: (x, y), con y hacia abajo.
 """
@@ -89,57 +90,77 @@ def _validate(pose: list[PosePoint]) -> None:
 
 
 # ---------------------------------------------------------------- vistas
+#
+# Desplazamientos ajustados con las fotos de validación (10 adultos, 30 fotos con
+# marcadores; ver docs/VALIDACION.md). Cada punto es: ancla de MediaPipe + (cx · Sx, cy · Sy).
+# - Vistas frontales: Sx = ancho de hombros y Sy = largo del tronco (hombros → caderas).
+#   En los pares, cx positivo = hacia afuera del cuerpo; los dos lados usan el mismo valor
+#   en espejo para que un paciente simétrico siga saliendo alineado.
+# - Vista lateral: Sx = Sy = largo del muslo; cx positivo = hacia adelante.
+# Los puntos de la línea media usan cx = 0. Los puntos sin corrección (F1, F6, F11–F14, L5)
+# no mejoraban con el ajuste en la validación cruzada (dejando una persona fuera).
+
+def _shift(anchor: Point, cx: float, cy: float, sx: float, sy: float, outward: int = 1) -> Point:
+    return anchor[0] + outward * cx * sx, anchor[1] + cy * sy
+
 
 def _anterior(pose: list[PosePoint]) -> PoseLandmarks:
     # De frente, el lado derecho del paciente queda a la izquierda de la imagen.
     eye_mid = _mid(_p(pose, LEFT_EYE), _p(pose, RIGHT_EYE))
     mouth_mid = _mid(_p(pose, MOUTH_LEFT), _p(pose, MOUTH_RIGHT))
-    nose = _p(pose, NOSE)
     face = max(mouth_mid[1] - eye_mid[1], 1.0)
 
-    f3, f4 = _by_x(pose, LEFT_SHOULDER, RIGHT_SHOULDER)
+    sh_r, sh_l = _by_x(pose, LEFT_SHOULDER, RIGHT_SHOULDER)  # derecho del paciente = izquierda de la imagen
     hip_r, hip_l = _by_x(pose, LEFT_HIP, RIGHT_HIP)
-    sh_mid, hip_mid = _mid(f3, f4), _mid(hip_r, hip_l)
-    shoulder_width = abs(f4[0] - f3[0])
-    trunk = hip_mid[1] - sh_mid[1]
+    sh_mid, hip_mid = _mid(sh_r, sh_l), _mid(hip_r, hip_l)
+    w = max(abs(sh_l[0] - sh_r[0]), 1.0)
+    t = max(hip_mid[1] - sh_mid[1], 1.0)
 
-    f9, f10 = _by_x(pose, LEFT_KNEE, RIGHT_KNEE)
+    knee_r, knee_l = _by_x(pose, LEFT_KNEE, RIGHT_KNEE)
     f11, f12 = _by_x(pose, LEFT_ANKLE, RIGHT_ANKLE)
     f13, f14 = _by_x(pose, LEFT_FOOT, RIGHT_FOOT)
 
     landmarks = {
-        "F1": _add(eye_mid, dy=-0.35 * face),  # entrecejo: algo sobre la línea de los ojos
-        "F2": _lerp(nose, mouth_mid, 2.5),  # mentón: debajo de la boca
-        "F3": f3, "F4": f4,
-        "F5": _add(sh_mid, dy=0.10 * shoulder_width),  # horquilla esternal
+        "F1": _add(eye_mid, dy=-0.35 * face),  # entrecejo
+        "F2": _shift(mouth_mid, 0, 0.091, w, t),  # mentón
+        "F3": _shift(sh_r, 0.081, -0.083, w, t, -1),  # acromioclavicular: más arriba y afuera que el hombro
+        "F4": _shift(sh_l, 0.081, -0.083, w, t, +1),
+        "F5": _shift(sh_mid, 0, -0.051, w, t),  # horquilla esternal
         "F6": _lerp(sh_mid, hip_mid, 0.72),  # ombligo
-        "F7": _add(hip_r, dy=-0.12 * trunk),  # EIAS: por encima del centro de la cadera
-        "F8": _add(hip_l, dy=-0.12 * trunk),
-        "F9": f9, "F10": f10, "F11": f11, "F12": f12, "F13": f13, "F14": f14,
+        "F7": _shift(hip_r, 0.086, -0.189, w, t, -1),  # EIAS: por encima y afuera del centro de la cadera
+        "F8": _shift(hip_l, 0.086, -0.189, w, t, +1),
+        "F9": _shift(knee_r, 0.012, -0.038, w, t, -1),  # rótula
+        "F10": _shift(knee_l, 0.012, -0.038, w, t, +1),
+        "F11": f11, "F12": f12, "F13": f13, "F14": f14,
     }
     return PoseLandmarks(landmarks, ["F1", "F2", "F5", "F6", "F7", "F8"])
 
 
 def _posterior(pose: list[PosePoint]) -> PoseLandmarks:
     # De espaldas, el lado izquierdo del paciente queda a la izquierda de la imagen.
-    p4, p3 = _by_x(pose, LEFT_SHOULDER, RIGHT_SHOULDER)
+    sh_l, sh_r = _by_x(pose, LEFT_SHOULDER, RIGHT_SHOULDER)
     hip_l, hip_r = _by_x(pose, LEFT_HIP, RIGHT_HIP)
-    sh_mid, hip_mid = _mid(p4, p3), _mid(hip_l, hip_r)
-    shoulder_width = abs(p3[0] - p4[0])
-    trunk = hip_mid[1] - sh_mid[1]
+    sh_mid, hip_mid = _mid(sh_l, sh_r), _mid(hip_l, hip_r)
+    w = max(abs(sh_r[0] - sh_l[0]), 1.0)
+    t = max(hip_mid[1] - sh_mid[1], 1.0)
 
-    p8, p7 = _by_x(pose, LEFT_KNEE, RIGHT_KNEE)
-    p10, p9 = _by_x(pose, LEFT_ANKLE, RIGHT_ANKLE)
-    p12, p11 = _by_x(pose, LEFT_HEEL, RIGHT_HEEL)
+    knee_l, knee_r = _by_x(pose, LEFT_KNEE, RIGHT_KNEE)
+    ankle_l, ankle_r = _by_x(pose, LEFT_ANKLE, RIGHT_ANKLE)
+    heel_l, heel_r = _by_x(pose, LEFT_HEEL, RIGHT_HEEL)
 
     landmarks = {
-        "P1": _add(sh_mid, dy=-0.10 * shoulder_width),  # C7: algo sobre la línea de hombros
-        "P2": _lerp(sh_mid, hip_mid, 0.25),  # T5
-        "P3": p3, "P4": p4,
-        # EIPS: hoyuelos sacros, más cerca de la línea media que el centro de la cadera
-        "P5": _add(_lerp(hip_mid, hip_r, 0.35), dy=-0.12 * trunk),
-        "P6": _add(_lerp(hip_mid, hip_l, 0.35), dy=-0.12 * trunk),
-        "P7": p7, "P8": p8, "P9": p9, "P10": p10, "P11": p11, "P12": p12,
+        "P1": _shift(sh_mid, 0, -0.174, w, t),  # C7
+        "P2": _shift(sh_mid, 0, 0.096, w, t),  # T5
+        "P3": _shift(sh_r, 0.063, -0.077, w, t, +1),  # acromioclavicular
+        "P4": _shift(sh_l, 0.063, -0.077, w, t, -1),
+        "P5": _shift(hip_r, -0.134, -0.248, w, t, +1),  # EIPS: por encima y hacia la línea media
+        "P6": _shift(hip_l, -0.134, -0.248, w, t, -1),
+        "P7": _shift(knee_r, -0.018, 0.025, w, t, +1),  # hueco poplíteo
+        "P8": _shift(knee_l, -0.018, 0.025, w, t, -1),
+        "P9": _shift(ankle_r, -0.034, 0.044, w, t, +1),  # tendón de Aquiles
+        "P10": _shift(ankle_l, -0.034, 0.044, w, t, -1),
+        "P11": _shift(heel_r, -0.008, 0.052, w, t, +1),  # calcáneo
+        "P12": _shift(heel_l, -0.008, 0.052, w, t, -1),
     }
     return PoseLandmarks(landmarks, ["P1", "P2", "P5", "P6"])
 
@@ -159,19 +180,17 @@ def _visible_side(pose: list[PosePoint], default: str) -> str:
 
 def _lateral(pose: list[PosePoint], forward: int, default_side: str) -> PoseLandmarks:
     """forward = +1 si el paciente mira a la derecha de la imagen, -1 si mira a la izquierda."""
-    ear, shoulder, hip, knee, ankle, _heel, foot = (_p(pose, i) for i in _SIDES[_visible_side(pose, default_side)])
-    thigh = max(_dist(hip, knee), 1.0)
+    ear, shoulder, hip, knee, ankle, _heel, _foot = (_p(pose, i) for i in _SIDES[_visible_side(pose, default_side)])
+    th = max(_dist(hip, knee), 1.0)  # largo del muslo
 
-    pelvis = _add(hip, dy=-0.22 * thigh)  # centro entre EIAS y EIPS, sobre el trocánter
     landmarks = {
-        "L1": ear,
-        "L2": shoulder,
-        # Con ±0.17 y -0.06 la pelvis queda con ~10° de inclinación (valor normal)
-        "L3": _add(pelvis, dx=forward * 0.17 * thigh),  # EIAS
-        "L4": _add(pelvis, dx=-forward * 0.17 * thigh, dy=-0.06 * thigh),  # EIPS
-        "L5": hip,  # trocánter mayor (aprox. centro de la cadera del modelo)
-        "L6": _add(_lerp(knee, ankle, 0.12), dx=forward * 0.04 * thigh),  # tuberosidad tibial
-        "L7": _lerp(ankle, foot, 0.4),  # articulación transversal del tarso, en el pie
+        "L1": _shift(ear, -0.076, 0.007, th, th, forward),  # trago: algo por detrás del punto de la oreja
+        "L2": _shift(shoulder, 0.016, -0.141, th, th, forward),  # acromioclavicular
+        "L3": _shift(hip, 0.232, -0.228, th, th, forward),  # EIAS
+        "L4": _shift(hip, -0.266, -0.322, th, th, forward),  # EIPS
+        "L5": hip,  # trocánter mayor
+        "L6": _shift(knee, -0.004, 0.025, th, th, forward),  # tuberosidad tibial
+        "L7": _shift(ankle, -0.017, 0.222, th, th, forward),  # articulación transversal del tarso
     }
     return PoseLandmarks(landmarks, ["L3", "L4", "L6", "L7"])
 

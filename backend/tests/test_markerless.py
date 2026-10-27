@@ -52,7 +52,7 @@ def test_tilted_camera_without_vertical_line_biases_angles():
     tilted = rotate_pose(frontal_pose(), 4)
     r = analyze_pose(View.ANTERIOR, tilted, 170, CFG, CAL).result
     assert r.tables[0].rows[0].direction != "Alin."  # los hombros "caen" por el giro de la cámara
-    assert abs(r.tables[0].rows[0].value) == pytest.approx(4, abs=0.1)
+    assert 3 < abs(r.tables[0].rows[0].value) < 5
 
 
 def test_vertical_line_corrects_camera_tilt():
@@ -66,9 +66,10 @@ def test_vertical_line_corrects_camera_tilt():
         assert a[2] == pytest.approx(b[2], abs=0.05)
     assert fixed.scale_ratio == pytest.approx(straight.scale_ratio, rel=1e-6)
     assert abs(fixed.roll_deg) == pytest.approx(4, abs=1e-6)
-    # Los puntos se devuelven donde están en la foto (sin nivelar): F3 es un hombro detectado
-    assert fixed.markers["F3"][0] == pytest.approx(tilted_pose[12].x)
-    assert fixed.markers["F3"][1] == pytest.approx(tilted_pose[12].y)
+    # Los puntos se devuelven donde están en la foto (sin nivelar): F3 queda junto al hombro
+    # derecho detectado (índice 12), desplazado hacia la acromioclavicular
+    shoulder = tilted_pose[12]
+    assert abs(fixed.markers["F3"][0] - shoulder.x) < 50 and abs(fixed.markers["F3"][1] - shoulder.y) < 50
 
 
 def test_vertical_line_order_does_not_matter():
@@ -101,3 +102,14 @@ def test_estimated_calibration_is_plausible():
     cal = estimate_calibration(frontal_pose())
     assert 60 < cal.vertex[1] < 200  # el vértice real está en y=100
     assert cal.floor[1] == pytest.approx(1800)
+
+
+def test_estimated_points_are_near_their_anatomical_place():
+    # Paciente sintético simétrico: los puntos estimados quedan del lado correcto y en orden vertical
+    lm = landmarks_from_pose(View.ANTERIOR, frontal_pose()).landmarks
+    assert lm["F3"][0] < lm["F5"][0] < lm["F4"][0]
+    assert lm["F1"][1] < lm["F2"][1] < lm["F5"][1] < lm["F6"][1] < lm["F9"][1] < lm["F11"][1]
+    assert lm["F7"][1] < 950 and lm["F8"][1] < 950  # EIAS por encima del centro de la cadera (y=950)
+    lm = landmarks_from_pose(View.POSTERIOR, frontal_pose(facing_camera=False)).landmarks
+    assert lm["P1"][1] < lm["P2"][1] < lm["P5"][1]
+    assert lm["P6"][0] < lm["P5"][0]  # EIPS izquierda a la izquierda de la imagen (de espaldas)

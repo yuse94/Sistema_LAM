@@ -86,14 +86,48 @@ posteriores 0.5–1.1 cm. **Varo/valgo del pie (9–12°) y rotación del pie (4
 confiables** con detección automática (ángulos entre puntos muy cercanos): requieren
 ajuste manual.
 
-Estatura según la silueta: +6–7 % en promedio frente a la estatura real (de −0.5 % a
-+20 %). Parte de la diferencia se debe a que R1/R2 están en el suelo junto a la pared,
-detrás del paciente: la escala de los marcadores corresponde a un plano más lejano y
-también infla las medidas en cm del método original. No afecta a los ángulos.
+### Ajuste de los puntos con los datos reales
 
-**Nota sobre L7:** en la primera ejecución L7 se tomaba del tobillo de MediaPipe (maléolo
-externo). HABILITAR confirmó que L7 es la articulación transversal del tarso, donde está el
-marcador en estas fotos; se volvió a estimar en el pie y su posición se ajustará con los datos.
+Con `poses.json` se ajustó, para cada punto, un desplazamiento desde su ancla de MediaPipe
+proporcional al tamaño del cuerpo (ancho de hombros y largo del tronco en las vistas
+frontales; largo del muslo en la lateral). Reglas:
 
-**Siguiente paso:** ajustar las proporciones de los puntos estimados y una corrección de
-los hombros con `poses.json`, validando con "dejar una persona fuera".
+- Los pares bilaterales usan el mismo desplazamiento en espejo (un paciente simétrico sigue
+  saliendo alineado). Corregir solo un lado empeoraba los ángulos de rodillas de 2.6° a 5.4°.
+- Se corrige un punto (o un par) solo si mejora al menos 0.2 cm en validación cruzada.
+- Los puntos de la línea media no tienen desplazamiento horizontal.
+- Validación cruzada dejando una persona fuera (el ajuste nunca ve a la persona evaluada).
+
+| | Antes | Después (validación cruzada) |
+|---|---|---|
+| Error medio de los 33 puntos | 3.7 cm | **1.9 cm** |
+| Hombros (F3/F4/P3/P4/L2) | 4.2–5.5 cm | 1.0–2.6 cm |
+| C7 / T5 | 5.4 / 8.4 cm | 1.9 / 2.8 cm |
+| EIAS frontales / EIPS | 4.8–6.2 cm | 2.2–2.6 cm |
+| L7 (tarso) | 9.3 cm | 1.5 cm |
+| Distancias laterales a la plomada | 4–8 cm | 1–2 cm (dirección coincide 80–100 %) |
+| Ángulo rodilla-pies | 7.8° | 1.3° |
+
+Siguen sin ser fiables en modo automático y requieren ajuste manual: la inclinación
+pélvica lateral (≈6°, por lo tanto la clasificación de la postura), varo/valgo y rotación
+del pie, y los ángulos de pelvis y rodillas frontales (2–3°). Los coeficientes están en
+`backend/app/lam/pose.py`; `backend/validation/ajustar_poses.py` los recalcula cuando haya
+más pacientes con marcadores, y `tests/test_pose_validation.py` (`-m fotos`) evita que el
+error vuelva a subir.
+
+### Escala: la silueta es correcta, la escala de los marcadores no siempre
+
+La estatura según la silueta supera a la real en 6–7 % de media (de −0.5 % a +20 %). Al
+dibujar el vértice y el suelo detectados sobre las fotos, ambos caen en su lugar (parte
+superior de la cabeza y plantas). La diferencia viene de la **escala de los marcadores**:
+R1/R2 están en el suelo junto a la pared, detrás del paciente, y lo que está más lejos de
+la cámara se ve más pequeño. Con el paciente unos 40–50 cm delante de la pared (FR), la
+escala se infla ~20 %; con el paciente pegado a la pared (JE), la diferencia es −0.5 %.
+
+Consecuencias:
+
+1. En el método con marcadores, **las distancias en cm pueden estar infladas hasta un 20 %**
+   según dónde se pare el paciente. Los ángulos no se ven afectados.
+2. Protocolo recomendado para el modo con marcadores: colocar R1 y R2 en el mismo plano que
+   el paciente (a sus costados, como describe el README), no en la pared.
+3. La escala por estatura del modo sin marcadores no tiene este problema.
