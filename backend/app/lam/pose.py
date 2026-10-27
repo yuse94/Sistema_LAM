@@ -2,7 +2,7 @@
 
 MediaPipe Pose Landmarker devuelve 33 puntos (centros articulares y rasgos de la
 cara). Varios puntos de LAM no existen en el modelo (EIAS, EIPS, C7, T5, ombligo,
-manubrio, mentón, entrecejo, tuberosidad tibial); se estiman por proporciones corporales y se marcan
+manubrio, mentón, entrecejo, tuberosidad tibial, tarso); se estiman por proporciones corporales y se marcan
 como "estimados" para que el fisioterapeuta los revise y arrastre.
 
 Decisiones:
@@ -159,7 +159,7 @@ def _visible_side(pose: list[PosePoint], default: str) -> str:
 
 def _lateral(pose: list[PosePoint], forward: int, default_side: str) -> PoseLandmarks:
     """forward = +1 si el paciente mira a la derecha de la imagen, -1 si mira a la izquierda."""
-    ear, shoulder, hip, knee, ankle, _heel, _foot = (_p(pose, i) for i in _SIDES[_visible_side(pose, default_side)])
+    ear, shoulder, hip, knee, ankle, _heel, foot = (_p(pose, i) for i in _SIDES[_visible_side(pose, default_side)])
     thigh = max(_dist(hip, knee), 1.0)
 
     pelvis = _add(hip, dy=-0.22 * thigh)  # centro entre EIAS y EIPS, sobre el trocánter
@@ -171,9 +171,9 @@ def _lateral(pose: list[PosePoint], forward: int, default_side: str) -> PoseLand
         "L4": _add(pelvis, dx=-forward * 0.17 * thigh, dy=-0.06 * thigh),  # EIPS
         "L5": hip,  # trocánter mayor (aprox. centro de la cadera del modelo)
         "L6": _add(_lerp(knee, ankle, 0.12), dx=forward * 0.04 * thigh),  # tuberosidad tibial
-        "L7": ankle,  # maléolo externo: el tobillo de MediaPipe está a su altura
+        "L7": _lerp(ankle, foot, 0.4),  # articulación transversal del tarso, en el pie
     }
-    return PoseLandmarks(landmarks, ["L3", "L4", "L6"])
+    return PoseLandmarks(landmarks, ["L3", "L4", "L6", "L7"])
 
 
 def landmarks_from_pose(view: View, pose: list[PosePoint]) -> PoseLandmarks:

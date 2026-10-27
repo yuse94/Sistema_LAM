@@ -9,7 +9,7 @@ Así el diccionario siempre coincide con lo que calcula el núcleo.
 
 Definiciones y localización redactadas a partir de la Tabla 2.1 de la tesis
 (UPS-CT008207) y anatomía de superficie de referencia, con las precisiones del
-centro HABILITAR (tobillos como línea media frontal, T5 y maléolo externo en L7).
+centro HABILITAR (tobillos como línea media frontal, T5 y L7 en la articulación del tarso).
 """
 from __future__ import annotations
 
@@ -37,15 +37,15 @@ FIGURE_POSITIONS: dict[str, dict[str, tuple[float, float]]] = {
     },
     "lateral": {
         "L1": (48, 18), "L2": (50, 38), "L3": (59, 86), "L4": (41, 83), "L5": (50, 92), "L6": (54, 134),
-        "L7": (53, 179),
+        "L7": (57, 187),
     },
 }
 
 # Postura lateral "ideal": todo sobre la plomada (vertical de L7). Sirve como segunda
 # referencia para detectar de qué puntos depende la clasificación de la postura, que en
 # la silueta de referencia queda enmascarada por la cabeza adelantada.
-_ALIGNED_LATERAL = {**FIGURE_POSITIONS["lateral"], "L1": (53, 18), "L2": (53, 38), "L3": (62, 86),
-                    "L4": (44, 83), "L5": (53, 92), "L6": (53, 134)}
+_ALIGNED_LATERAL = {**FIGURE_POSITIONS["lateral"], "L1": (57, 18), "L2": (57, 38), "L3": (66, 86),
+                    "L4": (48, 83), "L5": (57, 92), "L6": (57, 134)}
 
 FIGURE_OF_VIEW = {
     View.ANTERIOR: "anterior",
@@ -162,12 +162,12 @@ _TEXTS: dict[str, _Text] = {
     "L6": _Text("Tuberosidad tibial", "Miembro inferior",
                 "Prominencia anterior de la tibia donde se inserta el tendón rotuliano.",
                 "Unos centímetros por debajo del borde inferior de la rótula, en la línea media de la pierna."),
-    "L7": _Text("Maléolo externo", "Pie",
-                "Extremo distal del peroné, en la cara lateral del tobillo. Es la base de la línea de "
-                "plomada de la vista lateral: todas las distancias se miden respecto a su vertical. "
-                "La tesis lo nombraba \"articulación transversal del tarso\"; el centro HABILITAR lo "
-                "ubica sobre el maléolo externo.",
-                "Prominencia ósea redondeada en la cara externa del tobillo; marque su punto más saliente."),
+    "L7": _Text("Articulación transversal del tarso (de Chopart)", "Pie",
+                "Línea articular entre el astrágalo y el calcáneo, por detrás, y el escafoides y el cuboides, "
+                "por delante. Es la base de la línea de plomada de la vista lateral: todas las distancias "
+                "se miden respecto a su vertical.",
+                "En la cara lateral del pie, por delante y por debajo del maléolo externo, sobre la "
+                "articulación entre el calcáneo y el cuboides."),
 }
 
 _SIDES = {

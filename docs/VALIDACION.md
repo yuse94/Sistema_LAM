@@ -76,7 +76,7 @@ Resultados en `validation/resultados/` (excluido de git): `resumen.md`, `puntos.
 | Entrecejo, mentón, ombligo (estimados) | 1–2 cm | Bueno |
 | Hombros F3/F4/P3/P4/L2 (MediaPipe) | 4–5.5 cm | Sesgo fijo: MediaPipe marca el centro articular, ~4 cm más abajo y medial que la acromioclavicular |
 | Horquilla, C7, T5, EIPS, EIAS (estimados) | 4–8 cm | Sesgo fijo hacia abajo (+4 a +8 cm) |
-| L7 | 8.8 cm | El marcador de estas fotos está ~8.7 cm más abajo que el tobillo de MediaPipe (ver nota) |
+| L7 | 8.8 cm | Se tomaba del tobillo de MediaPipe; el marcador (tarso) está ~8.7 cm más abajo (ver nota) |
 
 En casi todos los puntos con error alto el sesgo es casi igual al error medio: el error
 es sistemático y se puede corregir ajustando las proporciones.
@@ -91,9 +91,9 @@ Estatura según la silueta: +6–7 % en promedio frente a la estatura real (de �
 detrás del paciente: la escala de los marcadores corresponde a un plano más lejano y
 también infla las medidas en cm del método original. No afecta a los ángulos.
 
-**Nota sobre L7:** en estas fotos el marcador L7 parece estar colocado según el protocolo
-de la tesis (articulación transversal del tarso) y no en el maléolo externo, por lo que su
-error no es representativo de la nueva definición.
+**Nota sobre L7:** en la primera ejecución L7 se tomaba del tobillo de MediaPipe (maléolo
+externo). HABILITAR confirmó que L7 es la articulación transversal del tarso, donde está el
+marcador en estas fotos; se volvió a estimar en el pie y su posición se ajustará con los datos.
 
 **Siguiente paso:** ajustar las proporciones de los puntos estimados y una corrección de
 los hombros con `poses.json`, validando con "dejar una persona fuera".

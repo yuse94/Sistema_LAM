@@ -96,9 +96,9 @@ análisis y recálculo, editor de puntos arrastrables, pacientes básicos.
   HABILITAR:
   - F11/F12 (tobillos): su punto medio define la línea media del plano frontal.
   - P2: apófisis espinosa de la quinta vértebra dorsal (T5).
-  - **L7 se ubica en el maléolo externo** (la tesis lo nombraba "articulación transversal
-    del tarso"). En el modo sin marcadores ahora corresponde al tobillo de MediaPipe y
-    ya no es un punto estimado.
+  - L7: articulación transversal del tarso, como en la tesis (confirmado por HABILITAR;
+    es donde está el marcador en las fotos de validación). En el modo sin marcadores se
+    estima en el pie a partir del tobillo y la punta del pie de MediaPipe.
 
 **Fase 3 — validación (en curso, ver `docs/VALIDACION.md`):**
 - Hecho: detector de marcadores con umbral automático (40 de 40 fotos), pruebas con las
