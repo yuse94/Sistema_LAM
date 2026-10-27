@@ -94,7 +94,7 @@ def test_lateral_pose_normal_pelvis_and_left_mirrors_right():
     for a, b in zip(_rows(left.result), _rows(right.result)):
         assert a[:2] == b[:2]
         assert a[2] == pytest.approx(b[2], abs=0.05)
-    assert set(right.estimated) == {"L3", "L4", "L6", "L7"}
+    assert set(right.estimated) == {"L3", "L4", "L6"}  # L7 (maléolo externo) lo detecta MediaPipe
 
 
 def test_estimated_calibration_is_plausible():

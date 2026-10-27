@@ -8,8 +8,8 @@ postura de referencia y viendo qué filas de las tablas y del diagnóstico cambi
 Así el diccionario siempre coincide con lo que calcula el núcleo.
 
 Definiciones y localización redactadas a partir de la Tabla 2.1 de la tesis
-(UPS-CT008207) y anatomía de superficie de referencia. Deben ser revisadas por el
-fisioterapeuta responsable antes del uso clínico.
+(UPS-CT008207) y anatomía de superficie de referencia, con las precisiones del
+centro HABILITAR (tobillos como línea media frontal, T5 y maléolo externo en L7).
 """
 from __future__ import annotations
 
@@ -37,15 +37,15 @@ FIGURE_POSITIONS: dict[str, dict[str, tuple[float, float]]] = {
     },
     "lateral": {
         "L1": (48, 18), "L2": (50, 38), "L3": (41, 83), "L4": (59, 86), "L5": (50, 92), "L6": (54, 134),
-        "L7": (57, 187),
+        "L7": (53, 179),
     },
 }
 
 # Postura lateral "ideal": todo sobre la plomada (vertical de L7). Sirve como segunda
 # referencia para detectar de qué puntos depende la clasificación de la postura, que en
 # la silueta de referencia queda enmascarada por la cabeza adelantada.
-_ALIGNED_LATERAL = {**FIGURE_POSITIONS["lateral"], "L1": (57, 18), "L2": (57, 38), "L3": (48, 83),
-                    "L4": (66, 86), "L5": (57, 92), "L6": (57, 134)}
+_ALIGNED_LATERAL = {**FIGURE_POSITIONS["lateral"], "L1": (53, 18), "L2": (53, 38), "L3": (44, 83),
+                    "L4": (62, 86), "L5": (53, 92), "L6": (53, 134)}
 
 FIGURE_OF_VIEW = {
     View.ANTERIOR: "anterior",
@@ -107,10 +107,14 @@ _TEXTS: dict[str, _Text] = {
                  "Centro de la cara anterior de la rótula.",
                  "Con la rodilla extendida y el cuádriceps relajado, ubique el centro de la rótula."),
     "F11": _Text("Tobillo", "Pie",
-                 "Punto medio de la cara anterior del tobillo, entre los maléolos interno y externo.",
+                 "Punto medio de la cara anterior del tobillo, entre los maléolos interno y externo. "
+                 "El centro entre ambos tobillos define la línea media del plano frontal: la vertical "
+                 "desde la que se miden todas las distancias de la vista anterior.",
                  "Punto medio de la línea que une ambos maléolos, por delante de la articulación."),
     "F12": _Text("Tobillo", "Pie",
-                 "Punto medio de la cara anterior del tobillo, entre los maléolos interno y externo.",
+                 "Punto medio de la cara anterior del tobillo, entre los maléolos interno y externo. "
+                 "El centro entre ambos tobillos define la línea media del plano frontal: la vertical "
+                 "desde la que se miden todas las distancias de la vista anterior.",
                  "Punto medio de la línea que une ambos maléolos, por delante de la articulación."),
     "F13": _Text("Dedo gordo del pie", "Pie",
                  "Extremo distal del primer dedo del pie (hallux).",
@@ -122,8 +126,8 @@ _TEXTS: dict[str, _Text] = {
                 "Apófisis espinosa de la séptima vértebra cervical, la más saliente en la base del cuello.",
                 "Pida al paciente flexionar ligeramente el cuello: C7 sigue palpable mientras que C6 "
                 "tiende a desplazarse hacia adelante."),
-    "P2": _Text("Apófisis espinosa de T5", "Hombros y tronco",
-                "Apófisis espinosa de la quinta vértebra dorsal.",
+    "P2": _Text("Apófisis espinosa de la 5ta vértebra dorsal (T5)", "Hombros y tronco",
+                "Apófisis espinosa de la quinta vértebra dorsal (torácica).",
                 "Cuente las apófisis espinosas hacia abajo desde C7 (T1, T2, T3…). Queda entre la altura "
                 "de la espina y la del ángulo inferior de la escápula."),
     "P3": _AC, "P4": _AC,
@@ -158,11 +162,12 @@ _TEXTS: dict[str, _Text] = {
     "L6": _Text("Tuberosidad tibial", "Miembro inferior",
                 "Prominencia anterior de la tibia donde se inserta el tendón rotuliano.",
                 "Unos centímetros por debajo del borde inferior de la rótula, en la línea media de la pierna."),
-    "L7": _Text("Articulación transversal del tarso (de Chopart)", "Pie",
-                "Línea articular entre el astrágalo y el calcáneo, por detrás, y el escafoides y el cuboides, "
-                "por delante.",
-                "En el dorso del pie, por delante del tobillo; por el lado interno queda justo detrás de "
-                "la tuberosidad del escafoides."),
+    "L7": _Text("Maléolo externo", "Pie",
+                "Extremo distal del peroné, en la cara lateral del tobillo. Es la base de la línea de "
+                "plomada de la vista lateral: todas las distancias se miden respecto a su vertical. "
+                "La tesis lo nombraba \"articulación transversal del tarso\"; el centro HABILITAR lo "
+                "ubica sobre el maléolo externo.",
+                "Prominencia ósea redondeada en la cara externa del tobillo; marque su punto más saliente."),
 }
 
 _SIDES = {

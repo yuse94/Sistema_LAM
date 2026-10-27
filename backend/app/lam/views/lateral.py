@@ -15,7 +15,7 @@ from .base import center, require, sort_by_x, table
 EXPECTED_MARKERS = 7
 LABELS = {
     "L1": "Oído", "L2": "Acromioclavicular", "L3": "EIPS", "L4": "EIAS",
-    "L5": "Trocánter mayor", "L6": "Tuberosidad tibial", "L7": "Articulación transversal del tarso",
+    "L5": "Trocánter mayor", "L6": "Tuberosidad tibial", "L7": "Maléolo externo",
 }
 
 

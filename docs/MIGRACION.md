@@ -92,9 +92,13 @@ análisis y recálculo, editor de puntos arrastrables, pacientes básicos.
   cambian. Si cambia una fórmula, el diccionario se actualiza solo.
 - En la interfaz: página "Puntos" (silueta navegable, buscador sin tildes y ficha) y,
   en el editor, la ficha del punto que se toca en la foto.
-- **Pendiente:** las definiciones y las indicaciones de palpación se redactaron a partir
-  de la Tabla 2.1 de la tesis, que solo nombra los puntos. Deben ser revisadas por el
-  fisioterapeuta responsable (por ejemplo, la ubicación exacta de "Tobillo" F11/F12).
+- Definiciones redactadas a partir de la Tabla 2.1 de la tesis, con precisiones del centro
+  HABILITAR:
+  - F11/F12 (tobillos): su punto medio define la línea media del plano frontal.
+  - P2: apófisis espinosa de la quinta vértebra dorsal (T5).
+  - **L7 se ubica en el maléolo externo** (la tesis lo nombraba "articulación transversal
+    del tarso"). En el modo sin marcadores ahora corresponde al tobillo de MediaPipe y
+    ya no es un punto estimado.
 
 **Fase 3 — validación:** fotos de la tesis y nuevas fotos con marcadores; comparar el modo
 sin marcadores contra el detector de marcadores (error, ICC, Bland-Altman). Pruebas de

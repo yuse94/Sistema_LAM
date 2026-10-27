@@ -1,4 +1,5 @@
-import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
+// Solo tipos: la librería (~400 kB) se descarga al analizar la primera foto, no al abrir la app.
+import type { PoseLandmarker } from "@mediapipe/tasks-vision";
 import type { Calibration, Point, PosePoint } from "./types";
 
 // Modelo "full": buen equilibrio entre precisión y velocidad. El estudio de 2026 en
@@ -10,6 +11,7 @@ const WASM_PATH = "/mediapipe/wasm"; // copiado por scripts/copy-mediapipe.mjs
 let landmarkerPromise: Promise<PoseLandmarker> | null = null;
 
 async function create(delegate: "GPU" | "CPU") {
+  const { FilesetResolver, PoseLandmarker } = await import("@mediapipe/tasks-vision");
   const vision = await FilesetResolver.forVisionTasks(WASM_PATH);
   return PoseLandmarker.createFromOptions(vision, {
     baseOptions: { modelAssetPath: MODEL_URL, delegate },
