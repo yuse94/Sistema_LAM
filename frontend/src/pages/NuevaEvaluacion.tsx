@@ -2,24 +2,23 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, RefreshCw, Ruler, Save, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import LandmarkEditor, { type EditorState } from "@/components/LandmarkEditor";
+import LandmarkEditor, { STAGE_HEIGHT, type EditorState } from "@/components/LandmarkEditor";
 import PatientPicker from "@/components/PatientPicker";
 import PointCard from "@/components/PointCard";
 import PointLegend from "@/components/PointLegend";
-import ResultTables, { Direction } from "@/components/ResultTables";
+import ViewResults from "@/components/ViewResults";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { api, isMarkerError, type EvaluateRequest } from "@/lib/api";
 import { loadConfig } from "@/lib/config";
-import { diagnosticLabel, VIEW_SHORT } from "@/lib/labels";
+import { VIEW_SHORT } from "@/lib/labels";
+import { standardizePhoto } from "@/lib/photo";
 import { detectPose } from "@/lib/pose";
 import { cn } from "@/lib/utils";
 import {
@@ -238,14 +237,6 @@ interface PanelData {
   estimated: string[];
 }
 
-async function loadImage(file: File) {
-  const url = URL.createObjectURL(file);
-  const img = new Image();
-  img.src = url;
-  await img.decode();
-  return { url, img };
-}
-
 function ViewPanel({ view, mode, heightCm, labels, pointsById, onStatus, onData }: {
   view: View;
   mode: DetectionMode;
@@ -285,12 +276,12 @@ function ViewPanel({ view, mode, heightCm, labels, pointsById, onStatus, onData 
           editor: { markers: result.markers, calibration: null, verticalLine: null }, estimated: [],
         };
       }
-      const { url, img } = await loadImage(file);
+      const { url, img, blob, width, height } = await standardizePhoto(file);
       try {
         const detection = await detectPose(img);
         const result = await api.pose(view, { pose: detection.pose, height_cm: heightCm, calibration: detection.calibration, config });
         return {
-          image: url, file, width: img.naturalWidth, height: img.naturalHeight, result,
+          image: url, file: blob, width, height, result,
           editor: { markers: result.markers, calibration: result.calibration, verticalLine: null },
           estimated: result.estimated_points,
         };
@@ -351,7 +342,7 @@ function ViewPanel({ view, mode, heightCm, labels, pointsById, onStatus, onData 
               onChange={(editor, movedId) => update(editor, movedId)}
               selected={selectedPoint} onSelect={setSelectedPoint} />
           ) : (
-            <div className="flex aspect-[3/4] max-h-[70vh] w-full flex-col items-center justify-center gap-4 px-6 text-center sm:aspect-[4/3]">
+            <div className={cn("flex w-full flex-col items-center justify-center gap-4 px-6 text-center", STAGE_HEIGHT)}>
               <svg viewBox="0 0 20 32" className="h-12 w-auto text-white/25" aria-hidden="true">
                 <line x1="10" y1="1" x2="10" y2="19" stroke="currentColor" strokeWidth="1.2" />
                 <path d="M10 18 C6 22 5.5 25 7 27.5 C8 29.5 12 29.5 13 27.5 C14.5 25 14 22 10 18 Z" fill="currentColor" />
@@ -417,50 +408,8 @@ function ViewPanel({ view, mode, heightCm, labels, pointsById, onStatus, onData 
             Los resultados de la {VIEW_LABELS[view].toLowerCase()} aparecerán aquí al cargar la fotografía.
           </p>
         ) : (
-          <>
-            <div className="space-y-2">
-              <h3 className="text-lg font-bold tracking-tight">Resultados</h3>
-              <div className="flex flex-wrap gap-2 text-xs">
-                {data!.estimated.length > 0 ? (
-                  <Badge variant="outline" className="border-point-estimated/60 bg-point-estimated/10 text-amber-900">
-                    Por revisar: {data!.estimated.join(", ")}
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-muted-foreground">
-                    {edited ? "Puntos ajustados manualmente" : "Puntos detectados automáticamente"}
-                  </Badge>
-                )}
-                <Badge variant="outline" className="text-muted-foreground tabular-nums">
-                  Escala {r.scale_ratio.toFixed(4)} cm/px
-                </Badge>
-                {r.threshold_used != null && (
-                  <Badge variant="outline" className="text-muted-foreground tabular-nums">
-                    Umbral del filtro {r.threshold_used.toFixed(2)}
-                  </Badge>
-                )}
-                {r.roll_deg !== 0 && (
-                  <Badge variant="outline" className="border-vertical-line/60 text-muted-foreground tabular-nums">
-                    Nivelada {r.roll_deg.toFixed(1)}°
-                  </Badge>
-                )}
-              </div>
-            </div>
-
-            <dl className="grid grid-cols-[auto_1fr] items-center gap-x-6 gap-y-2 text-sm">
-              {Object.entries(r.diagnostic).map(([k, v]) => (
-                <div key={k} className="contents">
-                  <dt className="text-muted-foreground">{diagnosticLabel(k)}</dt>
-                  <dd>
-                    {typeof v === "number" ? <span className="tabular-nums">{v.toFixed(2)}°</span>
-                      : v && v.length <= 9 ? <Direction value={v} /> : <span className="font-medium">{v}</span>}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-
-            <Separator />
-            <ResultTables tables={r.tables} />
-          </>
+          <ViewResults result={r} estimated={data!.estimated}
+            note={edited ? "Puntos ajustados manualmente" : "Puntos detectados automáticamente"} />
         )}
       </section>
     </div>

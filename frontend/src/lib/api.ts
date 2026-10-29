@@ -3,6 +3,7 @@ import type {
   Calibration,
   Evaluation,
   EvaluationCreate,
+  EvaluationUpdate,
   EvaluationSummary,
   History,
   MarkerCountError,
@@ -113,6 +114,10 @@ export const api = {
     images.forEach((img, i) => form.append("images", img, `${data.views[i].view}.jpg`));
     return request<Evaluation>("/api/evaluations", { method: "POST", body: form });
   },
+
+  /** Corrige una evaluación guardada (puntos, estatura u observaciones); el servidor vuelve a evaluar. */
+  updateEvaluation: (id: number, data: EvaluationUpdate) =>
+    request<Evaluation>(`/api/evaluations/${id}`, { ...json(data), method: "PUT" }),
 
   evaluations: (patientId: number) => request<EvaluationSummary[]>(`/api/evaluations?patient_id=${patientId}`),
 

@@ -49,6 +49,29 @@ class EvaluationCreate(BaseModel):
         return self
 
 
+class ViewUpdate(BaseModel):
+    """Puntos corregidos de una vista guardada (la foto y la escala R1-R2 ya están en el servidor)."""
+
+    view: View
+    landmarks: dict[str, Point]
+    calibration: CalibrationIn | None = None
+    vertical_line: VerticalLine | None = None
+    estimated_points: list[str] = Field(default_factory=list)
+
+
+class EvaluationUpdate(BaseModel):
+    height_cm: float | None = Field(None, ge=50, le=250, description="Solo modo sin marcadores")
+    notes: str | None = Field(None, max_length=4000)
+    views: list[ViewUpdate] = Field(default_factory=list, max_length=4)
+
+    @model_validator(mode="after")
+    def check(self):
+        names = [v.view for v in self.views]
+        if len(set(names)) != len(names):
+            raise ValueError("Cada vista puede enviarse una sola vez")
+        return self
+
+
 class ViewAnalysisOut(BaseModel):
     view: View
     image_url: str

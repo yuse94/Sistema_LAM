@@ -175,3 +175,9 @@ export interface History {
   }[];
   diagnostic: { key: string; label: string; values: (string | null)[] }[];
 }
+
+export interface EvaluationUpdate {
+  height_cm?: number | null;
+  notes?: string | null;
+  views: Omit<ViewSubmission, "scale_ratio">[];
+}

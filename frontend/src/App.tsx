@@ -1,6 +1,7 @@
 import { NavLink, Route, Routes } from "react-router";
 import { cn } from "@/lib/utils";
 import Configuracion from "@/pages/Configuracion";
+import EditarEvaluacion from "@/pages/EditarEvaluacion";
 import EvaluacionDetalle from "@/pages/EvaluacionDetalle";
 import NuevaEvaluacion from "@/pages/NuevaEvaluacion";
 import PacienteDetalle from "@/pages/PacienteDetalle";
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="/pacientes" element={<Pacientes />} />
           <Route path="/pacientes/:id" element={<PacienteDetalle />} />
           <Route path="/evaluaciones/:id" element={<EvaluacionDetalle />} />
+          <Route path="/evaluaciones/:id/editar" element={<EditarEvaluacion />} />
           <Route path="/configuracion" element={<Configuracion />} />
         </Routes>
       </main>

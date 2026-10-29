@@ -26,7 +26,7 @@ from app.lam.catalog import view_shape
 from app.lam.overlay import render_overlay
 from app.schemas.assessment import AssessmentConfigIn, CalibrationIn, Point, ResultTableOut, vertical_line_tuple
 from app.schemas.common import as_utc
-from app.schemas.evaluation import EvaluationCreate, EvaluationOut, EvaluationSummary, ViewAnalysisOut, ViewSubmission
+from app.schemas.evaluation import EvaluationCreate, EvaluationOut, EvaluationSummary, EvaluationUpdate, ViewAnalysisOut
 from app.schemas.patient import PatientOut
 from app.services import images, storage
 from app.services.excel_export import ExcelRow, SheetLayout, TableLayout, build_workbook
@@ -92,33 +92,52 @@ def _local(d: datetime) -> datetime:
 
 # --- Guardar --------------------------------------------------------------------------------
 
-def _process(sub: ViewSubmission, raw: bytes, payload: EvaluationCreate) -> dict:
-    """Vuelve a evaluar una vista con los puntos del editor y prepara los archivos."""
-    image = images.decode(raw)
-    h, w = image.shape[:2]
-    line = vertical_line_tuple(sub.vertical_line)
-    if payload.mode == "pose":
-        cal = sub.calibration.to_domain()
-        scale = height_scale(payload.height_cm, cal.vertex, cal.floor, line)
+def _evaluate_view(view: View, image, landmarks: dict, *, mode: str, height_cm: float | None,
+                   calibration: CalibrationIn | None, vertical_line, scale_ratio: float | None,
+                   config: AssessmentConfigIn, estimated: list[str]) -> dict:
+    """Evalúa una vista con los puntos del editor y dibuja el overlay."""
+    line = vertical_line_tuple(vertical_line)
+    if mode == "pose":
+        if calibration is None or height_cm is None:
+            raise ValueError("el modo sin marcadores requiere la estatura y la calibración")
+        cal = calibration.to_domain()
+        scale = height_scale(height_cm, cal.vertex, cal.floor, line)
     else:
-        scale = sub.scale_ratio
-    landmarks = {k: p.as_tuple() for k, p in sub.landmarks.items()}
-    result = evaluate_landmarks(sub.view, landmarks, scale, payload.config.to_domain(), image=image,
-                                vertical_line=line)
-    estimated = [p for p in sub.estimated_points if p in result.markers]
-    return {
-        "result": result, "estimated": estimated, "width": w, "height": h,
-        "image_jpeg": images.encode_jpeg(image), "overlay_jpeg": render_overlay(result, estimated=estimated),
-    }
+        scale = scale_ratio
+    result = evaluate_landmarks(view, {k: p.as_tuple() for k, p in landmarks.items()}, scale, config.to_domain(),
+                                image=image, vertical_line=line)
+    pending = [p for p in estimated if p in result.markers]
+    return {"result": result, "estimated": pending, "overlay_jpeg": render_overlay(result, estimated=pending),
+            "calibration": calibration, "vertical_line": vertical_line}
+
+
+def _fill(v: ViewAnalysis, ev: dict) -> None:
+    """Copia a la fila los puntos y resultados de una evaluación de vista."""
+    r, cal, line = ev["result"], ev["calibration"], ev["vertical_line"]
+    v.markers = {k: list(p) for k, p in r.markers.items()}
+    v.derived_points = {k: list(p) for k, p in r.derived_points.items()}
+    v.calibration = {"vertex": list(cal.vertex.as_tuple()), "floor": list(cal.floor.as_tuple())} if cal else None
+    v.vertical_line = [list(p.as_tuple()) for p in line] if line else None
+    v.scale_ratio, v.roll_deg = r.scale_ratio, r.roll_deg
+    v.grid_origin, v.grid_step_px = list(r.grid_origin), r.grid_step_px
+    v.estimated_points, v.diagnostic = ev["estimated"], r.diagnostic
+    v.tables = [{"key": t.key, "title": t.title, "columns": list(t.columns), "rows": [vars(row) for row in t.rows]}
+                for t in r.tables]
 
 
 def _process_all(payload: EvaluationCreate, raws: list[bytes]) -> list[dict]:
     out = []
     for sub, raw in zip(payload.views, raws):
         try:
-            out.append(_process(sub, raw, payload))
+            image = images.decode(raw)
+            ev = _evaluate_view(sub.view, image, sub.landmarks, mode=payload.mode, height_cm=payload.height_cm,
+                                calibration=sub.calibration, vertical_line=sub.vertical_line,
+                                scale_ratio=sub.scale_ratio, config=payload.config,
+                                estimated=sub.estimated_points)
         except ValueError as err:  # imagen inválida, faltan puntos, escala imposible...
             raise HTTPException(422, f"{sub.view.value}: {err}") from err
+        ev.update(image_jpeg=images.encode_jpeg(image), width=image.shape[1], height=image.shape[0])
+        out.append(ev)
     return out
 
 
@@ -158,24 +177,16 @@ async def create_evaluation(data: str = Form(..., description="EvaluationCreate 
     folder = storage.evaluation_folder(evaluation.id)
     storage.remove_evaluation(evaluation.id)  # restos de un intento fallido con el mismo id
     try:
-        for sub, pr in sorted(zip(payload.views, processed), key=lambda x: VIEW_ORDER[x[0].view]):
-            r = pr["result"]
+        for sub, ev in sorted(zip(payload.views, processed), key=lambda x: VIEW_ORDER[x[0].view]):
             name = sub.view.value
-            evaluation.views.append(ViewAnalysis(
+            v = ViewAnalysis(
                 view=name,
-                image_path=storage.write(folder / f"{name}.jpg", pr["image_jpeg"]),
-                overlay_path=storage.write(folder / f"{name}_overlay.jpg", pr["overlay_jpeg"]),
-                image_width=pr["width"], image_height=pr["height"],
-                markers={k: list(p) for k, p in r.markers.items()},
-                derived_points={k: list(p) for k, p in r.derived_points.items()},
-                calibration=({"vertex": list(sub.calibration.vertex.as_tuple()),
-                              "floor": list(sub.calibration.floor.as_tuple())} if sub.calibration else None),
-                vertical_line=[list(p.as_tuple()) for p in sub.vertical_line] if sub.vertical_line else None,
-                scale_ratio=r.scale_ratio, roll_deg=r.roll_deg, grid_origin=list(r.grid_origin),
-                grid_step_px=r.grid_step_px, estimated_points=pr["estimated"], diagnostic=r.diagnostic,
-                tables=[{"key": t.key, "title": t.title, "columns": list(t.columns),
-                         "rows": [vars(row) for row in t.rows]} for t in r.tables],
-            ))
+                image_path=storage.write(folder / f"{name}.jpg", ev["image_jpeg"]),
+                overlay_path=storage.write(folder / f"{name}_overlay.jpg", ev["overlay_jpeg"]),
+                image_width=ev["width"], image_height=ev["height"],
+            )
+            _fill(v, ev)
+            evaluation.views.append(v)
         if payload.mode == "pose" and payload.height_cm:
             patient.height_cm = payload.height_cm  # la estatura más reciente queda en la ficha
         db.commit()
@@ -184,6 +195,62 @@ async def create_evaluation(data: str = Form(..., description="EvaluationCreate 
         storage.remove_evaluation(evaluation.id)
         raise
     return _out(_get(db, evaluation.id))
+
+
+def _stored_calibration(v: ViewAnalysis) -> CalibrationIn | None:
+    c = v.calibration
+    return CalibrationIn(vertex=_pt(c["vertex"]), floor=_pt(c["floor"])) if c else None
+
+
+def _reevaluate(e: Evaluation, data: EvaluationUpdate) -> dict[str, dict]:
+    by_view = {v.view: v for v in e.views}
+    updates = {u.view.value: u for u in data.views}
+    missing = [name for name in updates if name not in by_view]
+    if missing:
+        raise HTTPException(422, f"La evaluación no tiene la vista: {', '.join(missing)}")
+    height = data.height_cm if e.mode == "pose" and data.height_cm else e.height_cm
+    # Con otra estatura cambia la escala de todas las vistas del modo sin marcadores
+    targets = list(by_view) if e.mode == "pose" and height != e.height_cm else list(updates)
+    config = AssessmentConfigIn(**e.config)
+    out = {}
+    for name in targets:
+        v, u = by_view[name], updates.get(name)
+        if u:
+            landmarks, cal, line, estimated = u.landmarks, u.calibration, u.vertical_line, u.estimated_points
+        else:
+            landmarks = {k: _pt(p) for k, p in v.markers.items()}
+            cal = _stored_calibration(v)
+            line = (_pt(v.vertical_line[0]), _pt(v.vertical_line[1])) if v.vertical_line else None
+            estimated = v.estimated_points or []
+        try:
+            image = images.decode(storage.read(v.image_path))
+            out[name] = _evaluate_view(View(name), image, landmarks, mode=e.mode, height_cm=height, calibration=cal,
+                                       vertical_line=line, scale_ratio=v.scale_ratio, config=config,
+                                       estimated=estimated)
+        except (ValueError, OSError) as err:
+            raise HTTPException(422, f"{name}: {err}") from err
+    return out
+
+
+@router.put("/{evaluation_id}", response_model=EvaluationOut)
+def update_evaluation(evaluation_id: int, data: EvaluationUpdate, db: Session = Depends(get_db)):
+    """Corrige una evaluación guardada: puntos de una o más vistas, estatura u observaciones.
+
+    Se vuelve a evaluar con la foto guardada, la configuración y, con marcadores, la
+    escala R1-R2 de la evaluación original. El reporte PDF y el Excel reflejan el cambio.
+    """
+    e = _get(db, evaluation_id)
+    results = _reevaluate(e, data)
+    for v in e.views:
+        if v.view in results:
+            storage.write(v.overlay_path, results[v.view]["overlay_jpeg"])
+            _fill(v, results[v.view])
+    if e.mode == "pose" and data.height_cm:
+        e.height_cm = data.height_cm
+    if "notes" in data.model_fields_set:
+        e.notes = (data.notes or "").strip() or None
+    db.commit()
+    return _out(_get(db, evaluation_id))
 
 
 # --- Consultar ------------------------------------------------------------------------------
@@ -246,7 +313,10 @@ def delete_evaluation(evaluation_id: int, db: Session = Depends(get_db)):
 
 @router.get("/{evaluation_id}/views/{view}/{kind}", response_class=FileResponse)
 def view_file(evaluation_id: int, view: View, kind: Literal["image", "overlay"], db: Session = Depends(get_db)):
-    """Foto original (orientada) u overlay con puntos y cuadrícula."""
+    """Foto original (orientada) u overlay con puntos y cuadrícula.
+
+    no-cache: el navegador revalida (ETag) porque el overlay cambia al corregir puntos.
+    """
     v = db.scalar(select(ViewAnalysis).where(ViewAnalysis.evaluation_id == evaluation_id,
                                              ViewAnalysis.view == view.value))
     if not v:
@@ -254,7 +324,7 @@ def view_file(evaluation_id: int, view: View, kind: Literal["image", "overlay"],
     path = storage.path_of(v.image_path if kind == "image" else v.overlay_path)
     if not path.is_file():
         raise HTTPException(404, "Archivo no encontrado")
-    return FileResponse(path, media_type="image/jpeg", headers={"Cache-Control": "private, max-age=86400"})
+    return FileResponse(path, media_type="image/jpeg", headers={"Cache-Control": "private, no-cache"})
 
 
 def _content_disposition(filename: str, download: bool) -> str:

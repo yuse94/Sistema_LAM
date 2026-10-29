@@ -127,8 +127,16 @@ análisis y recálculo, editor de puntos arrastrables, pacientes básicos.
   columnas «Cabeza inclinada» y «Rodilla derecha/izquierda».
 - Hecho: ficha del paciente con su historial, comparación de mediciones en el tiempo
   (`GET /api/patients/{id}/history?view=`) y eliminación del paciente con sus fotografías.
-- Pendiente: reabrir una evaluación guardada en el editor para corregir puntos, usuarios y
-  roles por centro, despliegue, migraciones con Alembic y protección de datos (LOPDP).
+- Hecho: reabrir una evaluación guardada para corregir puntos, estatura u observaciones
+  (`PUT /api/evaluations/{id}`). Se re-evalúa con la foto guardada, las tolerancias
+  originales y, con marcadores, la escala R1-R2 original; se regeneran el overlay y el PDF.
+- Hecho: editor con zoom (rueda, pellizco o botones), desplazamiento, lupa ×3 con mira al
+  mover un punto, ajuste fino con flechas, brillo y contraste, y opción de ocultar la cuadrícula
+  y los nombres. Los puntos tienen el mismo tamaño en pantalla con cualquier resolución.
+- Hecho: tamaño estándar de foto en el modo sin marcadores (1600 px en el lado largo, se
+  reduce en el navegador) y visor de altura fija para todas las vistas.
+- Pendiente: usuarios y roles por centro (con registro de quién corrigió una evaluación),
+  despliegue, migraciones con Alembic y protección de datos (LOPDP).
 
 **Fase 5 — modelo propio:** reentrenar un modelo de pose con los puntos corregidos por los
 fisioterapeutas para detectar EIAS, EIPS, C7 y T5 automáticamente.

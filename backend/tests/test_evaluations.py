@@ -159,3 +159,54 @@ def test_delete_evaluation_and_patient_remove_files():
         assert c.get(f"/api/patients/{pid}").status_code == 404
         assert c.get(f"/api/evaluations/{e2['id']}").status_code == 404
         assert not (storage / "evaluaciones" / str(e2["id"])).exists()
+
+
+def test_correct_saved_evaluation_points_and_notes():
+    with TestClient(app) as c:
+        pid = _patient(c, "Corregir Puntos")
+        ant, img = _analyze(c, "anterior", ANTERIOR)
+        lat, lat_img = _analyze(c, "lateral_derecha", LATERAL)
+        ev = _save(c, {"patient_id": pid, "mode": "markers", "views": [ant, lat]}, [img, lat_img]).json()
+        res = ev["results"][0]
+        overlay_before = c.get(res["overlay_url"]).content
+        lateral_before = ev["results"][1]["tables"]
+
+        landmarks = res["markers"]
+        landmarks["F4"]["y"] += 30
+        r = c.put(f"/api/evaluations/{ev['id']}", json={
+            "notes": "Corregido F4", "views": [{"view": "anterior", "landmarks": landmarks}]})
+        assert r.status_code == 200, r.text
+        fixed = r.json()
+        assert fixed["notes"] == "Corregido F4"
+        assert fixed["results"][0]["tables"][0]["rows"][0]["direction"] == "Izq."
+        assert fixed["results"][0]["scale_ratio"] == res["scale_ratio"]  # se conserva la escala R1-R2
+        assert fixed["results"][1]["tables"] == lateral_before  # la vista no enviada no cambia
+        assert fixed["created_at"] == ev["created_at"]
+        assert c.get(res["overlay_url"]).content != overlay_before  # overlay regenerado
+        assert c.get(ev["report_url"]).status_code == 200
+
+        assert c.put(f"/api/evaluations/{ev['id']}", json={"views": [{"view": "posterior", "landmarks": {}}]}
+                     ).status_code == 422  # la evaluación no tiene esa vista
+        assert c.put("/api/evaluations/99999", json={}).status_code == 404
+
+
+def test_correct_markerless_height_rescales_all_views():
+    cal = {"vertex": {"x": 500, "y": 100}, "floor": {"x": 500, "y": 1800}}
+    with TestClient(app) as c:
+        pid = _patient(c, "Cambiar Estatura")
+        r = c.post("/api/analysis/anterior/pose", json={
+            "pose": [{"x": q.x, "y": q.y, "visibility": q.visibility} for q in frontal_pose()],
+            "height_cm": 170, "calibration": cal})
+        view = {"view": "anterior", "landmarks": r.json()["markers"], "calibration": cal, "estimated_points": ["F7"]}
+        img = _png(make_image([], size=(1900, 1000)))
+        ev = _save(c, {"patient_id": pid, "mode": "pose", "height_cm": 170, "views": [view]}, [img]).json()
+        assert ev["pending_points"] == 1
+
+        r = c.put(f"/api/evaluations/{ev['id']}", json={"height_cm": 187})
+        assert r.status_code == 200, r.text
+        assert abs(r.json()["results"][0]["scale_ratio"] - 0.11) < 1e-9 and r.json()["height_cm"] == 187
+        assert r.json()["pending_points"] == 1  # se conservan los puntos sin revisar
+
+        view["estimated_points"] = []  # el evaluador confirmó F7
+        r = c.put(f"/api/evaluations/{ev['id']}", json={"views": [view]})
+        assert r.json()["pending_points"] == 0 and r.json()["notes"] is None
