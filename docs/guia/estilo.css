@@ -1,0 +1,26 @@
+/* Estilo de la guía de uso al convertirla con Pandoc a HTML (y de ahí a PDF). */
+@page { size: A4; margin: 18mm 16mm; }
+html { font-family: "Segoe UI", "Atkinson Hyperlegible", "DejaVu Sans", Arial, sans-serif; color: #1c2321; }
+body { max-width: 46rem; margin: 0 auto; padding: 1.5rem; font-size: 10.5pt; line-height: 1.5; }
+header#title-block-header { border-bottom: 3px solid #0e7c74; margin-bottom: 1.5rem; padding-bottom: .75rem; }
+h1.title { font-size: 26pt; margin: 0; color: #0e7c74; }
+p.subtitle { font-size: 13pt; margin: .2rem 0; }
+p.date { color: #56625e; margin: 0; }
+nav#TOC { background: #f4f6f5; border-radius: 6px; padding: .5rem 1.25rem; margin-bottom: 2rem; page-break-after: always; }
+nav#TOC > ul { columns: 2; column-gap: 2rem; }
+nav#TOC ul ul { display: none; }
+nav#TOC a { color: #1c2321; text-decoration: none; }
+h1 { font-size: 17pt; color: #0e7c74; border-bottom: 1px solid #d5ddda; padding-bottom: .2rem; margin-top: 2rem;
+     page-break-after: avoid; }
+h2 { font-size: 13pt; margin-top: 1.4rem; page-break-after: avoid; }
+table { border-collapse: collapse; width: 100%; margin: .75rem 0; font-size: 9.5pt; page-break-inside: avoid; }
+th { background: #0e7c74; color: #fff; text-align: left; padding: 5px 8px; }
+td { border-bottom: 1px solid #d5ddda; padding: 5px 8px; vertical-align: top; }
+tr:nth-child(even) td { background: #f4f9f8; }
+blockquote { margin: 1rem 0; padding: .6rem 1rem; background: #fff7e6; border-left: 4px solid #f59e0b; }
+blockquote p { margin: 0; }
+code { font-family: Consolas, "DejaVu Sans Mono", monospace; font-size: 9pt; background: #eef2f1; padding: 0 3px;
+       border-radius: 3px; }
+pre { background: #1c2321; color: #e9eeec; padding: .75rem 1rem; border-radius: 6px; overflow-x: auto; }
+pre code { background: none; color: inherit; }
+a { color: #0b5550; }

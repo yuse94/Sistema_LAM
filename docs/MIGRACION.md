@@ -135,6 +135,13 @@ análisis y recálculo, editor de puntos arrastrables, pacientes básicos.
   y los nombres. Los puntos tienen el mismo tamaño en pantalla con cualquier resolución.
 - Hecho: tamaño estándar de foto en el modo sin marcadores (1600 px en el lado largo, se
   reduce en el navegador) y visor de altura fija para todas las vistas.
+- Hecho (MVP para demostración): la API sirve la interfaz compilada (un solo proceso y un solo
+  puerto); `app/launcher.py` y `Iniciar LAM.bat` la abren en el navegador con los datos en
+  `datos/`; `scripts/empaquetar.ps1` arma el paquete portable. El modelo de MediaPipe se
+  descarga al compilar y se sirve localmente, así la app funciona sin internet. Además: datos
+  del centro y logo en el reporte, evaluador y consentimiento del paciente en cada evaluación,
+  guía de captura en la app, paciente de demostración (siluetas dibujadas) y guía de uso
+  (`docs/GUIA_DE_USO.md`).
 - Pendiente: usuarios y roles por centro (con registro de quién corrigió una evaluación),
   despliegue, migraciones con Alembic y protección de datos (LOPDP).
 

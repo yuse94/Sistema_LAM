@@ -4,6 +4,15 @@
 
 En la práctica clínica, las evaluaciones de la postura se realizan como parte del examen físico. Cuando se realizan en la clínica, las evaluaciones posturales son a menudo subjetivas, y las anormalidades son inspeccionadas visualmente. Esta forma de evaluación cualitativa tiene baja sensibilidad, así como baja confiabilidad. Depende en gran medida de experiencias pasadas y de interpretaciones subjetivas. En consecuencia, se requieren instrumentos estandarizados y validados para realizar evaluaciones más precisas y sistemáticas. La postura puede evaluarse cualitativa y cuantitativamente a través de la interpretación rigurosa de imágenes fotográficas que también pueden usarse para monitorear los resultados del tratamiento. Las mediciones cuantitativas permiten a los médicos e investigadores no sólo realizar una evaluación precisa de los cambios posturales, sino también controlar la mejoría. Sin embargo, más estudios son necesarios para validar y estimar la fiabilidad de cada uno de estos sistemas.
 
+## Versión web (rama `app_web`)
+
+La aplicación se migró a una app web (FastAPI + React). Se usa desde el navegador, con o sin marcadores, y guarda el historial de cada paciente.
+
+- **Usarla en un equipo (Windows):** descomprima el paquete portable y haga doble clic en `Iniciar LAM.bat`. La primera vez necesita internet; los datos quedan en la carpeta `datos`.
+- **Generar el paquete portable:** `powershell -ExecutionPolicy Bypass -File scripts\empaquetar.ps1`.
+- **Desarrollo:** `uv run fastapi dev app/main.py` en `backend/` y `npm run dev` en `frontend/`.
+- **Documentación:** guía de uso en [docs/GUIA_DE_USO.md](docs/GUIA_DE_USO.md); stack, migración y validación en `docs/`.
+
 **Tabla de contenidos**
 
 [TOC]
