@@ -1,8 +1,14 @@
 import type {
   AssessmentConfig,
   Calibration,
+  Evaluation,
+  EvaluationCreate,
+  EvaluationSummary,
+  History,
   MarkerCountError,
   Patient,
+  PatientInput,
+  PatientListItem,
   Point,
   PointInfo,
   PosePoint,
@@ -33,6 +39,7 @@ function apiMessage(status: number, body: unknown): string {
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
+  if (res.status === 204) return undefined as T;
   const body = await res.json().catch(() => null);
   if (!res.ok) throw new ApiError(res.status, body);
   return body as T;
@@ -85,9 +92,39 @@ export const api = {
   /** Diccionario de puntos anatómicos. */
   points: () => request<PointInfo[]>("/api/points"),
 
-  patients: (q = "") => request<Patient[]>(`/api/patients?q=${encodeURIComponent(q)}`),
+  patients: (q = "") => request<PatientListItem[]>(`/api/patients?q=${encodeURIComponent(q)}`),
 
-  createPatient: (data: Omit<Patient, "id" | "created_at">) => request<Patient>("/api/patients", json(data)),
+  patient: (id: number) => request<Patient>(`/api/patients/${id}`),
+
+  createPatient: (data: PatientInput) => request<Patient>("/api/patients", json(data)),
+
+  updatePatient: (id: number, data: PatientInput) =>
+    request<Patient>(`/api/patients/${id}`, { ...json(data), method: "PUT" }),
+
+  /** Elimina al paciente con todas sus evaluaciones y fotografías. */
+  deletePatient: (id: number) => request<void>(`/api/patients/${id}`, { method: "DELETE" }),
+
+  history: (patientId: number, view: View) => request<History>(`/api/patients/${patientId}/history?view=${view}`),
+
+  /** Guarda la evaluación: una foto por vista, en el mismo orden que data.views. */
+  saveEvaluation: (data: EvaluationCreate, images: Blob[]) => {
+    const form = new FormData();
+    form.append("data", JSON.stringify(data));
+    images.forEach((img, i) => form.append("images", img, `${data.views[i].view}.jpg`));
+    return request<Evaluation>("/api/evaluations", { method: "POST", body: form });
+  },
+
+  evaluations: (patientId: number) => request<EvaluationSummary[]>(`/api/evaluations?patient_id=${patientId}`),
+
+  evaluation: (id: number) => request<Evaluation>(`/api/evaluations/${id}`),
+
+  deleteEvaluation: (id: number) => request<void>(`/api/evaluations/${id}`, { method: "DELETE" }),
+};
+
+/** Enlaces directos (descargas): los abre el navegador. */
+export const links = {
+  report: (id: number, download = false) => `/api/evaluations/${id}/report.pdf${download ? "?download=true" : ""}`,
+  excel: (patientId?: number) => `/api/evaluations/export.xlsx${patientId ? `?patient_id=${patientId}` : ""}`,
 };
 
 export function isMarkerError(e: unknown): e is ApiError<MarkerCountError> {

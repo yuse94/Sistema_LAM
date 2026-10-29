@@ -9,12 +9,12 @@
 | `main.py` → `anterior_assessment` | `backend/app/lam/views/anterior.py` | Portado |
 | `main.py` → `posterior_assessment` | `backend/app/lam/views/posterior.py` | Portado (etiquetas de tabla 2 corregidas) |
 | `main.py` → `lateral_r_assessment` | `backend/app/lam/views/lateral.py` | Portado |
-| Gráficas de matplotlib (`savefig`, `show`) | `backend/app/lam/overlay.py` + imagen en la UI | Portado |
+| Gráficas de matplotlib (`savefig`, `show`) | `backend/app/lam/overlay.py` (Pillow) + editor SVG en la UI | Portado; la cuadrícula sigue la nivelación |
 | `load_image()` (tkinter) | `POST /api/analysis/{vista}` + carga de archivo en el navegador | Portado |
 | `read_configuration` / `change_configuration` (`configuration.json`) | `AssessmentConfigIn` + página Configuración | Portado |
-| `patient.py` (`input()`) | `schemas/patient.py`, `db/models.py`, `/api/patients` | Parcial (alta y listado) |
-| `report_pdf_LAM.py` | `services/report_pdf.py` | **Pendiente** |
-| `add_db_LAM.py` (`DB_LAM.xlsx`) | Base de datos + `services/excel_export.py` | **Pendiente** |
+| `patient.py` (`input()`) | `schemas/patient.py`, `db/models.py`, `/api/patients` | Portado (alta, edición, eliminación e historial) |
+| `report_pdf_LAM.py` | `services/report_pdf.py`, `GET /api/evaluations/{id}/report.pdf` | Portado (ver fase 4) |
+| `add_db_LAM.py` (`DB_LAM.xlsx`) | Base de datos + `services/excel_export.py`, `GET /api/evaluations/export.xlsx` | Portado (ver fase 4) |
 | Fecha de caducidad de prueba (`due_date`) | — | Eliminado (el acceso se controlará con usuarios) |
 | `pyinstaller`, `hook-skimage.filters.py`, `icon.ico` | — | Ya no se necesitan en la versión web |
 
@@ -107,9 +107,28 @@ análisis y recálculo, editor de puntos arrastrables, pacientes básicos.
 - Pendiente: ejecutar `backend/validation/markerless.py` (MediaPipe contra marcadores),
   completar las estaturas reales y fotografiar laterales izquierdas reales.
 
-**Fase 4 — producto:** guardar evaluaciones, reporte PDF y exportación Excel, historial y
-comparación entre evaluaciones, usuarios y roles por centro, despliegue y protección de
-datos.
+**Fase 4 — producto (en curso):**
+- Hecho: guardar evaluaciones por paciente (`POST /api/evaluations`). La interfaz envía las
+  fotos y los puntos tal como quedaron en el editor, y el servidor vuelve a evaluar cada
+  vista (no confía en los resultados del navegador). Guarda en `storage_dir` la foto y el
+  overlay, y en la base de datos los puntos, la calibración, la línea vertical, la escala,
+  los puntos estimados sin revisar y los resultados. Edad, estatura y peso se copian a la
+  evaluación para que un reporte antiguo muestre los datos de ese momento.
+- Hecho: reporte PDF generado a pedido. Tiene una portada con los datos, los parámetros y el
+  resumen del diagnóstico, y una página por vista con la imagen y las tablas. Respecto a
+  `report_pdf_LAM.py`:
+  - la fecha es la de la evaluación;
+  - incluye la lateral izquierda, el modo de detección y la escala;
+  - avisa de los puntos estimados sin revisar;
+  - incluye las observaciones del evaluador.
+- Hecho: exportación a Excel con el formato de `DB_LAM.xlsx` (hojas Anterior, Posterior,
+  LateralD y LateralI, más enlaces al PDF y a la imagen). Cada medición lleva dirección y
+  valor. Se corrigió un error de índices de `add_db_LAM.py` que dejaba solo el ángulo en las
+  columnas «Cabeza inclinada» y «Rodilla derecha/izquierda».
+- Hecho: ficha del paciente con su historial, comparación de mediciones en el tiempo
+  (`GET /api/patients/{id}/history?view=`) y eliminación del paciente con sus fotografías.
+- Pendiente: reabrir una evaluación guardada en el editor para corregir puntos, usuarios y
+  roles por centro, despliegue, migraciones con Alembic y protección de datos (LOPDP).
 
 **Fase 5 — modelo propio:** reentrenar un modelo de pose con los puntos corregidos por los
 fisioterapeutas para detectar EIAS, EIPS, C7 y T5 automáticamente.

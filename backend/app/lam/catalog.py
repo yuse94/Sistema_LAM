@@ -256,3 +256,23 @@ def catalog() -> tuple[PointInfo, ...]:
                 position=FIGURE_POSITIONS[figure][pid], measurements=measurements, diagnostics=diagnostics,
             ))
     return tuple(points)
+
+
+@dataclass(frozen=True)
+class TableShape:
+    key: str
+    title: str
+    columns: tuple[str, str, str]
+    items: tuple[str, ...]
+
+
+@cache
+def view_shape(view: View) -> tuple[tuple[TableShape, ...], tuple[str, ...]]:
+    """Tablas (título, columnas, filas) y claves del diagnóstico que produce una vista.
+
+    Sirve para armar columnas fijas (exportación a Excel) aunque no haya evaluaciones.
+    """
+    view = View(view)
+    ev = SPECS[view].evaluate(_to_px(FIGURE_POSITIONS[FIGURE_OF_VIEW[view]]), 0.1, AssessmentConfig())
+    tables = tuple(TableShape(t.key, t.title, tuple(t.columns), tuple(r.item for r in t.rows)) for t in ev.tables)
+    return tables, tuple(ev.diagnostic)

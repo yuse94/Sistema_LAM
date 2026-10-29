@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.schemas.common import UTCDatetime
 
 
 class PatientBase(BaseModel):
@@ -17,8 +18,14 @@ class PatientBase(BaseModel):
     @field_validator("name")
     @classmethod
     def normalize_name(cls, v: str) -> str:
-        v = v.strip().title()
+        v = " ".join(v.split()).title()
         return v or "Anónimo"
+
+    @field_validator("occupation")
+    @classmethod
+    def normalize_occupation(cls, v: str | None) -> str | None:
+        v = " ".join(v.split()) if v else ""
+        return v or None
 
 
 class PatientCreate(PatientBase):
@@ -28,4 +35,9 @@ class PatientCreate(PatientBase):
 class PatientOut(PatientBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    created_at: datetime
+    created_at: UTCDatetime
+
+
+class PatientListItem(PatientOut):
+    evaluation_count: int = 0
+    last_evaluation_at: UTCDatetime | None = None

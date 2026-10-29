@@ -27,3 +27,35 @@ export const VIEW_SHORT: Record<View, string> = {
   lateral_derecha: "Lateral derecha",
   lateral_izquierda: "Lateral izquierda",
 };
+
+export const MODE_LABELS = {
+  pose: "Sin marcadores",
+  markers: "Marcadores verdes",
+} as const;
+
+const dateFmt = new Intl.DateTimeFormat("es-EC", { day: "numeric", month: "short", year: "numeric" });
+const dateTimeFmt = new Intl.DateTimeFormat("es-EC", {
+  day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+});
+
+/** Fechas de la API (UTC con zona) en hora local. */
+export const formatDate = (iso: string) => dateFmt.format(new Date(iso));
+export const formatDateTime = (iso: string) => dateTimeFmt.format(new Date(iso));
+
+export const GENDER_LABELS: Record<string, string> = { M: "Masculino", F: "Femenino" };
+
+/** Diagnóstico como texto: une la clasificación con su ángulo ("Valgo (3.2°)"). */
+export function diagnosticLines(diagnostic: Record<string, string | number | null>) {
+  return Object.entries(diagnostic)
+    .filter(([k]) => !(k.endsWith("_angulo") && k.slice(0, -7) in diagnostic))
+    .map(([k, v]) => {
+      const angle = diagnostic[`${k}_angulo`];
+      const text = v == null ? "—" : String(v);
+      return {
+        key: k,
+        label: diagnosticLabel(k),
+        value: text,
+        angle: typeof angle === "number" && v !== "N/A" ? angle : null,
+      };
+    });
+}

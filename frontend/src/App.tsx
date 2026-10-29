@@ -1,7 +1,9 @@
 import { NavLink, Route, Routes } from "react-router";
 import { cn } from "@/lib/utils";
 import Configuracion from "@/pages/Configuracion";
+import EvaluacionDetalle from "@/pages/EvaluacionDetalle";
 import NuevaEvaluacion from "@/pages/NuevaEvaluacion";
+import PacienteDetalle from "@/pages/PacienteDetalle";
 import Pacientes from "@/pages/Pacientes";
 import Puntos from "@/pages/Puntos";
 
@@ -36,7 +38,7 @@ export default function App() {
           </div>
           <div className="flex gap-1">
             {links.map((l) => (
-              <NavLink key={l.to} to={l.to} end
+              <NavLink key={l.to} to={l.to} end={l.to === "/"}
                 className={({ isActive }) => cn(
                   "rounded-md px-3 py-1.5 text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
                   isActive ? "bg-accent font-medium text-accent-foreground" : "text-muted-foreground hover:text-foreground",
@@ -52,6 +54,8 @@ export default function App() {
           <Route path="/" element={<NuevaEvaluacion />} />
           <Route path="/puntos" element={<Puntos />} />
           <Route path="/pacientes" element={<Pacientes />} />
+          <Route path="/pacientes/:id" element={<PacienteDetalle />} />
+          <Route path="/evaluaciones/:id" element={<EvaluacionDetalle />} />
           <Route path="/configuracion" element={<Configuracion />} />
         </Routes>
       </main>

@@ -97,3 +97,81 @@ export interface PointInfo {
   measurements: { table: string; item: string }[];
   diagnostics: string[];
 }
+
+export interface PatientListItem extends Patient {
+  evaluation_count: number;
+  last_evaluation_at: string | null;
+}
+
+export type PatientInput = Omit<Patient, "id" | "created_at">;
+
+/** Una vista lista para guardar: los puntos tal como quedaron en el editor. */
+export interface ViewSubmission {
+  view: View;
+  landmarks: Record<string, Point>;
+  scale_ratio?: number;
+  calibration?: Calibration | null;
+  vertical_line?: VerticalLine | null;
+  estimated_points: string[];
+}
+
+export interface EvaluationCreate {
+  patient_id: number;
+  mode: DetectionMode;
+  height_cm?: number | null;
+  config: AssessmentConfig;
+  notes?: string | null;
+  views: ViewSubmission[];
+}
+
+export interface EvaluationSummary {
+  id: number;
+  patient_id: number;
+  created_at: string;
+  mode: DetectionMode;
+  height_cm: number | null;
+  views: View[];
+  diagnostic: Partial<Record<View, Record<string, string | number | null>>>;
+  pending_points: number;
+  report_url: string;
+}
+
+export interface SavedView {
+  view: View;
+  image_url: string;
+  overlay_url: string;
+  image_width: number;
+  image_height: number;
+  markers: Record<string, Point>;
+  derived_points: Record<string, Point>;
+  calibration: Calibration | null;
+  vertical_line: VerticalLine | null;
+  scale_ratio: number;
+  roll_deg: number;
+  grid_origin: Point;
+  grid_step_px: number;
+  estimated_points: string[];
+  diagnostic: Record<string, string | number | null>;
+  tables: ResultTable[];
+}
+
+export interface Evaluation extends EvaluationSummary {
+  age: number | null;
+  weight_kg: number | null;
+  config: AssessmentConfig;
+  notes: string | null;
+  patient: Patient;
+  results: SavedView[];
+}
+
+export interface History {
+  view: View;
+  evaluations: { id: number; date: string }[];
+  tables: {
+    key: string;
+    title: string;
+    unit: string;
+    rows: { item: string; values: ({ direction: string; value: number } | null)[]; change: number | null }[];
+  }[];
+  diagnostic: { key: string; label: string; values: (string | null)[] }[];
+}
