@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import Configuracion from "@/pages/Configuracion";
 import EditarEvaluacion from "@/pages/EditarEvaluacion";
 import EvaluacionDetalle from "@/pages/EvaluacionDetalle";
+import GuiaCaptura from "@/pages/GuiaCaptura";
 import NuevaEvaluacion from "@/pages/NuevaEvaluacion";
 import PacienteDetalle from "@/pages/PacienteDetalle";
 import Pacientes from "@/pages/Pacientes";
@@ -10,6 +11,7 @@ import Puntos from "@/pages/Puntos";
 
 const links = [
   { to: "/", label: "Evaluación" },
+  { to: "/guia", label: "Guía de captura" },
   { to: "/puntos", label: "Puntos" },
   { to: "/pacientes", label: "Pacientes" },
   { to: "/configuracion", label: "Configuración" },
@@ -30,18 +32,18 @@ export default function App() {
     <div className="min-h-screen">
       <header className="border-b bg-card">
         <nav className="mx-auto flex max-w-7xl items-center gap-8 px-4 py-3 sm:px-6" aria-label="Principal">
-          <div className="flex items-center gap-2.5">
+          <div className="flex shrink-0 items-center gap-2.5">
             <PlumbMark />
             <div className="leading-tight">
               <div className="font-bold tracking-tight">Sistema LAM</div>
               <div className="text-xs text-muted-foreground">Evaluación postural</div>
             </div>
           </div>
-          <div className="flex gap-1">
+          <div className="-mx-1 flex min-w-0 gap-1 overflow-x-auto px-1">
             {links.map((l) => (
               <NavLink key={l.to} to={l.to} end={l.to === "/"}
                 className={({ isActive }) => cn(
-                  "rounded-md px-3 py-1.5 text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                  "shrink-0 rounded-md px-3 py-1.5 text-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
                   isActive ? "bg-accent font-medium text-accent-foreground" : "text-muted-foreground hover:text-foreground",
                 )}>
                 {l.label}
@@ -53,6 +55,7 @@ export default function App() {
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
         <Routes>
           <Route path="/" element={<NuevaEvaluacion />} />
+          <Route path="/guia" element={<GuiaCaptura />} />
           <Route path="/puntos" element={<Puntos />} />
           <Route path="/pacientes" element={<Pacientes />} />
           <Route path="/pacientes/:id" element={<PacienteDetalle />} />

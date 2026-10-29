@@ -34,10 +34,14 @@ class EvaluationCreate(BaseModel):
     height_cm: float | None = Field(None, ge=50, le=250)
     config: AssessmentConfigIn = AssessmentConfigIn()
     notes: str | None = Field(None, max_length=4000)
+    evaluator: str | None = Field(None, max_length=150)
+    photo_consent: bool = Field(False, description="El paciente autorizó el uso de sus fotografías")
     views: list[ViewSubmission] = Field(min_length=1, max_length=4)
 
     @model_validator(mode="after")
     def check(self):
+        if not self.photo_consent:
+            raise ValueError("Se requiere el consentimiento del paciente para guardar sus fotografías")
         names = [v.view for v in self.views]
         if len(set(names)) != len(names):
             raise ValueError("Cada vista puede enviarse una sola vez")
@@ -62,6 +66,7 @@ class ViewUpdate(BaseModel):
 class EvaluationUpdate(BaseModel):
     height_cm: float | None = Field(None, ge=50, le=250, description="Solo modo sin marcadores")
     notes: str | None = Field(None, max_length=4000)
+    evaluator: str | None = Field(None, max_length=150)
     views: list[ViewUpdate] = Field(default_factory=list, max_length=4)
 
     @model_validator(mode="after")
@@ -108,6 +113,8 @@ class EvaluationOut(EvaluationSummary):
     weight_kg: float | None
     config: AssessmentConfigIn
     notes: str | None
+    evaluator: str | None
+    photo_consent: bool | None
     patient: PatientOut
     results: list[ViewAnalysisOut]
 

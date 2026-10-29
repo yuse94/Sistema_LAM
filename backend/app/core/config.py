@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     storage_dir: Path = Path("./data/storage")
     cors_origins: list[str] = ["http://localhost:5173"]
     max_upload_mb: int = 25
+    # Interfaz compilada (npm run build). Si existe, la API también la sirve en "/":
+    # un solo proceso y un solo puerto para usar la app en un equipo local.
+    frontend_dir: Path = Path(__file__).resolve().parents[3] / "frontend" / "dist"
 
 
 @lru_cache

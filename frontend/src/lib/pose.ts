@@ -4,8 +4,8 @@ import type { Calibration, Point, PosePoint } from "./types";
 
 // Modelo "full": buen equilibrio entre precisión y velocidad. El estudio de 2026 en
 // Sensors encontró peores resultados con el modelo "heavy" para postura estática.
-const MODEL_URL =
-  "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task";
+// Servido por la propia app (scripts/copy-mediapipe.mjs lo descarga al compilar): funciona sin internet
+const MODEL_URL = "/mediapipe/pose_landmarker_full.task";
 const WASM_PATH = "/mediapipe/wasm"; // copiado por scripts/copy-mediapipe.mjs
 
 let landmarkerPromise: Promise<PoseLandmarker> | null = null;

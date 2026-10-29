@@ -29,6 +29,7 @@ def _analyze(c, view, points):
 
 
 def _save(c, payload, images):
+    payload = {"photo_consent": True, **payload}
     files = [("images", (f"{i}.jpg", img, "image/jpeg")) for i, img in enumerate(images)]
     return c.post("/api/evaluations", data={"data": json.dumps(payload)}, files=files)
 
@@ -44,13 +45,13 @@ def test_save_evaluation_with_markers_and_outputs():
         pid = _patient(c)
         ant, ant_img = _analyze(c, "anterior", ANTERIOR)
         lat, lat_img = _analyze(c, "lateral_derecha", LATERAL)
-        payload = {"patient_id": pid, "mode": "markers", "notes": "  Control inicial ",
+        payload = {"patient_id": pid, "mode": "markers", "notes": "  Control inicial ", "evaluator": "Lcda. Ruiz",
                    "config": {"tolerance_angle": 1, "tolerance_distance": 0.5}, "views": [lat, ant]}
         r = _save(c, payload, [lat_img, ant_img])
         assert r.status_code == 201, r.text
         ev = r.json()
         assert [v["view"] for v in ev["results"]] == ["anterior", "lateral_derecha"]  # orden de vistas
-        assert ev["notes"] == "Control inicial"
+        assert ev["notes"] == "Control inicial" and ev["evaluator"] == "Lcda. Ruiz" and ev["photo_consent"] is True
         assert ev["patient"]["name"] == "Ana Torres" and ev["age"] == 30
         assert len(ev["results"][0]["tables"]) == 3
         assert "postura" in ev["diagnostic"]["lateral_derecha"]
@@ -72,7 +73,7 @@ def test_save_evaluation_with_markers_and_outputs():
         assert xlsx.status_code == 200
         wb = load_workbook(io.BytesIO(xlsx.content))
         assert wb.sheetnames == ["Anterior", "Posterior", "LateralD", "LateralI"]
-        assert wb["Anterior"].cell(row=4, column=6).value == "Ana Torres"
+        assert wb["Anterior"].cell(row=4, column=7).value == "Ana Torres"
         assert wb["Posterior"].max_row == 3  # solo encabezados
         assert wb["Anterior"]["A4"].hyperlink.target.endswith(f"/api/evaluations/{ev['id']}/report.pdf")
 
@@ -210,3 +211,42 @@ def test_correct_markerless_height_rescales_all_views():
         view["estimated_points"] = []  # el evaluador confirmó F7
         r = c.put(f"/api/evaluations/{ev['id']}", json={"views": [view]})
         assert r.json()["pending_points"] == 0 and r.json()["notes"] is None
+
+
+def test_consent_is_required_and_center_data():
+    with TestClient(app) as c:
+        pid = _patient(c, "Sin Consentimiento")
+        ant, img = _analyze(c, "anterior", ANTERIOR)
+        r = _save(c, {"patient_id": pid, "mode": "markers", "photo_consent": False, "views": [ant]}, [img])
+        assert r.status_code == 422 and "consentimiento" in r.json()["detail"][0]["msg"]
+
+        assert c.get("/api/center").json()["logo_url"] is None
+        r = c.put("/api/center", json={"name": "  Centro  Habilitar ", "contact": "Cuenca", "evaluator": "Lcda. Ruiz"})
+        assert r.json()["name"] == "Centro Habilitar"
+        logo = _png(make_image([], size=(200, 400)))
+        assert c.put("/api/center/logo", files={"file": ("logo.png", logo, "image/png")}).status_code == 200
+        assert c.get("/api/center").json()["logo_url"] == "/api/center/logo"
+        assert c.get("/api/center/logo").headers["content-type"] == "image/png"
+        bad = c.put("/api/center/logo", files={"file": ("x.png", b"no es imagen", "image/png")})
+        assert bad.status_code == 422
+
+        ev = _save(c, {"patient_id": pid, "mode": "markers", "views": [ant]}, [img]).json()
+        pdf = c.get(ev["report_url"])
+        assert pdf.status_code == 200 and len(pdf.content) > 5000
+
+        assert c.delete("/api/center/logo").status_code == 204
+        assert c.get("/api/center/logo").status_code == 404
+
+
+def test_demo_patient_has_two_evaluations_to_compare():
+    with TestClient(app) as c:
+        r = c.post("/api/demo")
+        assert r.status_code == 200, r.text
+        pid = r.json()["id"]
+        assert c.post("/api/demo").json()["id"] == pid  # no se duplica
+        evs = c.get("/api/evaluations", params={"patient_id": pid}).json()
+        assert len(evs) == 2 and all(e["views"] == ["anterior", "posterior", "lateral_derecha"] for e in evs)
+        h = c.get(f"/api/patients/{pid}/history", params={"view": "lateral_derecha"}).json()
+        postura = next(d for d in h["diagnostic"] if d["key"] == "postura")["values"]
+        assert postura == ["Pelvis en Anteversión", "Pelvis en posición normal"]
+        assert c.get(evs[0]["report_url"]).status_code == 200

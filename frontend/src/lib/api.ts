@@ -1,6 +1,7 @@
 import type {
   AssessmentConfig,
   Calibration,
+  Center,
   Evaluation,
   EvaluationCreate,
   EvaluationUpdate,
@@ -73,6 +74,18 @@ export interface PoseRequest {
 export const api = {
   defaults: () => request<AssessmentConfig>("/api/config/defaults"),
 
+  center: () => request<Center>("/api/center"),
+
+  updateCenter: (data: Omit<Center, "logo_url">) => request<Center>("/api/center", { ...json(data), method: "PUT" }),
+
+  uploadLogo: (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return request<{ logo_url: string }>("/api/center/logo", { method: "PUT", body: form });
+  },
+
+  deleteLogo: () => request<void>("/api/center/logo", { method: "DELETE" }),
+
   views: () => request<ViewInfo[]>("/api/analysis/views"),
 
   /** Modo con marcadores verdes: se sube la foto. */
@@ -96,6 +109,9 @@ export const api = {
   patients: (q = "") => request<PatientListItem[]>(`/api/patients?q=${encodeURIComponent(q)}`),
 
   patient: (id: number) => request<Patient>(`/api/patients/${id}`),
+
+  /** Crea (una sola vez) el paciente de demostración con dos evaluaciones. */
+  createDemo: () => request<Patient>("/api/demo", { method: "POST" }),
 
   createPatient: (data: PatientInput) => request<Patient>("/api/patients", json(data)),
 

@@ -58,6 +58,9 @@ class ReportData:
     height_cm: float | None = None
     notes: str | None = None
     evaluation_id: int | None = None
+    evaluator: str | None = None
+    center: dict | None = None  # name, contact
+    logo_png: bytes | None = None
 
 
 def long_date(d: datetime) -> str:
@@ -80,6 +83,8 @@ def _styles():
         "head": ps("head", fontName="Helvetica-Bold", fontSize=8.5, leading=10.5, textColor=colors.white),
         "head_r": ps("head_r", fontName="Helvetica-Bold", fontSize=8.5, leading=10.5, textColor=colors.white,
                      alignment=2),
+        "center": ps("center", fontName="Helvetica-Bold", fontSize=12, leading=15, alignment=2),
+        "center_small": ps("center_small", fontSize=8.5, leading=11, textColor=MUTED, alignment=2),
         "warn": ps("warn", fontSize=9, leading=12, textColor=WARN),
     }
 
@@ -87,7 +92,7 @@ def _styles():
 class _NumberedCanvas(rl_canvas.Canvas):
     """Canvas que conoce el total de páginas para imprimir "Página x de y"."""
 
-    def __init__(self, *args, header: tuple[str, str] = ("", ""), **kwargs):
+    def __init__(self, *args, header: tuple[str, str, str] = ("", "", ""), **kwargs):
         super().__init__(*args, **kwargs)
         self._states: list[dict] = []
         self._header = header
@@ -113,14 +118,14 @@ class _NumberedCanvas(rl_canvas.Canvas):
         # Encabezado
         self.setFont("Helvetica-Bold", 8.5)
         self.setFillColor(PRIMARY)
-        self.drawString(left, h - 12 * mm, "Sistema LAM · Evaluación postural")
+        self.drawString(left, h - 12 * mm, self._header[0][:80])
         self.setFont("Helvetica", 8.5)
         self.setFillColor(MUTED)
-        self.drawRightString(right, h - 12 * mm, f"{self._header[0]} · {self._header[1]}")
+        self.drawRightString(right, h - 12 * mm, f"{self._header[1]} · {self._header[2]}")
         self.line(left, h - 14 * mm, right, h - 14 * mm)
         # Pie
         self.line(left, 14 * mm, right, 14 * mm)
-        self.drawString(left, 10 * mm, "Lectura Automática de Marcadores")
+        self.drawString(left, 10 * mm, "Sistema LAM · Lectura Automática de Marcadores")
         self.drawRightString(right, 10 * mm, f"Página {self._pageNumber} de {total}")
         self.restoreState()
 
@@ -131,8 +136,8 @@ def _kv_table(rows: list[tuple[str, str]], st, widths) -> Table:
     t.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("LINEBELOW", (0, 0), (-1, -1), 0.4, RULE),
-        ("TOPPADDING", (0, 0), (-1, -1), 3.5),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 3.5),
+        ("TOPPADDING", (0, 0), (-1, -1), 2.5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
         ("LEFTPADDING", (0, 0), (-1, -1), 0),
     ]))
     return t
@@ -193,7 +198,20 @@ def build_report(data: ReportData) -> bytes:
     gender = {"M": "Masculino", "F": "Femenino"}.get(p.get("gender") or "", "—")
     num = lambda v, u: "—" if v in (None, "") else f"{v:g} {u}"  # noqa: E731
 
-    story: list = [
+    center = data.center or {}
+    story: list = []
+    if data.logo_png or center.get("name"):
+        # Membrete: logo a la izquierda, nombre y contacto del centro a la derecha
+        right = [Paragraph(center.get("name") or "", st["center"])]
+        if center.get("contact"):
+            right.append(Paragraph(center["contact"], st["center_small"]))
+        logo = _image(data.logo_png, 55 * mm, 22 * mm) if data.logo_png else ""
+        head = Table([[logo, right]], colWidths=[width * 0.4, width * 0.6], hAlign="LEFT")
+        head.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                                  ("RIGHTPADDING", (0, 0), (-1, -1), 0), ("LINEBELOW", (0, 0), (-1, -1), 0.6, RULE),
+                                  ("BOTTOMPADDING", (0, 0), (-1, -1), 6)]))
+        story += [head, Spacer(1, 6 * mm)]
+    story += [
         Paragraph("Reporte de evaluación postural", st["title"]),
         Paragraph(f"{long_date(data.date)} · {data.date:%H:%M}"
                   + (f" · Evaluación N.º {data.evaluation_id}" if data.evaluation_id else ""), st["subtitle"]),
@@ -212,6 +230,7 @@ def build_report(data: ReportData) -> bytes:
         ("Detección", MODE_LABELS.get(data.mode, data.mode)), ("Escala", scale),
         ("Tolerancia angular", f"{cfg.get('tolerance_angle', 0):g}°"),
         ("Tolerancia de distancia", f"{cfg.get('tolerance_distance', 0):g} cm"),
+        ("Evaluador", data.evaluator or "—"),
     ], st, width))
 
     story.append(Paragraph("Resumen del diagnóstico", st["h2"]))
@@ -254,9 +273,11 @@ def build_report(data: ReportData) -> bytes:
         story += [layout, CondPageBreak(15 * mm), Paragraph(DIRECTION_LEGEND, st["small"])]
 
     buf = io.BytesIO()
-    header = (p.get("name") or "Anónimo", data.date.strftime("%d/%m/%Y"))
+    header = (center.get("name") or "Sistema LAM · Evaluación postural", p.get("name") or "Anónimo",
+              data.date.strftime("%d/%m/%Y"))
     doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=margin, rightMargin=margin, topMargin=20 * mm,
-                            bottomMargin=20 * mm, title=f"Evaluación postural - {header[0]}", author="Sistema LAM",
+                            bottomMargin=20 * mm, title=f"Evaluación postural - {header[1]}",
+                            author=data.evaluator or center.get("name") or "Sistema LAM",
                             subject="Reporte de evaluación postural")
     doc.build(story, canvasmaker=lambda *a, **k: _NumberedCanvas(*a, header=header, **k))
     return buf.getvalue()

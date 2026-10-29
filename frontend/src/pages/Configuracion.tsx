@@ -1,4 +1,5 @@
 import { useState } from "react";
+import CenterSettings from "@/components/CenterSettings";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -29,8 +30,16 @@ export default function Configuracion() {
 
   return (
     <div className="max-w-xl space-y-6">
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Configuración</h1>
+      <section aria-labelledby="centro" className="space-y-3">
+        <div className="space-y-1">
+          <h2 id="centro" className="text-lg font-bold tracking-tight">Datos del centro</h2>
+          <p className="text-muted-foreground">Aparecen en el encabezado del reporte PDF.</p>
+        </div>
+        <div className="rounded-lg border bg-card p-5"><CenterSettings /></div>
+      </section>
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Configuración del análisis</h1>
+        <h2 className="text-lg font-bold tracking-tight">Análisis</h2>
         <p className="text-muted-foreground">Los cambios se guardan en este navegador y se aplican a la próxima fotografía o recálculo.</p>
       </div>
       <div className="space-y-6 rounded-lg border bg-card p-5">

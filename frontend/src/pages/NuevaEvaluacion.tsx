@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, RefreshCw, Ruler, Save, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import LandmarkEditor, { STAGE_HEIGHT, type EditorState } from "@/components/LandmarkEditor";
 import PatientPicker from "@/components/PatientPicker";
 import PointCard from "@/components/PointCard";
@@ -9,6 +9,7 @@ import PointLegend from "@/components/PointLegend";
 import ViewResults from "@/components/ViewResults";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,6 +37,14 @@ const PHOTO_HINTS: Record<View, string> = {
 
 const validHeight = (h: number) => h >= 50 && h <= 250;
 
+const EVALUATOR_KEY = "lam.evaluador";
+const readStored = (key: string) => {
+  try { return localStorage.getItem(key) ?? ""; } catch { return ""; }
+};
+const writeStored = (key: string, value: string) => {
+  try { localStorage.setItem(key, value); } catch { /* almacenamiento no disponible */ }
+};
+
 type PanelStatus = { kind: "empty" } | { kind: "review"; pending: number } | { kind: "done" };
 
 /**
@@ -50,6 +59,12 @@ export default function NuevaEvaluacion() {
   const presetId = Number(params.get("paciente")) || null;
   const [patient, setPatient] = useState<Patient | null>(null);
   const [notes, setNotes] = useState("");
+  const [evaluator, setEvaluator] = useState(() => readStored(EVALUATOR_KEY));
+  const [consent, setConsent] = useState(false);
+  const center = useQuery({ queryKey: ["center"], queryFn: api.center, staleTime: 60_000 });
+  useEffect(() => {
+    if (center.data?.evaluator) setEvaluator((cur) => cur || center.data.evaluator);
+  }, [center.data]);
   const panels = useRef<Partial<Record<View, PanelData>>>({});
   const [loadedViews, setLoadedViews] = useState<View[]>([]);
   const { data: views = [] } = useQuery({ queryKey: ["views"], queryFn: api.views, staleTime: Infinity });
@@ -81,7 +96,8 @@ export default function NuevaEvaluacion() {
   const pendingPoints = loadedViews.reduce((n, v) => n + (panels.current[v]?.estimated.length ?? 0), 0);
   const blocker = !patient ? "Seleccione el paciente."
     : loadedViews.length === 0 ? "Cargue al menos una fotografía."
-      : mode === "pose" && !validHeight(heightCm) ? "Ingrese la estatura del paciente." : null;
+      : mode === "pose" && !validHeight(heightCm) ? "Ingrese la estatura del paciente."
+        : !consent ? "Confirme el consentimiento del paciente." : null;
 
   const save = useMutation({
     mutationFn: async () => {
@@ -92,6 +108,8 @@ export default function NuevaEvaluacion() {
         height_cm: mode === "pose" ? heightCm : null,
         config: loadConfig(),
         notes: notes.trim() || null,
+        evaluator: evaluator.trim() || null,
+        photo_consent: consent,
         views: views.map((d) => ({
           view: d.result.view,
           landmarks: d.editor.markers,
@@ -107,6 +125,7 @@ export default function NuevaEvaluacion() {
       return api.saveEvaluation(data, images);
     },
     onSuccess: (ev) => {
+      writeStored(EVALUATOR_KEY, evaluator.trim());
       qc.invalidateQueries({ queryKey: ["patients"] });
       qc.invalidateQueries({ queryKey: ["evaluations", ev.patient_id] });
       navigate(`/evaluaciones/${ev.id}`);
@@ -119,7 +138,8 @@ export default function NuevaEvaluacion() {
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Evaluación postural</h1>
         <p className="text-muted-foreground">
           Cargue una fotografía por vista, revise cada punto sobre la imagen y arrástrelo si no coincide con el
-          punto anatómico. Las tablas se recalculan al soltarlo.
+          punto anatómico. Las tablas se recalculan al soltarlo.{" "}
+          <Link to="/guia" className="text-primary underline-offset-4 hover:underline">¿Cómo tomar las fotos?</Link>
         </p>
       </div>
 
@@ -176,10 +196,26 @@ export default function NuevaEvaluacion() {
       </Tabs>
 
       <section aria-label="Guardar evaluación" className="grid gap-4 rounded-lg border bg-card px-4 py-4 sm:px-5 lg:grid-cols-[1fr_auto]">
-        <div className="space-y-2">
-          <Label htmlFor="observaciones">Observaciones</Label>
-          <Textarea id="observaciones" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={4000}
-            placeholder="Motivo de consulta, hallazgos o indicaciones (aparecen en el reporte)" className="min-h-20" />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="observaciones">Observaciones</Label>
+            <Textarea id="observaciones" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={4000}
+              placeholder="Motivo de consulta, hallazgos o indicaciones (aparecen en el reporte)" className="min-h-20" />
+          </div>
+          <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="evaluador">Evaluador</Label>
+              <Input id="evaluador" value={evaluator} onChange={(e) => setEvaluator(e.target.value)} maxLength={150}
+                placeholder="Nombre del fisioterapeuta" className="w-64" />
+            </div>
+            <div className="flex max-w-md items-start gap-2.5 pb-1">
+              <Checkbox id="consentimiento" checked={consent} onCheckedChange={(v) => setConsent(v === true)}
+                className="mt-0.5" />
+              <Label htmlFor="consentimiento" className="leading-snug font-normal">
+                El paciente autoriza la toma y el almacenamiento de sus fotografías para esta evaluación postural.
+              </Label>
+            </div>
+          </div>
         </div>
         <div className="flex flex-col justify-end gap-2 lg:min-w-64">
           <p className="text-sm text-muted-foreground">

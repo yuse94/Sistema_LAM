@@ -121,6 +121,8 @@ export interface EvaluationCreate {
   height_cm?: number | null;
   config: AssessmentConfig;
   notes?: string | null;
+  evaluator?: string | null;
+  photo_consent: boolean;
   views: ViewSubmission[];
 }
 
@@ -160,6 +162,8 @@ export interface Evaluation extends EvaluationSummary {
   weight_kg: number | null;
   config: AssessmentConfig;
   notes: string | null;
+  evaluator: string | null;
+  photo_consent: boolean | null;
   patient: Patient;
   results: SavedView[];
 }
@@ -179,5 +183,14 @@ export interface History {
 export interface EvaluationUpdate {
   height_cm?: number | null;
   notes?: string | null;
+  evaluator?: string | null;
   views: Omit<ViewSubmission, "scale_ratio">[];
+}
+
+/** Datos del centro: encabezado del reporte PDF. */
+export interface Center {
+  name: string;
+  contact: string;
+  evaluator: string; // se propone en cada evaluación
+  logo_url: string | null;
 }

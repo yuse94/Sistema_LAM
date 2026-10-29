@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { FileSpreadsheet, Search, UserPlus } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FileSpreadsheet, Search, Sparkles, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import PatientDialog from "@/components/PatientDialog";
@@ -15,6 +15,14 @@ export default function Pacientes() {
   const [q, setQ] = useState("");
   const [creating, setCreating] = useState(false);
   const { data = [], isLoading, error } = useQuery({ queryKey: ["patients", q], queryFn: () => api.patients(q) });
+  const qc = useQueryClient();
+  const demo = useMutation({
+    mutationFn: api.createDemo,
+    onSuccess: (p) => {
+      qc.invalidateQueries({ queryKey: ["patients"] });
+      navigate(`/pacientes/${p.id}`);
+    },
+  });
 
   return (
     <div className="space-y-6">
@@ -24,6 +32,11 @@ export default function Pacientes() {
           <p className="text-muted-foreground">Fichas de los pacientes y sus evaluaciones posturales.</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {data.length > 0 && !q && !data.some((p) => p.name === "Paciente De Demostración") && (
+            <Button variant="ghost" onClick={() => demo.mutate()} disabled={demo.isPending}>
+              <Sparkles /> Paciente de demostración
+            </Button>
+          )}
           <Button variant="outline" asChild>
             <a href={links.excel()} download><FileSpreadsheet /> Exportar a Excel</a>
           </Button>
@@ -72,6 +85,15 @@ export default function Pacientes() {
                 <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                   {error ? "No se pudo cargar la lista. Verifique que el servidor esté en ejecución."
                     : q ? `Ningún paciente coincide con "${q}".` : "Aún no hay pacientes registrados."}
+                  {!error && !q && (
+                    <div className="mt-4 flex flex-col items-center gap-2">
+                      <Button variant="outline" onClick={() => demo.mutate()} disabled={demo.isPending}>
+                        <Sparkles /> {demo.isPending ? "Creando…" : "Cargar paciente de demostración"}
+                      </Button>
+                      <span className="text-xs">Dos evaluaciones de ejemplo con siluetas dibujadas, para conocer la app.</span>
+                      {demo.error && <span className="text-xs text-destructive">{demo.error.message}</span>}
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             )}

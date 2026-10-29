@@ -20,6 +20,7 @@ export default function EvaluacionDetalle() {
 
   const facts = [
     MODE_LABELS[ev.mode],
+    ev.evaluator ? `Evaluador: ${ev.evaluator}` : null,
     ev.height_cm ? `Estatura ${ev.height_cm} cm` : null,
     `Tolerancias ${ev.config.tolerance_angle}° · ${ev.config.tolerance_distance} cm`,
   ].filter(Boolean);

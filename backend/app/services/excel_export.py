@@ -47,6 +47,7 @@ class ExcelRow:
     diagnostic: dict
     tables: list[dict]  # {title, columns, rows: [{item, direction, value}]}
     height_cm: float | None = None
+    evaluator: str | None = None
     report_url: str | None = None
     image_url: str | None = None
     extra: dict = field(default_factory=dict)
@@ -60,7 +61,7 @@ CENTER = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
 BASE_GROUPS = (
     ("Enlaces", ("Reporte", "Imagen")),
-    ("Evaluación", ("N.º", "Fecha", "Detección")),
+    ("Evaluación", ("N.º", "Fecha", "Detección", "Evaluador")),
     ("Paciente", ("Nombre", "Edad", "Género", "Talla [cm]", "Peso [kg]", "Ocupación")),
 )
 
@@ -114,7 +115,7 @@ def _write_sheet(ws, layout: SheetLayout, rows: list[ExcelRow]) -> None:
         diag = {k: text for k, _, text in diagnostic_lines(row.diagnostic)}
         values = [
             None, None, row.evaluation_id, row.date.replace(tzinfo=None), MODE_LABELS.get(row.mode, row.mode),
-            p.get("name"), p.get("age"), p.get("gender"), row.height_cm or p.get("height_cm"), p.get("weight_kg"),
+            row.evaluator, p.get("name"), p.get("age"), p.get("gender"), row.height_cm or p.get("height_cm"), p.get("weight_kg"),
             p.get("occupation"),
         ] + [diag.get(k) for k, _ in diag_cols]
         for c, v in enumerate(values, start=1):
@@ -136,11 +137,11 @@ def _write_sheet(ws, layout: SheetLayout, rows: list[ExcelRow]) -> None:
                     cell.number_format = "0.00"
                 c += 2
 
-    widths = [8, 9, 6, 16, 18, 26, 6, 7, 9, 9, 18] + [16] * len(diag_cols)
+    widths = [8, 9, 6, 16, 18, 18, 26, 6, 7, 9, 9, 18] + [16] * len(diag_cols)
     for i in range(1, last_col + 1):
         ws.column_dimensions[get_column_letter(i)].width = widths[i - 1] if i <= len(widths) else 8
     ws.row_dimensions[2].height = 32
-    ws.freeze_panes = ws.cell(row=4, column=7)  # fijos: encabezados y columnas hasta el nombre
+    ws.freeze_panes = ws.cell(row=4, column=8)  # fijos: encabezados y columnas hasta el nombre
     if rows:
         ws.auto_filter.ref = f"A3:{get_column_letter(last_col)}{3 + len(rows)}"
 

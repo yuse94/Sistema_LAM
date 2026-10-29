@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .session import Base
@@ -49,6 +49,9 @@ class Evaluation(Base):
     weight_kg: Mapped[float | None] = mapped_column(Float)
     config: Mapped[dict] = mapped_column(JSON)  # AssessmentConfig usado
     notes: Mapped[str | None] = mapped_column(Text)
+    evaluator: Mapped[str | None] = mapped_column(String(150))
+    # El paciente autorizó el uso de sus fotografías (se exige al guardar; None en evaluaciones antiguas)
+    photo_consent: Mapped[bool | None] = mapped_column(Boolean)
 
     patient: Mapped[Patient] = relationship(back_populates="evaluations")
     views: Mapped[list[ViewAnalysis]] = relationship(back_populates="evaluation", cascade="all, delete-orphan",

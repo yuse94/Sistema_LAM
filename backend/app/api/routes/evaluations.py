@@ -28,7 +28,7 @@ from app.schemas.assessment import AssessmentConfigIn, CalibrationIn, Point, Res
 from app.schemas.common import as_utc
 from app.schemas.evaluation import EvaluationCreate, EvaluationOut, EvaluationSummary, EvaluationUpdate, ViewAnalysisOut
 from app.schemas.patient import PatientOut
-from app.services import images, storage
+from app.services import center, images, storage
 from app.services.excel_export import ExcelRow, SheetLayout, TableLayout, build_workbook
 from app.services.report_pdf import ReportData, ReportView, build_report
 
@@ -74,7 +74,8 @@ def _view_out(e: Evaluation, v: ViewAnalysis) -> ViewAnalysisOut:
 def _out(e: Evaluation) -> EvaluationOut:
     return EvaluationOut(
         **_summary(e).model_dump(), age=e.age, weight_kg=e.weight_kg, config=AssessmentConfigIn(**e.config),
-        notes=e.notes, patient=PatientOut.model_validate(e.patient), results=[_view_out(e, v) for v in e.views],
+        notes=e.notes, evaluator=e.evaluator, photo_consent=e.photo_consent,
+        patient=PatientOut.model_validate(e.patient), results=[_view_out(e, v) for v in e.views],
     )
 
 
@@ -170,7 +171,8 @@ async def create_evaluation(data: str = Form(..., description="EvaluationCreate 
     evaluation = Evaluation(
         patient=patient, mode=payload.mode, age=patient.age, height_cm=payload.height_cm or patient.height_cm,
         weight_kg=patient.weight_kg, config=payload.config.model_dump(),
-        notes=(payload.notes or "").strip() or None,
+        notes=(payload.notes or "").strip() or None, evaluator=(payload.evaluator or "").strip() or None,
+        photo_consent=payload.photo_consent,
     )
     db.add(evaluation)
     db.flush()  # asigna el id para la carpeta de archivos
@@ -249,6 +251,8 @@ def update_evaluation(evaluation_id: int, data: EvaluationUpdate, db: Session = 
         e.height_cm = data.height_cm
     if "notes" in data.model_fields_set:
         e.notes = (data.notes or "").strip() or None
+    if "evaluator" in data.model_fields_set:
+        e.evaluator = (data.evaluator or "").strip() or None
     db.commit()
     return _out(_get(db, evaluation_id))
 
@@ -287,6 +291,7 @@ def export_xlsx(request: Request, patient_id: int | None = None, db: Session = D
         for v in e.views:
             rows.append(ExcelRow(
                 view=v.view, evaluation_id=e.id, date=_local(e.created_at), mode=e.mode, patient=patient,
+                evaluator=e.evaluator,
                 diagnostic=v.diagnostic, tables=v.tables, height_cm=e.height_cm,
                 report_url=f"{base}/api/evaluations/{e.id}/report.pdf",
                 image_url=f"{base}{_file_url(e.id, v.view, 'overlay')}",
@@ -342,7 +347,7 @@ def report_pdf(evaluation_id: int, download: bool = False, db: Session = Depends
         patient={"name": p.name, "age": e.age, "gender": p.gender, "height_cm": e.height_cm,
                  "weight_kg": e.weight_kg, "occupation": p.occupation},
         date=_local(e.created_at), mode=e.mode, config=e.config, height_cm=e.height_cm, notes=e.notes,
-        evaluation_id=e.id,
+        evaluation_id=e.id, evaluator=e.evaluator, center=center.load().model_dump(), logo_png=center.logo(),
         views=[ReportView(view=v.view, diagnostic=v.diagnostic, tables=v.tables,
                           overlay_jpeg=storage.read(v.overlay_path), estimated_points=v.estimated_points or [],
                           scale_ratio=v.scale_ratio, roll_deg=v.roll_deg) for v in e.views],

@@ -48,6 +48,7 @@ function Editor({ ev }: { ev: Evaluation }) {
 
   const [heightCm, setHeightCm] = useState<number>(ev.height_cm ?? NaN);
   const [notes, setNotes] = useState(ev.notes ?? "");
+  const [evaluator, setEvaluator] = useState(ev.evaluator ?? "");
   const [panels, setPanels] = useState<Partial<Record<View, PanelState>>>(() =>
     Object.fromEntries(ev.results.map((r) => [r.view, {
       editor: { markers: r.markers, calibration: r.calibration, verticalLine: r.vertical_line },
@@ -64,6 +65,7 @@ function Editor({ ev }: { ev: Evaluation }) {
     mutationFn: () => api.updateEvaluation(ev.id, {
       height_cm: pose ? heightCm : null,
       notes: notes.trim() || null,
+      evaluator: evaluator.trim() || null,
       views: ev.results.map(({ view }) => {
         const p = panels[view]!;
         return {
@@ -110,10 +112,17 @@ function Editor({ ev }: { ev: Evaluation }) {
             {heightInvalid && <p className="text-sm text-destructive">Entre 50 y 250 cm.</p>}
           </div>
         )}
-        <div className="space-y-2">
-          <Label htmlFor="observaciones">Observaciones</Label>
-          <Textarea id="observaciones" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={4000}
-            className="min-h-16" />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="observaciones">Observaciones</Label>
+            <Textarea id="observaciones" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={4000}
+              className="min-h-16" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="evaluador">Evaluador</Label>
+            <Input id="evaluador" value={evaluator} onChange={(e) => setEvaluator(e.target.value)} maxLength={150}
+              className="w-64" />
+          </div>
         </div>
       </section>
 
