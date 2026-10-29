@@ -43,14 +43,13 @@ export default function GuiaCaptura() {
           <li>Pida autorización para fotografiarlo; la app la registra al guardar.</li>
         </Card>
         <Card icon={<Ruler />} title="Referencias">
-          <li>
-            <b>Sin marcadores:</b> mida la <b>estatura</b> del paciente (es la escala). Deje visible algo vertical,
-            como el marco de una puerta o una plomada, para usar la herramienta «Línea vertical».
-          </li>
-          <li>
-            <b>Con marcadores verdes:</b> coloque las referencias R1 y R2 separadas exactamente 100 cm y <b>en el mismo
-            plano que el paciente</b> (no en la pared del fondo): si quedan más lejos, la escala se exagera.
-          </li>
+          <li className="list-none -ml-5 font-medium text-foreground">Sin marcadores</li>
+          <li>Mida la <b>estatura</b> del paciente: es la escala de las mediciones.</li>
+          <li>Deje visible algo vertical (marco de puerta o plomada) para usar la herramienta «Línea vertical».</li>
+          <li className="list-none -ml-5 pt-2 font-medium text-foreground">Con marcadores verdes</li>
+          <li>Coloque R1 y R2 separadas <b>exactamente 100 cm</b>.</li>
+          <li>Póngalas <b>en el mismo plano que el paciente</b>, no en la pared del fondo: si quedan más lejos, la
+            escala se exagera.</li>
         </Card>
       </div>
 
@@ -70,7 +69,7 @@ export default function GuiaCaptura() {
         <h2 id="revisar" className="flex items-center gap-2 text-lg font-bold tracking-tight">
           <TriangleAlert className="size-5 text-point-estimated" aria-hidden="true" /> Al revisar los puntos
         </h2>
-        <ul className="space-y-2 text-sm">
+        <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed marker:text-point-estimated">
           <li>Los puntos <b className="text-amber-700">ámbar</b> son estimados: ubíquelos sobre la referencia anatómica (EIAS, EIPS, C7, T5…).
             Toque un punto para ver su definición.</li>
           <li>Use el zoom (rueda o pellizco), la lupa que aparece al arrastrar y las flechas del teclado para el ajuste fino.</li>
@@ -90,7 +89,7 @@ function Card({ icon, title, children }: { icon: ReactNode; title: string; child
       <h2 className="mb-3 flex items-center gap-2 font-bold tracking-tight [&_svg]:size-5 [&_svg]:text-primary">
         {icon} {title}
       </h2>
-      <ul className="space-y-2 text-sm [&_li]:flex [&_li]:gap-2 [&_li]:before:mt-1.5 [&_li]:before:size-1.5 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-primary/60 [&_li]:before:content-['']">
+      <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed marker:text-primary/70 [&_b]:font-semibold">
         {children}
       </ul>
     </section>
@@ -124,11 +123,12 @@ function SetupDiagram() {
         <circle cx="104" cy="114" r="5" className="fill-primary-foreground" />
         {/* Altura */}
         <g className="stroke-muted-foreground" strokeWidth="1.5">
-          <line x1="40" y1="114" x2="40" y2="200" />
-          <line x1="34" y1="114" x2="46" y2="114" />
-          <line x1="34" y1="200" x2="46" y2="200" />
+          <line x1="132" y1="114" x2="132" y2="200" />
+          <line x1="126" y1="114" x2="138" y2="114" />
+          <line x1="126" y1="200" x2="138" y2="200" />
         </g>
-        <text x="30" y="160" textAnchor="end" className="fill-foreground text-[13px]">90–100 cm</text>
+        <text x="142" y="156" className="fill-foreground text-[13px] font-medium">90–100 cm</text>
+        <text x="142" y="172" className="fill-muted-foreground text-[11px]">altura de la cadera</text>
         {/* Distancia */}
         <g className="stroke-muted-foreground" strokeWidth="1.5">
           <line x1="110" y1="218" x2="505" y2="218" />
