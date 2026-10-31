@@ -175,6 +175,27 @@ export default function NuevaEvaluacion() {
               ? "La estatura debe estar entre 50 y 250 cm."
               : "La estatura define la escala en centímetros junto con el vértice y el suelo marcados en la foto."}
         </p>
+
+        <div className="flex w-full flex-wrap items-end gap-x-8 gap-y-4 border-t pt-4">
+          <div className="space-y-2">
+            <Label htmlFor="evaluador">Evaluador</Label>
+            <Input id="evaluador" value={evaluator} onChange={(e) => setEvaluator(e.target.value)} maxLength={150}
+              placeholder="Nombre del fisioterapeuta" className="w-64" />
+          </div>
+          <div className="flex max-w-md items-start gap-2.5 pb-1">
+            <Checkbox id="consentimiento" checked={consent} onCheckedChange={(v) => setConsent(v === true)}
+              className="mt-0.5" />
+            <Label htmlFor="consentimiento" className="leading-snug font-normal">
+              El paciente autoriza la toma y el almacenamiento de sus fotografías para esta evaluación postural.
+            </Label>
+          </div>
+        </div>
+
+        <div className="w-full space-y-2">
+          <Label htmlFor="observaciones">Observaciones</Label>
+          <Textarea id="observaciones" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={4000}
+            placeholder="Motivo de consulta, hallazgos o indicaciones (aparecen en el reporte)" className="min-h-20" />
+        </div>
       </section>
 
       <Tabs defaultValue="anterior">
@@ -195,29 +216,16 @@ export default function NuevaEvaluacion() {
         ))}
       </Tabs>
 
-      <section aria-label="Guardar evaluación" className="grid gap-4 rounded-lg border bg-card px-4 py-4 sm:px-5 lg:grid-cols-[1fr_auto]">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="observaciones">Observaciones</Label>
-            <Textarea id="observaciones" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={4000}
-              placeholder="Motivo de consulta, hallazgos o indicaciones (aparecen en el reporte)" className="min-h-20" />
-          </div>
-          <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="evaluador">Evaluador</Label>
-              <Input id="evaluador" value={evaluator} onChange={(e) => setEvaluator(e.target.value)} maxLength={150}
-                placeholder="Nombre del fisioterapeuta" className="w-64" />
-            </div>
-            <div className="flex max-w-md items-start gap-2.5 pb-1">
-              <Checkbox id="consentimiento" checked={consent} onCheckedChange={(v) => setConsent(v === true)}
-                className="mt-0.5" />
-              <Label htmlFor="consentimiento" className="leading-snug font-normal">
-                El paciente autoriza la toma y el almacenamiento de sus fotografías para esta evaluación postural.
-              </Label>
-            </div>
-          </div>
+      <section aria-label="Guardar evaluación"
+        className="flex flex-col gap-3 rounded-lg border bg-card px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="flex flex-col gap-2 sm:order-2 sm:items-end">
+          <Button size="lg" onClick={() => save.mutate()} disabled={!!blocker || save.isPending}>
+            <Save /> {save.isPending ? "Guardando…" : "Guardar evaluación"}
+          </Button>
+          {blocker && <p className="text-sm text-muted-foreground">{blocker}</p>}
+          {save.error && <p className="text-sm text-destructive">No se pudo guardar: {save.error.message}</p>}
         </div>
-        <div className="flex flex-col justify-end gap-2 lg:min-w-64">
+        <div className="sm:order-1">
           <p className="text-sm text-muted-foreground">
             {loadedViews.length
               ? `${loadedViews.length} ${loadedViews.length === 1 ? "vista lista" : "vistas listas"}: ${loadedViews.map((v) => VIEW_SHORT[v].toLowerCase()).join(", ")}.`
@@ -229,11 +237,6 @@ export default function NuevaEvaluacion() {
               </span>
             )}
           </p>
-          <Button size="lg" onClick={() => save.mutate()} disabled={!!blocker || save.isPending}>
-            <Save /> {save.isPending ? "Guardando…" : "Guardar evaluación"}
-          </Button>
-          {blocker && <p className="text-sm text-muted-foreground">{blocker}</p>}
-          {save.error && <p className="text-sm text-destructive">No se pudo guardar: {save.error.message}</p>}
         </div>
       </section>
     </div>
